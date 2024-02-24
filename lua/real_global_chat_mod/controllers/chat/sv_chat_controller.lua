@@ -1,7 +1,6 @@
 hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 	text = string.Trim(text)
 	if #text == 0 then return end
-
 	local command_text_lines = string.Split(string.Trim(string.lower(text)):gsub('%s+', ' '), ' ')
 
 	if command_text_lines[1] == '/rgchat' then
@@ -14,6 +13,7 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 		if ply:IsAdmin() or ply:IsSuperAdmin() then
 			local new_cvar = GetConVar('sv_real_global_chat_sync_players'):GetInt() == 1 and 0 or 1
 			RunConsoleCommand('sv_real_global_chat_sync_players', new_cvar)
+
 			if new_cvar == 1 then
 				ply:ChatPrint('ON - You will now see the other players')
 			else
@@ -26,9 +26,14 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 
 	if command_text_lines[1] == '/rgchatwslimit' then
 		local new_size = command_text_lines[2] and tonumber(command_text_lines[2]) or 100
-		if new_size < 0 then new_size = 0 end
+
+		if new_size < 0 then
+			new_size = 0
+		end
+
 		ply:ConCommand('cl_real_global_chat_download_model_size_limit ' .. new_size)
 		ply:ChatPrint('[RGChat] New workshop download limit: ' .. tostring(new_size) .. ' mb')
+
 		return ''
 	end
 
@@ -111,6 +116,7 @@ do
 			load_queue[ply] = nil
 			net.Start('RealGlobalChatSpawnMessage')
 			net.Send(ply)
+
 			if not first_start then
 				hook.Run('RGchat.FirstStart')
 				first_start = true

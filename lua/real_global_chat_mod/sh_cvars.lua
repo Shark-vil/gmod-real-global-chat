@@ -10,11 +10,13 @@ if CLIENT then
 	concommand.Add('rgchat_switch', function()
 		local lang = RealGloabalChat.Values.Language
 		local status_value = GetConVar('cl_real_global_chat_status'):GetInt() == 1 and 0 or 1
+
 		if status_value == 0 then
 			LocalPlayer():ChatPrint(lang['rgchat_off'])
 		else
 			LocalPlayer():ChatPrint(lang['rgchat_on'])
 		end
+
 		RunConsoleCommand('cl_real_global_chat_status', status_value)
 	end)
 else

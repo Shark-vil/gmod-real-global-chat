@@ -1,5 +1,6 @@
 local lang = GetConVar('cl_language'):GetString()
 local lang_data = {}
+
 if lang == 'russian' then
 	lang_data['rgchat_info'] = '[RGC Инфо]'
 	lang_data['chat_status_off'] = 'Вы отключили глобальный чат.'
@@ -20,9 +21,9 @@ if lang == 'russian' then
 	lang_data['rgchat_ping_sfx_on'] = 'Вы ВКЛЮЧИЛИ звук пинга.'
 	lang_data['rgchat_ping_sfx_off'] = 'Вы ОТКЛЮЧИЛИ звук пинга.'
 	lang_data['rgchat_mapname_off'] = 'Вы отключили отображение карт в никнеймах.'
-	lang_data['rgchat_mapname_on'] =  'Вы включили отображение карт в никнеймах.'
+	lang_data['rgchat_mapname_on'] = 'Вы включили отображение карт в никнеймах.'
 	lang_data['failed_check_info'] = 'Не удалось проверить информацию о дополнении.'
-	lang_data['outdated_version'] =  'У вас установлена старая версия. Перезапустите игру чтобы обновить аддон.'
+	lang_data['outdated_version'] = 'У вас установлена старая версия. Перезапустите игру чтобы обновить аддон.'
 elseif lang == 'polish' then
 	-- Credits: the text translated - Rydzyk 
 	lang_data['rgchat_info'] = '[RGC Info]'
@@ -44,9 +45,9 @@ elseif lang == 'polish' then
 	lang_data['rgchat_ping_sfx_on'] = 'Włączyłeś dzwięk powiadomienia.'
 	lang_data['rgchat_ping_sfx_off'] = 'Wyłączyłeś dzwięk powiadomienia.'
 	lang_data['rgchat_mapname_off'] = 'Wyłączono wyświetlanie map w pseudonimach.'
-	lang_data['rgchat_mapname_on'] =  'Włączono wyświetlanie map w pseudonimach.'
+	lang_data['rgchat_mapname_on'] = 'Włączono wyświetlanie map w pseudonimach.'
 	lang_data['failed_check_info'] = 'Nie udało się sprawdzić informacji o dodatku.'
-	lang_data['outdated_version'] =  'Masz zainstalowaną starą wersję. Uruchom ponownie grę, aby zaktualizować dodatek.'
+	lang_data['outdated_version'] = 'Masz zainstalowaną starą wersję. Uruchom ponownie grę, aby zaktualizować dodatek.'
 else
 	lang_data['rgchat_info'] = '[RGC Info]'
 	lang_data['chat_status_off'] = 'You turned off global chat.'
@@ -67,9 +68,9 @@ else
 	lang_data['rgchat_ping_sfx_on'] = 'You turned ON the ping sound.'
 	lang_data['rgchat_ping_sfx_off'] = 'You turned OFF the ping sound.'
 	lang_data['rgchat_mapname_off'] = 'You disabled the display of maps in nicknames.'
-	lang_data['rgchat_mapname_on'] =  'You enabled the display of maps in nicknames.'
+	lang_data['rgchat_mapname_on'] = 'You enabled the display of maps in nicknames.'
 	lang_data['failed_check_info'] = 'Failed to check addon information.'
-	lang_data['outdated_version'] =  'You have an old version installed. Restart the game to update the addon.'
+	lang_data['outdated_version'] = 'You have an old version installed. Restart the game to update the addon.'
 end
 
 RealGloabalChat.Values.Language = lang_data

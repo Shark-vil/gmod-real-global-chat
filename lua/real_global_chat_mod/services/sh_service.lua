@@ -16,8 +16,6 @@ local string_GetExtensionFromFilename = string.GetExtensionFromFilename
 local table_insert = table.insert
 local game_GetMap = game.GetMap
 local Angle = Angle
--- local util_TableToJSON = util.TableToJSON
--- local util_Compress = util.Compress
 local color_rgchat_tag = Color(237, 204, 73)
 local color_message = Color(255, 255, 255)
 local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_country_mode')
@@ -34,11 +32,14 @@ local function http_Warn(message)
 end
 
 local verified_token, verified_token_is_checked
+
 function RealGloabalChat:SendToChat(ply, messageText, invoke_Action, attempts)
 	if attempts then
 		attempts = attempts + 1
+
 		if attempts >= 5 then
 			http_Warn('Message "' .. messageText .. '" not delivered')
+
 			return
 		end
 	end
@@ -83,6 +84,7 @@ function RealGloabalChat:SendToChat(ply, messageText, invoke_Action, attempts)
 		end
 	end, function(error_message)
 		http_Error(error_message)
+
 		timer.Simple(1.5, function()
 			RealGloabalChat:SendToChat(ply, messageText, invoke_Action, attempts or 0)
 		end)
@@ -169,11 +171,11 @@ end
 function RealGloabalChat:FoundModelsInWorkshopAddon(current_dir, file_type, models_list)
 	current_dir = current_dir or 'models'
 	models_list = models_list or {}
-
 	local files, dirs = file.Find(current_dir .. '/*', file_type)
 
 	for _, file_name in ipairs(files) do
 		local file_ext = string_GetExtensionFromFilename(file_name)
+
 		if file_ext == 'mdl' then
 			table_insert(models_list, current_dir .. '/' .. file_name)
 		end
@@ -198,10 +200,14 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 
 	if ply_model and RealGloabalChat.Values.AddonsModels[ply_model] then
 		local index = RealGloabalChat.Values.AddonsModels[ply_model]
-		if index then ply_model_wsid = RealGloabalChat.Values.Addons[index] end
+
+		if index then
+			ply_model_wsid = RealGloabalChat.Values.Addons[index]
+		end
 	end
 
 	local ply_activity
+
 	if IsValid(ply) and ply:Alive() then
 		-- for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
 		-- 	if ply:IsPlayingGesture(gesture_id) then
@@ -209,9 +215,8 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		-- 		break
 		-- 	end
 		-- end
-
 		-- if not ply_activity then
-			ply_activity = ply:GetSequenceActivity(ply:GetSequence())
+		ply_activity = ply:GetSequenceActivity(ply:GetSequence())
 		-- end
 	end
 
@@ -231,8 +236,6 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		PlayerActivity = tostring(ply_activity),
 		PlayerWeaponClass = IsValid(ply_weapon) and ply_weapon:GetClass() or nil
 	}
-
-	-- print(ply_model_wsid)
 
 	http_Post(url_address .. 'Api/GameInfo/UpdateGameInfo', form_data, function(body, length, headers, code)
 		if code == 502 then return end
@@ -267,34 +270,44 @@ function RealGloabalChat:UserHasMute(connect_id)
 	if not connect_id then return false end
 	connect_id = tonumber(connect_id)
 	if not connect_id then return false end
+
 	if not RealGloabalChat.Values.MutedUsers then
 		RealGloabalChat.Values.MutedUsers = {}
 	end
+
 	if not has_reading_muted_users then
 		if file.Exists('rgchat_data/muted_users.json', 'DATA') then
 			RealGloabalChat.Values.MutedUsers = util.JSONToTable(file.Read('rgchat_data/muted_users.json', 'DATA'))
 		end
+
 		has_reading_muted_users = true
 	end
+
 	for i = 1, #RealGloabalChat.Values.MutedUsers do
 		if RealGloabalChat.Values.MutedUsers[i] == connect_id then return true end
 	end
+
 	return false
 end
 
 function RealGloabalChat:MuteUser(connect_id)
 	local muted_users = {}
+
 	if file.Exists('rgchat_data/muted_users.json', 'DATA') then
 		muted_users = util.JSONToTable(file.Read('rgchat_data/muted_users.json', 'DATA'))
 	end
+
 	local exists_connect_id
+
 	for i = 1, #muted_users do
 		local user_connect_id = muted_users[i]
+
 		if user_connect_id == connect_id then
 			exists_connect_id = i
 			break
 		end
 	end
+
 	if exists_connect_id then
 		table.remove(muted_users, exists_connect_id)
 		LocalPlayer():ChatPrint('You have removed the mute from user ID: ' .. connect_id)
@@ -302,6 +315,7 @@ function RealGloabalChat:MuteUser(connect_id)
 		table.insert(muted_users, connect_id)
 		LocalPlayer():ChatPrint('User ID: ' .. connect_id .. ' was given a mute')
 	end
+
 	file.Write('rgchat_data/muted_users.json', util.TableToJSON(muted_users))
 	RealGloabalChat.Values.MutedUsers = muted_users
 	has_reading_muted_users = true
@@ -328,6 +342,7 @@ function RealGloabalChat:PosStringToVector(pos_string)
 	if not pos_string then return end
 	local vector_data = string_Split(pos_string, ',')
 	if not vector_data[1] or not vector_data[2] or not vector_data[3] then return end
+
 	return Vector(tonumber(vector_data[1]), tonumber(vector_data[2]), tonumber(vector_data[3]))
 end
 
@@ -335,6 +350,7 @@ function RealGloabalChat:PosStringToAngle(ang_string)
 	if not ang_string then return end
 	local angle_data = string_Split(ang_string, ',')
 	if not angle_data[1] or not angle_data[2] or not angle_data[3] then return end
+
 	return Angle(tonumber(angle_data[1]), tonumber(angle_data[2]), tonumber(angle_data[3]))
 end
 
@@ -342,14 +358,14 @@ function RealGloabalChat:Magnitude(vec)
 	local magnitude = vec
 	magnitude = magnitude.x ^ 2 + magnitude.y ^ 2 + magnitude.z ^ 2
 	magnitude = math_sqrt(magnitude)
+
 	return magnitude
 end
 
 function RealGloabalChat:MoveTowards(current_vector, target_vector, delta_time)
 	local direction_vector = target_vector - current_vector
 	local magnitude = self:Magnitude(direction_vector)
-	if magnitude <= delta_time or magnitude == 0 then
-		return target_vector
-	end
+	if magnitude <= delta_time or magnitude == 0 then return target_vector end
+
 	return current_vector + direction_vector / magnitude * delta_time
 end
