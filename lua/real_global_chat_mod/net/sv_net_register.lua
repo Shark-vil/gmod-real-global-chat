@@ -7,3 +7,9 @@ util.AddNetworkString('RealGlobalChatSetPingSFX')
 util.AddNetworkString('RealGlobalChatSetMapName')
 util.AddNetworkString('RealGlobalChatMuteUser')
 util.AddNetworkString('RealGlobalChatDownloadModel')
+util.AddNetworkString('RealGlobalChatServerSycnActive')
+
+net.Receive('RealGlobalChatServerSycnActive', function(_, ply)
+	local active = net.ReadBool()
+	RealGloabalChat.Values.ModActive[ply] = active
+end)

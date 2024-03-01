@@ -1,7 +1,7 @@
 local coroutine_resume = coroutine.resume
 local coroutine_create = coroutine.create
 local player_GetAll = player.GetAll
-local IsValid = IsValid
+-- local IsValid = IsValid
 local coroutine_wait = coroutine.wait
 local coroutine_yield = coroutine.yield
 local service_has_running = false
@@ -11,7 +11,7 @@ local function task()
 
 	for i = #players, 1, -1 do
 		local ply = players[i]
-		if not IsValid(ply) then continue end
+		if not RealGloabalChat:ModIsActive(ply) then continue end
 		RealGloabalChat:UpdateGameInfo(ply)
 		coroutine_wait(1)
 	end

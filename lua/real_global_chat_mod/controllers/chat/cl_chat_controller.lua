@@ -174,8 +174,9 @@ local function update_message_action(response)
 end
 
 local function global_chat_Check()
+	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
-	if not IsValid(ply) or not cvar_cl_real_global_chat_status:GetBool() then return end
+	if not IsValid(ply) then return end
 
 	if not sql_is_inject then
 		sql_is_inject = true
@@ -203,14 +204,16 @@ local function http_Handler_CheckInfo(data)
 end
 
 local function global_chat_CheckInfo()
+	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
-	if not IsValid(ply) or not cvar_cl_real_global_chat_status:GetBool() then return end
+	if not IsValid(ply) then return end
 	RealGloabalChat:GetInfo(http_Handler_CheckInfo)
 end
 
 timer.Create('RealGlobalChat.CheckOnline', 20, 0, function()
+	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
-	if not IsValid(ply) or not cvar_cl_real_global_chat_status:GetBool() then return end
+	if not IsValid(ply) then return end
 
 	RealGloabalChat:GetOnlineCount(function(count)
 		if not last_players_count or last_players_count ~= count then
@@ -221,14 +224,15 @@ timer.Create('RealGlobalChat.CheckOnline', 20, 0, function()
 end)
 
 timer.Create('RealGlobalChat.UpdateOnline', 30, 0, function()
+	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
-	if not IsValid(ply) or not cvar_cl_real_global_chat_status:GetBool() then return end
+	if not IsValid(ply) then return end
 	RealGloabalChat:UpdateOnline()
 end)
 
 net.Receive('RealGlobalChatSpawnMessage', function()
 	timer.Simple(.3, function()
-		if not cvar_cl_real_global_chat_status:GetBool() then
+		if not RealGloabalChat:ModIsActive() then
 			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_off'])
 		else
 			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_on'])
@@ -240,7 +244,16 @@ net.Receive('RealGlobalChatSpawnMessage', function()
 		end)
 	end)
 
+	net.Start('RealGlobalChatServerSycnActive')
+	net.WriteBool(cvar_cl_real_global_chat_status:GetBool())
+	net.SendToServer()
 	timer.Create('RealGlobalChat.Check', 1, 0, global_chat_Check)
 	timer.Create('RealGlobalChat.CheckInfo', 10, 0, global_chat_CheckInfo)
 	hook.Run('RGchat.FirstStart')
 end)
+
+cvars.AddChangeCallback('cl_real_global_chat_status', function(_, _, new_value)
+	net.Start('RealGlobalChatServerSycnActive')
+	net.WriteBool(tostring(new_value) == '1')
+	net.SendToServer()
+end, 'on_player_saync_cl_real_global_chat_status')

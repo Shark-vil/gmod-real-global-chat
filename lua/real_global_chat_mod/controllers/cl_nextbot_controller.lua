@@ -112,15 +112,16 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 				return
 			end
 
-			local mod_size = result.size / (2 ^ 20)
+			if result.size and isnumber(result.size) then
+				local mod_size = result.size / (2 ^ 20)
+				if isnumber(mod_size) and isnumber(max_size) and mod_size > max_size then
+					notification.Kill('rgchatworkshop.' .. wsid)
+					timer.Remove(timer_name)
+					notification.AddLegacy('[RGChat] The size of addon "' .. wsid .. ' : ' .. result.title .. '" is over ' .. max_size .. ' mb', NOTIFY_ERROR, 5)
+					size_limt_cache[wsid] = mod_size
 
-			if mod_size > max_size then
-				notification.Kill('rgchatworkshop.' .. wsid)
-				timer.Remove(timer_name)
-				notification.AddLegacy('[RGChat] The size of addon "' .. wsid .. ' : ' .. result.title .. '" is over ' .. max_size .. ' mb', NOTIFY_ERROR, 5)
-				size_limt_cache[wsid] = mod_size
-
-				return
+					return
+				end
 			end
 
 			steamworks_DownloadUGC(wsid, function(gma_path, gma_file)

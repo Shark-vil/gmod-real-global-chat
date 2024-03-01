@@ -21,6 +21,8 @@ local color_message = Color(255, 255, 255)
 local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_country_mode')
 local has_reading_muted_users = false
 local IsValid = IsValid
+local Color = Color
+local cvar_cl_real_global_chat_status
 
 local function http_Error(message)
 	MsgN('[RGChat Error] ' .. message)
@@ -190,13 +192,22 @@ function RealGloabalChat:FoundModelsInWorkshopAddon(current_dir, file_type, mode
 end
 
 function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
-	local ply_pos = ply:GetPos()
-	local ply_ang = ply:GetAngles()
-	local ply_eye_pos = ply:EyePos()
-	local ply_eye_ang = ply:EyeAngles()
-	local ply_weapon = ply:GetActiveWeapon()
 	local ply_model = ply:GetModel()
 	local ply_model_wsid = nil
+	local ply_alive = ply:Alive()
+	local ply_attacker = IsValid(ply.RGChatAttacker) and ply.RGChatAttacker:GetName() or nil
+	local ply_inflictor = IsValid(ply.RGChatInflictor) and ply.RGChatInflictor:GetName() or nil
+	local ply_sequence = ply_alive and ply:GetSequence() or nil
+	local ply_velocity = ply_alive and ply:GetVelocity() or nil
+	local ply_pos = ply_alive and ply:GetPos() or nil
+	local ply_ang = ply_alive and ply:GetAngles() or nil
+	local ply_eye_pos = ply_alive and ply:EyePos() or nil
+	local ply_eye_ang = ply_alive and ply:EyeAngles() or nil
+	local ply_weapon = ply_alive and ply:GetActiveWeapon() or nil
+	local ply_weapon_activity = IsValid(ply_weapon) and ply_weapon:GetActivity() or nil
+	local ply_color = ply_alive and ply:GetColor() or nil
+	local ply_move_type = ply_alive and ply:GetMoveType() or nil
+	local ply_activity, ply_gesture
 
 	if ply_model and RealGloabalChat.Values.AddonsModels[ply_model] then
 		local index = RealGloabalChat.Values.AddonsModels[ply_model]
@@ -206,36 +217,44 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		end
 	end
 
-	local ply_activity
-
-	if IsValid(ply) and ply:Alive() then
-		-- for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
-		-- 	if ply:IsPlayingGesture(gesture_id) then
-		-- 		ply_activity = gesture_id
-		-- 		break
-		-- 	end
-		-- end
-		-- if not ply_activity then
-		ply_activity = ply:GetSequenceActivity(ply:GetSequence())
-		-- end
+	if IsValid(ply) and ply_alive then
+		for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
+			if ply:IsPlayingGesture(gesture_id) then
+				ply_gesture = gesture_id
+				break
+			end
+		end
+		ply_activity = ply:GetSequenceActivity(ply_sequence)
 	end
 
 	local form_data = {
 		SteamId64 = ply:SteamID64(),
 		UserName = ply:Name(),
-		PlayerModelWsid = ply_model_wsid and tostring(ply_model_wsid) or nil,
-		PlayerModel = ply:GetModel(),
-		PlayedMap = game_GetMap(),
-		PlayerPos = ply_pos.x .. ',' .. ply_pos.y .. ',' .. ply_pos.z,
-		PlayerAng = ply_ang.x .. ',' .. ply_ang.y .. ',' .. ply_ang.z,
-		PlayerEyePos = ply_eye_pos.x .. ',' .. ply_eye_pos.y .. ',' .. ply_eye_pos.z,
-		PlayerEyeAng = ply_eye_ang.x .. ',' .. ply_eye_ang.y .. ',' .. ply_eye_ang.z,
-		PlayerIsTyping = tostring(ply:IsTyping() and 1 or 0),
-		PlayerWalkSpeed = tostring(ply:GetWalkSpeed()),
-		PlayerRunSpeed = tostring(ply:GetRunSpeed()),
-		PlayerActivity = tostring(ply_activity),
-		PlayerWeaponClass = IsValid(ply_weapon) and ply_weapon:GetClass() or nil
+		ModelWsid = ply_model_wsid and tostring(ply_model_wsid) or nil,
+		Model = ply:GetModel(),
+		Map = game_GetMap(),
+		Pos = ply_pos and (ply_pos.x .. ',' .. ply_pos.y .. ',' .. ply_pos.z) or nil,
+		Ang = ply_ang and (ply_ang.x .. ',' .. ply_ang.y .. ',' .. ply_ang.z) or nil,
+		EyePos = ply_eye_pos and (ply_eye_pos.x .. ',' .. ply_eye_pos.y .. ',' .. ply_eye_pos.z) or nil,
+		EyeAng = ply_eye_ang and (ply_eye_ang.x .. ',' .. ply_eye_ang.y .. ',' .. ply_eye_ang.z) or nil,
+		IsTyping = tostring(ply:IsTyping() and 1 or 0),
+		WalkSpeed = tostring(ply:GetWalkSpeed()),
+		RunSpeed = tostring(ply:GetRunSpeed()),
+		Activity = ply_activity and tostring(ply_activity) or nil,
+		Sequence = ply_sequence and tostring(ply_sequence) or nil,
+		Gesture = ply_gesture and tostring(ply_gesture) or nil,
+		WeaponClass = IsValid(ply_weapon) and ply_weapon:GetClass() or nil,
+		WeaponActivity = tostring(ply_weapon_activity),
+		MoveType = ply_move_type and tostring(ply_move_type) or nil,
+		Alive = tostring(ply_alive and 1 or 0),
+		Attacker = ply_attacker and tostring(ply_attacker) or nil,
+		Inflictor = ply_inflictor and tostring(ply_inflictor) or nil,
+		Velocity = ply_velocity and (ply_velocity.x .. ',' .. ply_velocity.y .. ',' .. ply_velocity.z) or nil,
+		Color =  ply_color and (ply_color.r .. ',' .. ply_color.g .. ',' .. ply_color.b .. ',' .. ply_color.a) or nil,
 	}
+
+	if ply_attacker then ply.RGChatAttacker = nil end
+	if ply_inflictor then ply.RGChatInflictor = nil end
 
 	http_Post(url_address .. 'Api/GameInfo/UpdateGameInfo', form_data, function(body, length, headers, code)
 		if code == 502 then return end
@@ -338,18 +357,25 @@ function RealGloabalChat:GetGameInfo(invoke_Action)
 	end, http_Error)
 end
 
+function RealGloabalChat:ColorStringToColor(col_string)
+	if not col_string then return Color(255, 255, 255, 255) end
+	local col_data = string_Split(col_string, ',')
+	if not col_data[1] or not col_data[2] or not col_data[3] or not col_data[4] then return Color(255, 255, 255, 255) end
+	return Color(tonumber(col_data[1]), tonumber(col_data[2]), tonumber(col_data[3]), tonumber(col_data[4]))
+end
+
 function RealGloabalChat:PosStringToVector(pos_string)
-	if not pos_string then return end
+	if not pos_string then return Vector(0, 0, 0) end
 	local vector_data = string_Split(pos_string, ',')
-	if not vector_data[1] or not vector_data[2] or not vector_data[3] then return end
+	if not vector_data[1] or not vector_data[2] or not vector_data[3] then return Vector(0, 0, 0) end
 
 	return Vector(tonumber(vector_data[1]), tonumber(vector_data[2]), tonumber(vector_data[3]))
 end
 
 function RealGloabalChat:PosStringToAngle(ang_string)
-	if not ang_string then return end
+	if not ang_string then return Angle(0, 0, 0) end
 	local angle_data = string_Split(ang_string, ',')
-	if not angle_data[1] or not angle_data[2] or not angle_data[3] then return end
+	if not angle_data[1] or not angle_data[2] or not angle_data[3] then return Angle(0, 0, 0) end
 
 	return Angle(tonumber(angle_data[1]), tonumber(angle_data[2]), tonumber(angle_data[3]))
 end
@@ -368,4 +394,17 @@ function RealGloabalChat:MoveTowards(current_vector, target_vector, delta_time)
 	if magnitude <= delta_time or magnitude == 0 then return target_vector end
 
 	return current_vector + direction_vector / magnitude * delta_time
+end
+
+function RealGloabalChat:ModIsActive(ply)
+	if CLIENT then
+		if not cvar_cl_real_global_chat_status then
+			cvar_cl_real_global_chat_status = GetConVar('cl_real_global_chat_status')
+		end
+		return cvar_cl_real_global_chat_status:GetBool()
+	end
+	if not IsValid(ply) or not RealGloabalChat.Values.ModActive[ply] then
+		return false
+	end
+	return true
 end

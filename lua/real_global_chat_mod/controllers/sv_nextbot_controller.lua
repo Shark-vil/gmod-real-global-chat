@@ -4,12 +4,30 @@ local IsValid = IsValid
 local ents_FindByClass = ents.FindByClass
 local player_GetAll = player.GetAll
 local cvar_sv_real_global_chat_sync_players = GetConVar('sv_real_global_chat_sync_players')
-RealGloabalChat.Values.Nextbots = RealGloabalChat.Values.Nextbots or {}
 
 local function http_Get_Game_Info(response)
 	if not response.data then return end
 	local data = response.data
 	local ignore_steamids = {}
+	local all_players_disable = true
+
+	for ply, active in pairs(RealGloabalChat.Values.ModActive) do
+		if IsValid(ply) and active then
+			all_players_disable = false
+			break
+		end
+	end
+
+	local bots = ents_FindByClass('rgchat_player_nextbot')
+
+	if all_players_disable then
+		if #bots > 0 then
+			for _, ent in ipairs(bots) do
+				if IsValid(ent) then ent:Remove() end
+			end
+		end
+		return
+	end
 
 	for _, ply in ipairs(player_GetAll()) do
 		if IsValid(ply) then
@@ -17,7 +35,7 @@ local function http_Get_Game_Info(response)
 		end
 	end
 
-	for _, ent in ipairs(ents_FindByClass('rgchat_player_nextbot')) do
+	for _, ent in ipairs(bots) do
 		local is_valid = false
 
 		for _, v in ipairs(data) do
@@ -40,17 +58,21 @@ local function http_Get_Game_Info(response)
 		end)
 
 		local ent = RealGloabalChat.Values.Nextbots[v.steamid64]
-
 		if not ent or not IsValid(ent) then
+			local first_action = v.actions[1]
+			local spawn_pos
+			if first_action and first_action.pos then
+				spawn_pos = RealGloabalChat:PosStringToVector(first_action.pos)
+			else
+				local spawn_points = ents.FindByClass('info_player_start')
+				spawn_pos = #spawn_points == 0 and Vector(0, 0, 0) or spawn_points[1]:GetPos()
+			end
 			ent = ents.Create('rgchat_player_nextbot')
-			ent:SetPos(RealGloabalChat:PosStringToVector(v.actions[1].player_pos))
+			ent:SetPos(spawn_pos)
 			ent:Spawn()
-			ent.BotData.SteamId64 = v.steamid64
-			ent.BotData.Actions = v.actions
-			ent:SetNWString('UserName', '[RGChat] ' .. v.username)
-			RealGloabalChat.Values.Nextbots[v.steamid64] = ent
+			ent:SetData(v)
 		else
-			ent.BotData.Actions = v.actions
+			ent:UpdateData(v)
 		end
 	end
 end

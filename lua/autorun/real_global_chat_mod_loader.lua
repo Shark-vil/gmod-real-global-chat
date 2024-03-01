@@ -4,11 +4,14 @@ RealGloabalChat = {
 }
 
 RealGloabalChat.Values.ApiUrl = 'https://rgcgmod.vincy.ru/'
-RealGloabalChat.Values.Version = '1.0.10'
+RealGloabalChat.Values.Version = '1.0.11'
 RealGloabalChat.Values.Addons = {}
 RealGloabalChat.Values.AddonsModels = {}
 RealGloabalChat.Values.AddonsDownloadedProgress = {}
 RealGloabalChat.Values.AddonsModelsDownloadChecked = {}
+RealGloabalChat.Values.NextBotStates = {}
+RealGloabalChat.Values.ModActive = {}
+RealGloabalChat.Values.Nextbots = {}
 
 RealGloabalChat.Enum.ActIdle = {
 	[ACT_HL2MP_IDLE_PISTOL] = true,
@@ -40,6 +43,55 @@ RealGloabalChat.Enum.ActRun = {
 	[ACT_HL2MP_RUN] = true,
 	[ACT_HL2MP_RUN_MAGIC] = true,
 	[ACT_HL2MP_RUN_DUEL] = true,
+}
+
+
+RealGloabalChat.Enum.ActWalk = {
+	[ACT_HL2MP_WALK_PISTOL] = true,
+	[ACT_HL2MP_WALK_AR2] = true,
+	[ACT_HL2MP_WALK_REVOLVER] = true,
+	[ACT_HL2MP_WALK_SHOTGUN] = true,
+	[ACT_HL2MP_WALK_CAMERA] = true,
+	[ACT_HL2MP_WALK_SMG1] = true,
+	[ACT_HL2MP_WALK_PHYSGUN] = true,
+	[ACT_HL2MP_WALK_GRENADE] = true,
+	[ACT_HL2MP_WALK_RPG] = true,
+	[ACT_HL2MP_WALK_CROSSBOW] = true,
+	[ACT_HL2MP_WALK] = true,
+	[ACT_HL2MP_WALK_MAGIC] = true,
+	[ACT_HL2MP_WALK_DUEL] = true,
+}
+
+RealGloabalChat.Enum.ActJump = {
+	[ACT_HL2MP_JUMP_PISTOL] = true,
+	[ACT_HL2MP_JUMP_AR2] = true,
+	[ACT_HL2MP_JUMP_REVOLVER] = true,
+	[ACT_HL2MP_JUMP_SHOTGUN] = true,
+	[ACT_HL2MP_JUMP_CAMERA] = true,
+	[ACT_HL2MP_JUMP_SMG1] = true,
+	[ACT_HL2MP_JUMP_PHYSGUN] = true,
+	[ACT_HL2MP_JUMP_GRENADE] = true,
+	[ACT_HL2MP_JUMP_RPG] = true,
+	[ACT_HL2MP_JUMP_CROSSBOW] = true,
+	[ACT_HL2MP_JUMP] = true,
+	[ACT_HL2MP_JUMP_MAGIC] = true,
+	[ACT_HL2MP_JUMP_DUEL] = true,
+}
+
+RealGloabalChat.Enum.ActJumpToRun = {
+	[ACT_HL2MP_JUMP_PISTOL] = ACT_HL2MP_RUN_PISTOL,
+	[ACT_HL2MP_JUMP_AR2] = ACT_HL2MP_RUN_AR2,
+	[ACT_HL2MP_JUMP_REVOLVER] = ACT_HL2MP_RUN_REVOLVER,
+	[ACT_HL2MP_JUMP_SHOTGUN] = ACT_HL2MP_RUN_SHOTGUN,
+	[ACT_HL2MP_JUMP_CAMERA] = ACT_HL2MP_RUN_CAMERA,
+	[ACT_HL2MP_JUMP_SMG1] = ACT_HL2MP_RUN_SMG1,
+	[ACT_HL2MP_JUMP_PHYSGUN] = ACT_HL2MP_RUN_PHYSGUN,
+	[ACT_HL2MP_JUMP_GRENADE] = ACT_HL2MP_RUN_GRENADE,
+	[ACT_HL2MP_JUMP_RPG] = ACT_HL2MP_RUN_RPG,
+	[ACT_HL2MP_JUMP_CROSSBOW] = ACT_HL2MP_RUN_CROSSBOW,
+	[ACT_HL2MP_JUMP] = ACT_HL2MP_RUN,
+	[ACT_HL2MP_JUMP_MAGIC] = ACT_HL2MP_RUN_MAGIC,
+	[ACT_HL2MP_JUMP_DUEL] = ACT_HL2MP_RUN_DUEL,
 }
 
 RealGloabalChat.Enum.ActGmodTaunt = {
