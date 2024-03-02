@@ -8,6 +8,7 @@ util.AddNetworkString('RealGlobalChatSetMapName')
 util.AddNetworkString('RealGlobalChatMuteUser')
 util.AddNetworkString('RealGlobalChatDownloadModel')
 util.AddNetworkString('RealGlobalChatServerSycnActive')
+util.AddNetworkString('RealGlobalChatOnChangePlayerModel')
 
 net.Receive('RealGlobalChatServerSycnActive', function(_, ply)
 	local active = net.ReadBool()

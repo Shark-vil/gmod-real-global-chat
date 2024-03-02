@@ -29,7 +29,9 @@ local function http_Error(message)
 end
 
 local function http_Warn(message)
-	chat.AddText(color_rgchat_tag, '[RGChat Warn] ', color_message, ': ' .. tostring(message))
+	if CLIENT then
+		chat.AddText(color_rgchat_tag, '[RGChat Warn] ', color_message, ': ' .. tostring(message))
+	end
 	MsgN('[RGChat Warn] ' .. message)
 end
 
@@ -192,7 +194,7 @@ function RealGloabalChat:FoundModelsInWorkshopAddon(current_dir, file_type, mode
 end
 
 function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
-	local ply_model = ply:GetModel()
+	local ply_model = ply.rgchat_outfitter_mdl or ply:GetModel()
 	local ply_model_wsid = nil
 	local ply_alive = ply:Alive()
 	local ply_attacker = IsValid(ply.RGChatAttacker) and ply.RGChatAttacker:GetName() or nil
@@ -210,20 +212,21 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 	local ply_activity, ply_gesture
 
 	if ply_model and RealGloabalChat.Values.AddonsModels[ply_model] then
-		local index = RealGloabalChat.Values.AddonsModels[ply_model]
-
-		if index then
-			ply_model_wsid = RealGloabalChat.Values.Addons[index]
-		end
+		ply_model_wsid = RealGloabalChat.Values.AddonsModels[ply_model]
 	end
 
 	if IsValid(ply) and ply_alive then
-		for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
-			if ply:IsPlayingGesture(gesture_id) then
-				ply_gesture = gesture_id
-				break
+		if ply.RgChatActiveGesture then
+			ply_gesture = ply.RgChatActiveGesture
+		else
+			for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
+				if ply:IsPlayingGesture(gesture_id) then
+					ply_gesture = gesture_id
+					break
+				end
 			end
 		end
+
 		ply_activity = ply:GetSequenceActivity(ply_sequence)
 	end
 
@@ -231,7 +234,7 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		SteamId64 = ply:SteamID64(),
 		UserName = ply:Name(),
 		ModelWsid = ply_model_wsid and tostring(ply_model_wsid) or nil,
-		Model = ply:GetModel(),
+		Model = ply_model,
 		Map = game_GetMap(),
 		Pos = ply_pos and (ply_pos.x .. ',' .. ply_pos.y .. ',' .. ply_pos.z) or nil,
 		Ang = ply_ang and (ply_ang.x .. ',' .. ply_ang.y .. ',' .. ply_ang.z) or nil,
@@ -250,11 +253,16 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		Attacker = ply_attacker and tostring(ply_attacker) or nil,
 		Inflictor = ply_inflictor and tostring(ply_inflictor) or nil,
 		Velocity = ply_velocity and (ply_velocity.x .. ',' .. ply_velocity.y .. ',' .. ply_velocity.z) or nil,
-		Color =  ply_color and (ply_color.r .. ',' .. ply_color.g .. ',' .. ply_color.b .. ',' .. ply_color.a) or nil,
+		Color = ply_color and (ply_color.r .. ',' .. ply_color.g .. ',' .. ply_color.b .. ',' .. ply_color.a) or nil,
 	}
 
-	if ply_attacker then ply.RGChatAttacker = nil end
-	if ply_inflictor then ply.RGChatInflictor = nil end
+	if ply_attacker then
+		ply.RGChatAttacker = nil
+	end
+
+	if ply_inflictor then
+		ply.RGChatInflictor = nil
+	end
 
 	http_Post(url_address .. 'Api/GameInfo/UpdateGameInfo', form_data, function(body, length, headers, code)
 		if code == 502 then return end
@@ -361,6 +369,7 @@ function RealGloabalChat:ColorStringToColor(col_string)
 	if not col_string then return Color(255, 255, 255, 255) end
 	local col_data = string_Split(col_string, ',')
 	if not col_data[1] or not col_data[2] or not col_data[3] or not col_data[4] then return Color(255, 255, 255, 255) end
+
 	return Color(tonumber(col_data[1]), tonumber(col_data[2]), tonumber(col_data[3]), tonumber(col_data[4]))
 end
 
@@ -401,10 +410,177 @@ function RealGloabalChat:ModIsActive(ply)
 		if not cvar_cl_real_global_chat_status then
 			cvar_cl_real_global_chat_status = GetConVar('cl_real_global_chat_status')
 		end
+
 		return cvar_cl_real_global_chat_status:GetBool()
 	end
-	if not IsValid(ply) or not RealGloabalChat.Values.ModActive[ply] then
-		return false
-	end
+
+	if not IsValid(ply) or not RealGloabalChat.Values.ModActive[ply] then return false end
+
 	return true
+end
+
+function RealGloabalChat:BuildGma(wsid, gma_file, gma_data)
+	local skip_ext = {
+		['lua'] = true,
+		['wav'] = true,
+		['mp3'] = true,
+		['bsp'] = true,
+		['png'] = true,
+		['jpg'] = true,
+		['jpeg'] = true,
+		['png'] = true,
+		['txt'] = true,
+		['ttf'] = true,
+		['html'] = true,
+		['js'] = true,
+		['css'] = true,
+		['nav'] = true,
+		['ain'] = true,
+	}
+
+	for i = #gma_data.files, 1, -1 do
+		local file_meta = gma_data.files[i]
+
+		if skip_ext[file_meta.ext:lower()] then
+			table.remove(gma_data.files, i)
+		end
+	end
+
+	local pos = 0
+
+	local function add(n)
+		pos = pos + n
+
+		return pos
+	end
+
+	gma_file:Write('GMAD')
+	add(4)
+	gma_file:Write(string.char(gma_data.gma_version))
+	add(1)
+	gma_file:WriteULong(gma_data.steamid[1])
+	gma_file:WriteULong(gma_data.steamid[2])
+	add(8)
+	gma_file:WriteULong(gma_data.timestamp[1])
+	gma_file:WriteULong(gma_data.timestamp[2])
+	add(8)
+
+	if gma_data.gma_version > 1 then
+		gma_file:Write('\0')
+		add(1)
+	end
+
+	local name = (gma_data.name or '') .. '\0'
+	gma_file:Write(name)
+	add(#name)
+	local desc = (gma_data.description and util.TableToJSON(gma_data.description) or '{"type":"model","tags":["fun"],"description":"description"}') .. '\0'
+	gma_file:Write(desc)
+	add(#desc)
+	local author = (gma_data.author or '') .. '\0'
+	gma_file:Write(author)
+	add(#author)
+	gma_file:WriteULong(gma_data.addon_version)
+	add(4)
+	local idx = 0
+
+	for i, file_meta in pairs(gma_data.files) do
+		idx = idx + 1
+		gma_file:WriteLong(idx)
+		add(4)
+		assert(idx == i)
+		gma_file:Write(file_meta.filename .. '\0')
+		add(#file_meta.filename + 1)
+		assert(file_meta.size < 2 ^ 30)
+		gma_file:WriteULong(file_meta.size)
+		gma_file:WriteULong(0)
+		add(8)
+		gma_file:WriteULong(file_meta.crc or 0)
+		add(4)
+	end
+
+	gma_file:WriteLong(0)
+	add(4)
+
+	for _, file_meta in pairs(gma_data.files) do
+		local fd = file_meta.fd or gma_data.fd
+		fd:Seek(file_meta.offset)
+		local data = fd:Read(file_meta.size)
+		if not data or #data ~= file_meta.size then return end
+		if no_crc ~= true and file_meta.crc and file_meta.crc ~= 0 and tostring(util.CRC(data)) ~= tostring(file_meta.crc) then return end
+		file_meta.offset = gma_file:Tell()
+		gma_file:Write(data)
+		add(#data)
+	end
+
+	gma_file:Tell()
+end
+
+function RealGloabalChat:ReadGma(gma_file)
+	if gma_file:Read(4) ~= 'GMAD' then return end
+
+	local meta = {
+		files = {},
+		fd = gma_file
+	}
+
+	meta.gma_version = gma_file:ReadByte()
+	if (meta.gma_version or math.huge) > 3 then return end
+
+	meta.steamid = {gma_file:ReadULong(), gma_file:ReadULong()}
+	meta.timestamp = {gma_file:ReadULong(), gma_file:ReadULong()}
+
+	if meta.gma_version > 1 then
+		meta.required_content = {}
+
+		for i = 1, 2 ^ 14 do
+			if i == 2 ^ 14 - 1 then return end
+			str = gma_file:ReadString()
+			if str and #str == 0 then break end
+			if not str then return end
+			table.insert(meta.required_content, str)
+		end
+	end
+
+	meta.name = gma_file:ReadString()
+	meta.description = util.JSONToTable(gma_file:ReadString())
+	meta.author = gma_file:ReadString()
+	meta.addon_version = gma_file:ReadULong()
+	if not meta.addon_version then return end
+
+	for n = 1, 2 ^ 14 do
+		if n == 2 ^ 14 - 1 then return end
+		local filenum = gma_file:ReadULong()
+		if filenum == 0 then break end
+		if filenum ~= n then return end
+		local filename = gma_file:ReadString()
+		local file_meta = {}
+		file_meta.filename = filename
+		file_meta.size = gma_file:ReadULong()
+		if gma_file:ReadULong() ~= 0 then return end
+		file_meta.crc = gma_file:ReadULong()
+		file_meta.ext = string.GetExtensionFromFilename(filename)
+		if file_meta.size <= 0 then return end
+		if file_meta.size >= (2 ^ 30) - 1 then return end
+		table.insert(meta.files, file_meta)
+	end
+
+	for _, file_meta in pairs(meta.files) do
+		file_meta.offset = gma_file:Tell()
+		gma_file:Skip(file_meta.size)
+	end
+
+	return meta
+end
+
+if SERVER then
+	hook.Add('PlayerStartTaunt', 'RGChatPlayerStartTaunt', function(ply, act, length)
+		ply.RgChatActiveGesture = act
+
+		if length then
+			timer.Create('RGChatPlayerStopTaunt.' .. ply:EntIndex(), length, 1, function()
+				if not IsValid(ply) then return end
+				ply.RgChatActiveGesture = nil
+			end)
+		end
+	end)
 end

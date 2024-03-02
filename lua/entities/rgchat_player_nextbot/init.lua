@@ -16,6 +16,7 @@ local coroutine_wait = coroutine.wait
 -- local coroutine_yield = coroutine.yield
 -- local util_IsValidModel = util.IsValidModel
 local table_Copy = table.Copy
+local cvar_dev = GetConVar('developer')
 
 -- local ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
 -- local ACT_HL2MP_WALK = ACT_HL2MP_WALK
@@ -67,12 +68,21 @@ function ENT:RunBehaviour()
 					self:StopNoclip()
 				end
 
-				if data.IsTyping then
+				if data.Gesture then
+					self:SetState('gesture')
+				elseif data.IsTyping then
 					self:SetState('typing')
 				elseif RealGloabalChat.Enum.ActIdle[self.BotData.State] then
 					self:SetState('idle')
 				else
 					self:SetState('move_to_pos')
+				end
+
+				if cvar_dev:GetBool() then
+					local ply = player.GetAll()[1]
+					if IsValid(ply) then
+						ply:ChatPrint('GRChatNextBot - ' .. self:GetActiveStateName())
+					end
 				end
 
 				self:Update()
@@ -83,6 +93,14 @@ function ENT:RunBehaviour()
 
 		coroutine_wait(1)
 	end
+end
+
+function ENT:OnTakeDamage(dmginfo)
+	local attacker = dmginfo:GetAttacker()
+	if IsValid(attacker) and attacker:IsPlayer() then
+		return
+	end
+	return 0
 end
 
 function ENT:BodyUpdate()

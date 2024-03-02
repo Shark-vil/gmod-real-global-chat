@@ -13,6 +13,7 @@ local CurTime = CurTime
 local IsValid = IsValid
 local angle_m20_0_0 = Angle(-20, 0, 0)
 local vector_0_0_5 = Vector(0, 0, 5)
+local cvar_dev = GetConVar('developer')
 
 function ENT:ModelNetworkUpdate()
 	local data = self:GetData()
@@ -50,48 +51,70 @@ function ENT:UpdateMovement()
 	if self:IsNoclip() then return end
 	local move_pos = self:GetMovePos()
 	if not move_pos then return end
+	-- if move_pos:DistToSqr(self:GetPos()) <= 2500 then return end
 	local activity_id = self.BotData.State
 	local activity = RealGloabalChat.Enum.ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
 	local speed = self.BotData.MoveSpeed or 400
 	local timeout = CurTime() + 10
-	local path = Path('Follow')
-	path:SetMinLookAheadDistance(300)
-	path:SetGoalTolerance(20)
-	path:MoveCursorToClosestPosition(move_pos, 2)
-	path:Compute(self, move_pos)
-	self.loco:SetDesiredSpeed(speed)
-	self.loco:SetAcceleration(800)
-	self:CustomStartActivity(activity)
-
-	if not path:IsValid() then
-		self:SetPos(move_pos)
+	local devmode = cvar_dev:GetBool()
+	if not navmesh.IsLoaded() then
+		if not self.BotData.LastTargetPos or self.BotData.LastTargetPos ~= move_pos then
+			self.BotData.LastTargetPos = move_pos
+			local timer_name = 'RgChatNextBotMove.' .. tostring(self:EntIndex())
+			timer_Create(timer_name, 0, 0, function()
+				if not IsValid(self) or move_pos:DistToSqr(self:GetPos()) <= 2500 or self:IsNoclip() or self:OnStuck() or not self:IsOnGround()  then
+					timer_Remove(timer_name)
+					return
+				end
+				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+				if pos then self:SetPos(pos) end
+			end)
+			self:CustomStartActivity(activity)
+		end
 	else
-		while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and path:IsValid() do
-			if timeout < CurTime() then
-				self:SetPos(move_pos)
-			end
+		local path = Path('Follow')
+		path:SetMinLookAheadDistance(300)
+		path:SetGoalTolerance(20)
+		path:MoveCursorToClosestPosition(move_pos, 2)
+		path:Compute(self, move_pos)
+		self.loco:SetDesiredSpeed(speed)
+		self.loco:SetAcceleration(800)
+		self:CustomStartActivity(activity)
 
-			if path:GetAge() > 0.75 then
-				path:Compute(self, move_pos)
-			end
-
-			path:Update(self)
-			-- path:Draw()
-			self:Update()
-			self:UpdateCurrentState()
-			coroutine_yield()
-		end
-		if move_pos:DistToSqr(self:GetPos()) > 2500 then
+		if not path:IsValid() then
 			self:SetPos(move_pos)
+		else
+			while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and path:IsValid() do
+				if timeout < CurTime() then
+					self:SetPos(move_pos)
+				end
+
+				if path:GetAge() > 0.75 then
+					path:Compute(self, move_pos)
+				end
+
+				path:Update(self)
+
+				if devmode then
+					path:Draw()
+				end
+
+				self:Update()
+				self:UpdateCurrentState()
+				coroutine_yield()
+			end
 		end
+
+		-- if move_pos:DistToSqr(self:GetPos()) > 2500 then
+		-- 	self:SetPos(move_pos)
+		-- end
 	end
 end
 
 function ENT:IsNoclipMoveType()
 	local mt = self.BotData.MoveType
-	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) then
-		return true
-	end
+	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) then return true end
+
 	return false
 end
 
@@ -103,11 +126,14 @@ function ENT:StartNoclip()
 	self:SetMovePos(nil)
 	self:AddGesture(ACT_GMOD_NOCLIP_LAYER, false)
 	local vector_0_0_0 = Vector(0, 0, 0)
+
 	timer.Create(timer_name, 0, 0, function()
 		if not IsValid(self) then
 			timer.Remove(timer_name)
+
 			return
 		end
+
 		if not self.BotData.MovePos then return end
 		self:SetMovePos(nil)
 		local speed = self.BotData.MoveSpeed and (self.BotData.MoveSpeed / 10) or 20
@@ -172,6 +198,7 @@ end
 function ENT:ResetPose()
 	self.BotData.IsResettingPose = true
 	local ent_index = tostring(self:EntIndex())
+
 	timer_Create('rgchat.resetpose' .. ent_index, 0, 0, function()
 		if not IsValid(self) then
 			timer_Remove('rgchat.resetpose' .. ent_index)
@@ -201,6 +228,7 @@ end
 
 function ENT:LookAt(look_pos)
 	local ent_index = tostring(self:EntIndex())
+
 	timer_Create('rgchat.lookat' .. ent_index, 0, 0, function()
 		if not IsValid(self) then
 			timer_Remove('rgchat.lookat' .. ent_index)
@@ -214,7 +242,6 @@ function ENT:LookAt(look_pos)
 		local poseY = (self:GetPoseParameter('head_yaw') + self:GetPoseParameter('aim_yaw')) / 2
 		local approachp = Lerp(4 * FrameTime(), poseP, lookAng.p)
 		local approachy = Lerp(4 * FrameTime(), poseY, lookAng.y)
-
 		self:SetPoseParameter('head_yaw', approachy)
 		self:SetPoseParameter('head_pitch', approachp)
 		self:SetPoseParameter('aim_yaw', approachy)

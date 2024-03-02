@@ -9,21 +9,33 @@ states['typing'] = {
 	end
 }
 
+states['gesture'] = {
+	start = function(self)
+		self:AddGesture(self.BotData.Gesture, false)
+		self.BotData.LastGesture = self.BotData.Gesture
+	end,
+	stop = function(self)
+		if not self.BotData.LastGesture then return end
+		self:RemoveGesture(self.BotData.LastGesture)
+		self.BotData.LastGesture = nil
+	end
+}
+
 states['move_to_pos'] = {
 	update = function(self)
 		if self:IsNoclip() then return end
 		self:SetMovePos(self.BotData.MovePos)
-		local dist =  self.BotData.MovePos:DistToSqr(self:GetPos())
-		if dist > 1000000 or self:OnStuck() then
-			self:SetPos(self.BotData.MovePos)
-		end
+		-- local dist =  self.BotData.MovePos:DistToSqr(self:GetPos())
+		-- if dist > 2250000 or self:OnStuck() then
+		-- 	self:SetPos(self.BotData.MovePos)
+		-- end
 	end,
 }
 
 states['idle'] = {
 	start = function(self)
 		self:SetMovePos(self.BotData.MovePos)
-		self.IdleMoveTimeout = CurTime() + 1
+		self.IdleMoveTimeout = CurTime() + 3
 	end,
 	update = function(self)
 		if not self:IsNoclip() and (not self:GetMovePos() or (self.IdleMoveTimeout and 	self.IdleMoveTimeout < CurTime())) then

@@ -231,6 +231,8 @@ timer.Create('RealGlobalChat.UpdateOnline', 30, 0, function()
 end)
 
 net.Receive('RealGlobalChatSpawnMessage', function()
+	LocalPlayer().RGChatReady = true
+
 	timer.Simple(.3, function()
 		if not RealGloabalChat:ModIsActive() then
 			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_off'])

@@ -78,9 +78,9 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 
 		for _, v in ipairs(engine_GetAddons()) do
 			if v.wsid == wsid_number and not v.mounted then
-				local success, _ = game_MountGMA(v.file)
+				local ok, _ = game_MountGMA(v.file)
 
-				if success and IsValid(bot) and util_IsValidModel(model) then
+				if ok and IsValid(bot) and util_IsValidModel(model) then
 					bot:SetModel(model)
 					has_next = true
 				end
@@ -95,47 +95,76 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 			notification.Kill('rgchatworkshop.' .. wsid)
 		end)
 
+		local function kill_progress_timer()
+			timer.Remove(timer_name)
+		end
+
+		local function kill_progress()
+			kill_progress_timer()
+			notification.Kill('rgchatworkshop.' .. wsid)
+		end
+
 		steamworks_FileInfo(wsid, function(result)
 			if not result then
-				notification.Kill('rgchatworkshop.' .. wsid)
-				timer.Remove(timer_name)
-				notification.AddLegacy('[RGChat] Failed to retrieve information - ' .. wsid .. ' : ' .. model, NOTIFY_ERROR, 5)
-
+				notification.AddLegacy('[RGChat] Failed to retrieve information - ' .. wsid .. ' : ' .. model, NOTIFY_ERROR, 3)
+				kill_progress()
 				return
 			end
 
 			if result.banned or result.disabled then
-				notification.Kill('rgchatworkshop.' .. wsid)
-				timer.Remove(timer_name)
-				notification.AddLegacy('[RGChat] Addon is blocked or disabled - ' .. wsid .. ' : ' .. result.title, NOTIFY_ERROR, 5)
-
+				notification.AddLegacy('[RGChat] Addon is blocked or disabled - ' .. wsid .. ' : ' .. result.title, NOTIFY_ERROR, 3)
+				kill_progress()
 				return
 			end
 
 			if result.size and isnumber(result.size) then
 				local mod_size = result.size / (2 ^ 20)
 				if isnumber(mod_size) and isnumber(max_size) and mod_size > max_size then
-					notification.Kill('rgchatworkshop.' .. wsid)
-					timer.Remove(timer_name)
-					notification.AddLegacy('[RGChat] The size of addon "' .. wsid .. ' : ' .. result.title .. '" is over ' .. max_size .. ' mb', NOTIFY_ERROR, 5)
 					size_limt_cache[wsid] = mod_size
-
+					notification.AddLegacy('[RGChat] The size of addon "' .. wsid .. ' : ' .. result.title .. '" is over ' .. max_size .. ' mb', NOTIFY_ERROR, 3)
+					kill_progress()
 					return
 				end
 			end
 
 			steamworks_DownloadUGC(wsid, function(gma_path, gma_file)
-				notification.Kill('rgchatworkshop.' .. wsid)
-				timer.Remove(timer_name)
+				kill_progress_timer()
 
 				if not gma_path then
-					notification.AddLegacy('[RGChat] Failed to download the model - "' .. wsid .. ' : ' .. result.title .. '"', NOTIFY_ERROR, 5)
-
+					notification.AddLegacy('[RGChat] Failed to download the model - "' .. wsid .. ' : ' .. result.title .. '"', NOTIFY_ERROR, 3)
+					kill_progress()
 					return
 				end
 
-				game_MountGMA(gma_path)
-				notification.AddLegacy('[RGChat] Model successfully downloaded - "' .. wsid .. ' : ' .. result.title .. '"', NOTIFY_GENERIC, 5)
+				if not file.Exists('rgchat_data/cache', 'DATA') then
+					file.CreateDir('rgchat_data/cache')
+				end
+
+				local gma_save_path = 'rgchat_data/cache/' .. wsid .. '_' .. os.time() .. '.gma.dat'
+				local meta = RealGloabalChat
+				local ok, gma_meta, mounted
+				ok, gma_meta = xpcall(meta.ReadGma, debug.traceback, meta, gma_file)
+				if ok and gma_meta then
+					local new_gma_file = file.Open(gma_save_path, 'wb', 'DATA')
+					ok = xpcall(meta.BuildGma, debug.traceback, meta, wsid, new_gma_file, gma_meta)
+					new_gma_file:Close()
+					if ok then
+						ok, _ = game_MountGMA('data/' .. gma_save_path)
+						if ok then
+							mounted = true
+							notification.AddProgress('rgchatworkshop.' .. wsid, '[RGChat] Model successfully downloaded - "' .. wsid .. ' : ' .. result.title .. '"', 1)
+							timer.Simple(3, function() kill_progress() end)
+						else
+							notification.AddLegacy('[RGChat] Failed to mount the model - "' .. wsid .. ' : ' .. result.title .. '"', NOTIFY_ERROR, 3)
+						end
+					end
+				end
+				if file.Exists(gma_save_path, 'DATA') then
+					file.Delete(gma_save_path)
+				end
+				if not mounted then
+					kill_progress()
+				end
 			end)
 		end)
 	end
@@ -151,3 +180,35 @@ cvars.AddChangeCallback('cl_real_global_chat_download_model_size_limit', functio
 		end
 	end
 end, 'on_change_cl_real_global_chat_download_model_size_limit')
+
+--[[
+concommand.Add('rgchat_gma_test', function()
+	local wsid = '3170979277'
+	steamworks_DownloadUGC(wsid, function(gma_path, gma_file)
+		if not gma_path then
+			notification.AddLegacy('[RGChat] Failed to download the model - "' .. wsid .. ' : ' .. result.title .. '"', NOTIFY_ERROR, 5)
+			return
+		end
+
+		if not file.Exists('rgchat_data/cache', 'DATA') then
+			file.CreateDir('rgchat_data/cache')
+		end
+
+		local gma_save_path = 'rgchat_data/cache/' .. wsid .. '_' .. os.time() .. '.gma.dat'
+		local meta = RealGloabalChat
+		local ok, gma_meta
+		ok, gma_meta = xpcall(meta.ReadGma, debug.traceback, meta, gma_file)
+		if ok and gma_meta then
+			local new_gma_file = file.Open(gma_save_path, 'wb', 'DATA')
+			ok = xpcall(meta.BuildGma, debug.traceback, meta, wsid, new_gma_file, gma_meta)
+			new_gma_file:Close()
+			if ok then
+				game_MountGMA('data/' .. gma_save_path)
+			end
+		end
+		if file.Exists(gma_save_path) then
+			file.Delete(gma_save_path)
+		end
+	end)
+end)
+--]]

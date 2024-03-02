@@ -64,7 +64,7 @@ local function http_Get_Game_Info(response)
 			if first_action and first_action.pos then
 				spawn_pos = RealGloabalChat:PosStringToVector(first_action.pos)
 			else
-				local spawn_points = ents.FindByClass('info_player_start')
+				local spawn_points = ents_FindByClass('info_player_start')
 				spawn_pos = #spawn_points == 0 and Vector(0, 0, 0) or spawn_points[1]:GetPos()
 			end
 			ent = ents.Create('rgchat_player_nextbot')
@@ -84,6 +84,14 @@ hook.Add('RGchat.FirstStart', 'RGChat.StartNextBotService', function()
 	end
 
 	timer.Create('RealGlobalChat.GameInfo.Check', 1, 0, game_Info_Check)
+end)
+
+hook.Add('OnEntityCreated', 'RGChatSpawnRelation', function(ent)
+	if ent:IsNPC() and ent.AddEntityRelationship then
+		for _, bot in ipairs(ents_FindByClass('rgchat_player_nextbot')) do
+			ent:AddEntityRelationship(bot, D_NU, 99)
+		end
+	end
 end)
 
 cvars.AddChangeCallback('sv_real_global_chat_sync_players', function(_, _, new_value)

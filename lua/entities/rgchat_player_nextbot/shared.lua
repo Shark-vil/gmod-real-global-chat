@@ -14,6 +14,7 @@ function ENT:Initialize()
 	self:PhysicsInitShadow()
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:PhysWake()
+	self:SetHealth(100)
 
 	if SERVER then
 		local timer_name = 'rgchatnextbotrotate.' .. tostring(self:EntIndex())
@@ -69,7 +70,7 @@ function ENT:UpdateVars()
 	self.BotData.MoveSpeed = RealGloabalChat.Enum.ActRun[self.BotData.State] and data.run_speed or data.walk_speed
 	self.BotData.IsTyping = data.is_typing == 1
 	self.BotData.Sequence = data.sequence
-	self.BotData.Gequence = data.gesture
+	self.BotData.Gesture = data.gesture
 	self.BotData.WeaponActivity = data.weapon_activity
 	self.BotData.WeaponClass = data.weapon_class
 	self.BotData.MoveType = data.move_type
