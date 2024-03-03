@@ -1,9 +1,11 @@
 AddCSLuaFile('shared.lua')
 AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('states.lua')
+AddCSLuaFile('playermeta.lua')
 AddCSLuaFile('functions.lua')
 include('shared.lua')
 include('states.lua')
+include('playermeta.lua')
 include('functions.lua')
 -- local Path = Path
 local IsValid = IsValid
@@ -16,7 +18,7 @@ local coroutine_wait = coroutine.wait
 -- local coroutine_yield = coroutine.yield
 -- local util_IsValidModel = util.IsValidModel
 local table_Copy = table.Copy
-local cvar_dev = GetConVar('developer')
+-- local cvar_dev = GetConVar('developer')
 
 -- local ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
 -- local ACT_HL2MP_WALK = ACT_HL2MP_WALK
@@ -30,6 +32,8 @@ function ENT:RunBehaviour()
 	-- self.loco:SetAcceleration(400)
 	self.loco:SetAcceleration(600)
 	self.loco:SetJumpGapsAllowed(true)
+
+	self:CollectAllWeapons()
 
 	while true and IsValid(self) do
 		local data = self:GetData()
@@ -48,6 +52,11 @@ function ENT:RunBehaviour()
 				self:SetAction(action)
 				self:UpdateVars()
 				self:ModelNetworkUpdate()
+
+				local weapon = self:GetActiveWeapon()
+				if not IsValid(weapon) or weapon:GetClass() ~= self.BotData.WeaponClass then
+					self:SelectWeapon(self.BotData.WeaponClass)
+				end
 
 				local look_at_pos = data.EyePos + data.EyeAng:Forward() * 100
 

@@ -1,5 +1,5 @@
 local string_lower = string.lower
-local IsValid = IsValid
+-- local IsValid = IsValid
 local CurTime = CurTime
 -- local FrameTime = FrameTime
 
@@ -7,6 +7,9 @@ ENT.Base = 'base_nextbot'
 ENT.Spawnable = false
 ENT.BotData = {}
 ENT.States = {}
+ENT.OpinionOnEnts = {}
+ENT.VJ_AddEntityToSNPCAttackList = true
+ENT.dt = ''
 
 function ENT:Initialize()
 	self:SetModel('models/player/kleiner.mdl')
@@ -38,6 +41,7 @@ function ENT:SetData(data)
 	self:UpdateData(data)
 	self:SetNWString('UserName', '[RGChat] ' .. data.username)
 	RealGloabalChat.Values.Nextbots[data.steamid64] = self
+	self:SetName(self.BotData.NickName)
 end
 
 function ENT:GetData()
@@ -45,7 +49,9 @@ function ENT:GetData()
 end
 
 function ENT:UpdateData(data)
+	self.BotData.NickName = data.username
 	self.BotData.SteamId64 = data.steamid64
+	self.BotData.SteamId64Number = tonumber(data.steamid64)
 	self.BotData.ModelWsid = data.model_wsid
 	self.BotData.Model = data.model
 	self.BotData.Actions = data.actions
