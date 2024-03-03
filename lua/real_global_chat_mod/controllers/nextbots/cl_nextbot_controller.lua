@@ -171,9 +171,9 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 				end
 
 				if not mounted then
-					-- if file.Exists(gma_save_path, 'DATA') then
-					-- 	file.Delete(gma_save_path)
-					-- end
+					if file.Exists(gma_save_path, 'DATA') then
+						file.Delete(gma_save_path)
+					end
 
 					kill_progress()
 				end
