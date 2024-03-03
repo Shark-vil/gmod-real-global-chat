@@ -52,7 +52,6 @@ function ENT:RunBehaviour()
 				self:SetAction(action)
 				self:UpdateVars()
 				self:ModelNetworkUpdate()
-
 				local weapon = self:GetActiveWeapon()
 				if not IsValid(weapon) or weapon:GetClass() ~= self.BotData.WeaponClass then
 					self:SelectWeapon(self.BotData.WeaponClass)

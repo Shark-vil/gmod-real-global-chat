@@ -21,7 +21,7 @@ function ENT:ModelNetworkUpdate()
 	local data = self:GetData()
 
 	if not data.Model then
-		self:SetModel('models/player/kleiner.mdl')
+		data.Model = 'models/player/kleiner.mdl'
 		self:SetNWString('pmodel', nil)
 		self:SetNWString('pmwsid', nil)
 	else
@@ -34,9 +34,29 @@ function ENT:ModelNetworkUpdate()
 		if wsid_string ~= self:GetNWString('pmwsid', nil) then
 			self:SetNWString('pmwsid', wsid_string)
 		end
+	end
 
-		if self:GetModel() ~= data.Model and util_IsValidModel(data.Model) then
-			self:SetModel(data.Model)
+	local is_valid_model = util_IsValidModel(data.Model)
+
+	if self:GetModel() ~= data.Model and is_valid_model then
+		self:SetModel(data.Model)
+	end
+
+	if not data.OldModel or data.OldModel ~= data.Model then
+		data.OldModel = data.Model
+		data.OldBodygroups = nil
+		data.OldSkin = nil
+	end
+
+	if is_valid_model then
+		if data.Bodygroups and (not data.OldBodygroups or data.OldBodygroups ~= data.Bodygroups) then
+			self:SetBodyGroups(data.Bodygroups)
+			data.OldBodygroups = data.Bodygroups
+		end
+
+		if data.Skin and (not data.OldSkin or data.OldSkin ~= data.Skin) then
+			self:SetSkin(data.Skin)
+			data.OldSkin = data.Skin
 		end
 	end
 end

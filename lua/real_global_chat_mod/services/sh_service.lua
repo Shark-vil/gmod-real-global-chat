@@ -240,9 +240,16 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 	local ply_color = ply_alive and ply:GetColor() or nil
 	local ply_move_type = ply_alive and ply:GetMoveType() or nil
 	local ply_activity, ply_gesture
+	local ply_skin = ply:GetSkin()
+	local ply_bodygroups = ''
 
 	if ply_model and RealGloabalChat.Values.AddonsModels[ply_model] then
 		ply_model_wsid = RealGloabalChat.Values.AddonsModels[ply_model]
+	end
+
+	for _, v in ipairs(ply:GetBodyGroups()) do
+		local bodygroup = ply:GetBodygroup(v.id)
+		ply_bodygroups = ply_bodygroups .. bodygroup
 	end
 
 	-- if ply_move_type and ply:InVehicle() then
@@ -294,6 +301,8 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		Inflictor = ply_inflictor and tostring(ply_inflictor) or nil,
 		Velocity = ply_velocity and (ply_velocity.x .. ',' .. ply_velocity.y .. ',' .. ply_velocity.z) or nil,
 		Color = ply_color and (ply_color.r .. ',' .. ply_color.g .. ',' .. ply_color.b .. ',' .. ply_color.a) or nil,
+		Skin = ply_skin,
+		Bodygroups = ply_bodygroups ~= '' and ply_bodygroups or nil,
 	}
 
 	if ply_attacker then

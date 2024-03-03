@@ -80,6 +80,8 @@ function ENT:UpdateVars()
 	self.BotData.Inflictor = data.inflictor
 	self.BotData.Velocity = RealGloabalChat:PosStringToVector(data.velocity)
 	self.BotData.Color = RealGloabalChat:ColorStringToColor(data.color)
+	self.BotData.Skin = data.skin
+	self.BotData.Bodygroups = data.bodygroups
 end
 
 -- function ENT:UpdateActions(actions)
