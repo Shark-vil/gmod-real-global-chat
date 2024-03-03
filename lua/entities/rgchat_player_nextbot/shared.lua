@@ -17,12 +17,7 @@ function ENT:Initialize()
 	self:SetHealth(100)
 
 	if SERVER then
-		local timer_name = 'rgchatnextbotrotate.' .. tostring(self:EntIndex())
-		timer.Create(timer_name, .1, 0, function()
-			if not IsValid(self) then
-				timer.Remove(timer_name)
-				return
-			end
+		self:StartTimer('RGChatNextBotRotate', .1, 0, function()
 			if not self.BotData.Ang then return end
 			local rot = RealGloabalChat:MoveTowards(self:GetAngles(), self.BotData.Ang, 20)
 			if rot ~= self.BotData.Ang then self:SetAngles(rot) end
@@ -34,7 +29,7 @@ function ENT:Update()
 	if self:OnStuck() then self:SetPos(self.BotData.MovePos) end
 	-- self:SetAngles(self.BotData.Ang)
 	if self.BotData.Color then self:SetColor(self.BotData.Color) end
-	if RealGloabalChat.Enum.ActJump[self.BotData.State] and self.JumpReset and self.JumpReset < CurTime() then
+	if RealGloabalChat.Enum.ActJump[self.BotData.State] and self.BotData.JumpReset and self.BotData.JumpReset < CurTime() then
 		self:StartActivity(RealGloabalChat.Enum.ActJumpToRun[self.BotData.State])
 	end
 end

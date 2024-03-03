@@ -9,6 +9,18 @@ states['typing'] = {
 	end
 }
 
+states['sit'] = {
+	start = function(self)
+		-- self:SetMovePos(nil)
+		self:SetPos(self.BotData.MovePos)
+	end,
+	update = function(self)
+		-- self:SetPos(self.BotData.MovePos)
+		-- self:CustomStartActivity(self.BotData.State)
+		self:SetMovePos(self.BotData.MovePos)
+	end,
+}
+
 states['gesture'] = {
 	start = function(self)
 		self:AddGesture(self.BotData.Gesture, false)

@@ -22,7 +22,7 @@ end
 
 hook.Add('OutfitApply', 'RGChat.UpdateCache', function(ply, model_name, download_info)
 	if model_name and download_info and model_name ~= '' and download_info ~= '' then
-		if not player_manager_TranslateToPlayerModelName(model_name) then return end
+		-- if not player_manager_TranslateToPlayerModelName(model_name) then return end
 		RealGloabalChat.Values.AddonsModels[model_name] = download_info
 		print('[RGChat] Register player model: ', model_name, download_info)
 		net.Start('RealGlobalChatOnChangePlayerModel')

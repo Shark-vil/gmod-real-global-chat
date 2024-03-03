@@ -76,6 +76,8 @@ load('controllers/sv_game_info_controller.lua')
 load('controllers/nextbots/sv_nextbot_controller.lua')
 load('controllers/nextbots/cl_nextbot_controller.lua')
 
+load('override/sh_file.lua')
+
 -- load('override/sh_entity_meta.lua')
 -- load('override/sh_player_meta.lua')
 -- load('override/sh_concommand.lua')

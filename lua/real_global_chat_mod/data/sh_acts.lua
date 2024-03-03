@@ -12,6 +12,27 @@ RealGloabalChat.Enum.ActIdle = {
 	[ACT_HL2MP_IDLE] = true,
 	[ACT_HL2MP_IDLE_MAGIC] = true,
 	[ACT_HL2MP_IDLE_DUEL] = true,
+	[ACT_HL2MP_IDLE_MELEE] = true,
+	[ACT_HL2MP_IDLE_SLAM] = true,
+	[ACT_HL2MP_IDLE_FIST] = true,
+}
+
+RealGloabalChat.Enum.ActSit = {
+	[ACT_HL2MP_SIT_PISTOL] = true,
+	[ACT_HL2MP_SIT_AR2] = true,
+	[ACT_HL2MP_SIT_SHOTGUN] = true,
+	[ACT_HL2MP_SIT_SMG1] = true,
+	[ACT_HL2MP_SIT_PHYSGUN] = true,
+	[ACT_HL2MP_SIT_GRENADE] = true,
+	[ACT_HL2MP_SIT_RPG] = true,
+	[ACT_HL2MP_SIT_CROSSBOW] = true,
+	[ACT_HL2MP_SIT] = true,
+	[ACT_GMOD_SIT_ROLLERCOASTER] = true,
+	[ACT_HL2MP_SIT_MELEE] = true,
+	[ACT_HL2MP_SIT_SLAM] = true,
+	[ACT_HL2MP_SIT_FIST] = true,
+	[ACT_DRIVE_JEEP] = true,
+	[ACT_DRIVE_POD] = true,
 }
 
 RealGloabalChat.Enum.ActRun = {
@@ -28,6 +49,9 @@ RealGloabalChat.Enum.ActRun = {
 	[ACT_HL2MP_RUN] = true,
 	[ACT_HL2MP_RUN_MAGIC] = true,
 	[ACT_HL2MP_RUN_DUEL] = true,
+	[ACT_HL2MP_RUN_MELEE] = true,
+	[ACT_HL2MP_RUN_SLAM] = true,
+	[ACT_HL2MP_RUN_FIST] = true,
 }
 
 RealGloabalChat.Enum.ActWalk = {
@@ -44,6 +68,9 @@ RealGloabalChat.Enum.ActWalk = {
 	[ACT_HL2MP_WALK] = true,
 	[ACT_HL2MP_WALK_MAGIC] = true,
 	[ACT_HL2MP_WALK_DUEL] = true,
+	[ACT_HL2MP_WALK_MELEE] = true,
+	[ACT_HL2MP_WALK_SLAM] = true,
+	[ACT_HL2MP_WALK_FIST] = true,
 }
 
 RealGloabalChat.Enum.ActJump = {
@@ -60,6 +87,9 @@ RealGloabalChat.Enum.ActJump = {
 	[ACT_HL2MP_JUMP] = true,
 	[ACT_HL2MP_JUMP_MAGIC] = true,
 	[ACT_HL2MP_JUMP_DUEL] = true,
+	[ACT_HL2MP_JUMP_MELEE] = true,
+	[ACT_HL2MP_JUMP_SLAM] = true,
+	[ACT_HL2MP_JUMP_FIST] = true,
 }
 
 RealGloabalChat.Enum.ActJumpToRun = {
@@ -76,6 +106,9 @@ RealGloabalChat.Enum.ActJumpToRun = {
 	[ACT_HL2MP_JUMP] = ACT_HL2MP_RUN,
 	[ACT_HL2MP_JUMP_MAGIC] = ACT_HL2MP_RUN_MAGIC,
 	[ACT_HL2MP_JUMP_DUEL] = ACT_HL2MP_RUN_DUEL,
+	[ACT_HL2MP_JUMP_MELEE] = ACT_HL2MP_RUN_MELEE,
+	[ACT_HL2MP_JUMP_SLAM] = ACT_HL2MP_RUN_SLAM,
+	[ACT_HL2MP_JUMP_FIST] = ACT_HL2MP_RUN_FIST,
 }
 
 RealGloabalChat.Enum.ActGmodTaunt = {

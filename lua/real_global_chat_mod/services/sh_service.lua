@@ -22,6 +22,7 @@ local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_cou
 local has_reading_muted_users = false
 local IsValid = IsValid
 local Color = Color
+local string_Trim = string.Trim
 local cvar_cl_real_global_chat_status
 
 local function http_Error(message)
@@ -32,8 +33,12 @@ local function http_Warn(message)
 	if CLIENT then
 		chat.AddText(color_rgchat_tag, '[RGChat Warn] ', color_message, ': ' .. tostring(message))
 	end
+
 	MsgN('[RGChat Warn] ' .. message)
 end
+
+RealGloabalChat.http_Error = http_Error
+RealGloabalChat.http_Warn = http_Warn
 
 local verified_token, verified_token_is_checked
 
@@ -126,6 +131,31 @@ function RealGloabalChat:GetChatMessages(ply, start_message_id, invoke_Action)
 	end, http_Error)
 end
 
+function RealGloabalChat:GetChatMessagesCallback(ply, start_message_id, callback)
+	local get_params = ''
+
+	if cvar_cl_real_global_chat_country_mode:GetBool() then
+		get_params = '?chatRoomName=country.' .. string_lower(system_GetCountry())
+	else
+		get_params = '?chatRoomName=world'
+	end
+
+	if isnumber(start_message_id) then
+		if #get_params == 0 then
+			get_params = '?startMessageId=' .. start_message_id
+		else
+			get_params = get_params .. '&startMessageId=' .. start_message_id
+		end
+	end
+
+	http_Fetch(url_address .. 'Api/Chat/GetChatMessages' .. get_params, function(body, length, headers, code)
+		callback(body, length, headers, code)
+	end, function(err)
+		callback()
+		http_Error(err)
+	end)
+end
+
 function RealGloabalChat:GetOnlineCount(invoke_Action)
 	local get_params = ''
 
@@ -213,6 +243,16 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 
 	if ply_model and RealGloabalChat.Values.AddonsModels[ply_model] then
 		ply_model_wsid = RealGloabalChat.Values.AddonsModels[ply_model]
+	end
+
+	-- if ply_move_type and ply:InVehicle() then
+	-- 	local mt = ply_move_type
+	-- 	if mt == 4 or mt == 5 or mt == 8 or mt == 10 then
+	-- 		ply_move_type = 0
+	-- 	end
+	-- end
+	if ply_pos and ply:InVehicle() then
+		ply_pos = ply:GetVehicle():GetPos()
 	end
 
 	if IsValid(ply) and ply_alive then
@@ -527,6 +567,7 @@ function RealGloabalChat:ReadGma(gma_file)
 	if (meta.gma_version or math.huge) > 3 then return end
 
 	meta.steamid = {gma_file:ReadULong(), gma_file:ReadULong()}
+
 	meta.timestamp = {gma_file:ReadULong(), gma_file:ReadULong()}
 
 	if meta.gma_version > 1 then
@@ -570,6 +611,43 @@ function RealGloabalChat:ReadGma(gma_file)
 	end
 
 	return meta
+end
+
+function RealGloabalChat:Translate(lang, text, callback)
+	http_Post('https://translate.google.com/translate_a/single?client=at&dt=t&dt=rm&dj=1', {
+		['sl'] = 'auto',
+		['tl'] = lang:lower(),
+		['q'] = text
+	}, function(body, size, headers, code)
+		if code ~= 200 then
+			callback(text, code)
+
+			return
+		end
+
+		local response = util_JSONToTable(body)
+
+		if response and response['sentences'] and response['sentences'][1] and response['sentences'][1]['trans'] then
+			local new_text = response['sentences'][1]['trans']
+
+			if new_text then
+				new_text = string_Trim(new_text)
+
+				if #new_text ~= 0 then
+					callback(new_text, code)
+
+					return
+				end
+			end
+		end
+
+		callback(text, code)
+	end, function()
+		callback(text, code)
+	end, {
+		['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8',
+		['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+	})
 end
 
 if SERVER then

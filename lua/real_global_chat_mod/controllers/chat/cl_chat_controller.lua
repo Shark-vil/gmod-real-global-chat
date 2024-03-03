@@ -3,20 +3,22 @@ local LocalPlayer = LocalPlayer
 local IsValid = IsValid
 local isnumber = isnumber
 local table_insert = table.insert
-local table_remove = table.remove
-local skip_ids_table = {}
+-- local table_remove = table.remove
+-- local skip_ids_table = {}
 local color_rgchat_tag = Color(207, 237, 73)
 local color_username = Color(255, 255, 104)
 local color_username_verified = Color(182, 255, 104)
 local color_message = Color(255, 255, 255)
 local color_message_command = Color(247, 173, 246)
 local color_message_filtred = Color(241, 137, 137)
+local color_message_google = Color(153, 176, 254)
 local cvar_cl_real_global_chat_status = GetConVar('cl_real_global_chat_status')
 local cvar_cl_real_global_chat_filter = GetConVar('cl_real_global_chat_filter')
 local cvar_cl_real_global_chat_filter_strict = GetConVar('cl_real_global_chat_filter_strict')
 local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_country_mode')
 local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_real_global_chat_ping_sound')
 local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_real_global_chat_visible_player_map_name')
+local cvar_cl_real_global_chat_translator = GetConVar('cl_real_global_chat_translator')
 local last_max_message_id = nil
 local sql_is_inject = false
 local has_print_outdated_version = false
@@ -29,14 +31,22 @@ local player_GetHumans = player.GetHumans
 local last_players_count
 local lang = RealGloabalChat.Values.Language
 local sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
+local system_GetCountry = system.GetCountry
+local coroutine_wait = coroutine.wait
+local coroutine_yield = coroutine.yield
+local translate_timeout
 
 local function update_message_action(response)
 	if not response or response.success == 0 then return end
-	local skip_ids_count = #skip_ids_table
+	-- local skip_ids_count = #skip_ids_table
 
-	if skip_ids_count + 1 > 250 then
-		table_remove(skip_ids_table, 1)
-		skip_ids_count = skip_ids_count - 1
+	-- if skip_ids_count + 1 > 250 then
+	-- 	table_remove(skip_ids_table, 1)
+	-- 	skip_ids_count = skip_ids_count - 1
+	-- end
+
+	if file.Exists('rgchat_data/google_translate_timeout.txt', 'DATA') then
+		translate_timeout = tonumber(file.Read('rgchat_data/google_translate_timeout.txt', 'DATA'))
 	end
 
 	local local_player = LocalPlayer()
@@ -123,40 +133,59 @@ local function update_message_action(response)
 			AdditionText(color_message_command)
 			AdditionText(' <Muted>')
 		else
-			AdditionText(result_color_message)
-			AdditionText(', ' .. result_message)
-		end
+			local text_nickname, text_message, has_ping_nick_or_id
 
-		if not has_ping and string_StartsWith(result_message, self_nick_name) then
-			local text_nickname = string_sub(result_message, 1, #self_nick_name)
-			local text_message = string_sub(result_message, #self_nick_name + 1)
+			if not has_ping and string_StartsWith(result_message, self_nick_name) then
+				text_nickname = string_sub(result_message, 1, #self_nick_name)
+				text_message = string_sub(result_message, #self_nick_name + 1)
 
-			if text_nickname == self_nick_name then
-				text_constructor = {}
-				AdditionText(color_rgchat_tag)
-				AdditionText('[RGC|' .. world_type .. '|#' .. user_msg.connect_id)
-
-				if user_msg.played_map and cvar_cl_real_global_chat_visible_player_map_name:GetBool() then
-					AdditionText('|' .. user_msg.played_map)
-				end
-
-				AdditionText(']')
-				AdditionText((user_msg.verified and user_msg.verified == 1) and color_username_verified or color_username)
-				AdditionText(' ' .. user_msg.username)
-				AdditionText(result_color_message)
-				AdditionText(', ')
-				AdditionText(color_message_command)
-				AdditionText(text_nickname)
-
-				if RealGloabalChat:UserHasMute(user_msg.connect_id) then
-					AdditionText(color_message_command)
-					AdditionText(' <Muted>')
-				else
-					AdditionText(result_color_message)
-					AdditionText(text_message)
+				if text_nickname == self_nick_name then
 					has_ping = true
+					has_ping_nick_or_id = true
 				end
 			end
+
+			if has_ping_nick_or_id then
+				AdditionText(color_message_command)
+				AdditionText(text_nickname)
+				result_message = text_message
+			else
+				result_message = ', ' .. result_message
+			end
+		end
+
+		local result_message_no_spec, translate_result_message
+		if cvar_cl_real_global_chat_translator:GetBool() and (not translate_timeout or translate_timeout < os.time()) then
+			result_message_no_spec = result_message:gsub('[%p%c%s]', '')
+			if result_message_no_spec and #result_message_no_spec > 2 and not user_msg.message_filtred then
+				local on_translate = false
+				RealGloabalChat:Translate(system_GetCountry(), result_message_no_spec, function(new_result_message, code)
+					if code == 429 then
+						translate_timeout = os.time() + (60 * 60 * 24)
+						file.Write('rgchat_data/google_translate_timeout.txt', translate_timeout)
+						LocalPlayer():ChatPrint('[RGChat] Google has temporarily restricted the translation. There\'s a 24-hour timeout.')
+					elseif code == 200 then
+						translate_result_message = new_result_message
+					end
+					on_translate = true
+				end)
+
+				while not on_translate do
+					coroutine_yield()
+				end
+
+				coroutine_wait(1.5)
+			end
+		end
+
+		AdditionText(result_color_message)
+		AdditionText(result_message)
+
+		if translate_result_message and result_message_no_spec ~= translate_result_message then
+			AdditionText(color_message_google)
+			AdditionText(' > [Translation] >')
+			AdditionText(result_color_message)
+			AdditionText(translate_result_message)
 		end
 
 		chat.AddText(unpack(text_constructor))
@@ -169,29 +198,40 @@ local function update_message_action(response)
 			end
 		end
 
-		table_insert(skip_ids_table, user_msg.random_id)
+		-- table_insert(skip_ids_table, user_msg.random_id)
 	end
 end
 
 local function global_chat_Check()
-	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
-	if not IsValid(ply) then return end
+	if IsValid(ply) and RealGloabalChat:ModIsActive() then
+		-- RealGloabalChat:GetChatMessages(ply, last_max_message_id, update_message_action)
+		local is_success = false
+		local response
 
-	if not sql_is_inject then
-		sql_is_inject = true
-		sql_Query('CREATE TABLE IF NOT EXISTS rgchat_data (id NUMBER PRIMARY KEY, last_message_id NUMBER);')
-		sql_Query('INSERT OR IGNORE INTO rgchat_data(id, last_message_id) VALUES(1, 0);')
-		local sql_response = sql_Query('SELECT last_message_id FROM rgchat_data WHERE id=1;')
+		RealGloabalChat:GetChatMessagesCallback(ply, last_max_message_id, function(body, length, headers, code)
+			if code == 400 then
+				RealGloabalChat.http_Warn(body)
+			elseif code == 200 and body then
+				response = util_JSONToTable(body)
+			end
 
-		if not sql_response or not sql_response[1] or not sql_response[1]['last_message_id'] then
-			ErrorNoHalt('Something went wrong when trying to initialize the SQL table.')
+			if not response then RealGloabalChat.http_Error(body) end
+
+			is_success = true
+		end)
+
+		while not is_success do
+			coroutine_yield()
 		end
 
-		last_max_message_id = tonumber(sql_response[1]['last_message_id'])
+		if response then
+			update_message_action(response)
+		end
 	end
 
-	RealGloabalChat:GetChatMessages(ply, last_max_message_id, update_message_action)
+	-- coroutine_yield()
+	coroutine_wait(1)
 end
 
 local function http_Handler_CheckInfo(data)
@@ -249,8 +289,33 @@ net.Receive('RealGlobalChatSpawnMessage', function()
 	net.Start('RealGlobalChatServerSycnActive')
 	net.WriteBool(cvar_cl_real_global_chat_status:GetBool())
 	net.SendToServer()
-	timer.Create('RealGlobalChat.Check', 1, 0, global_chat_Check)
-	timer.Create('RealGlobalChat.CheckInfo', 10, 0, global_chat_CheckInfo)
+	-- timer.Create('RealGlobalChat.Check', 1, 0, global_chat_Check)
+
+	if not sql_is_inject then
+		sql_is_inject = true
+		sql_Query('CREATE TABLE IF NOT EXISTS rgchat_data (id NUMBER PRIMARY KEY, last_message_id NUMBER);')
+		sql_Query('INSERT OR IGNORE INTO rgchat_data(id, last_message_id) VALUES(1, 0);')
+		local sql_response = sql_Query('SELECT last_message_id FROM rgchat_data WHERE id=1;')
+
+		if not sql_response or not sql_response[1] or not sql_response[1]['last_message_id'] then
+			ErrorNoHalt('Something went wrong when trying to initialize the SQL table.')
+		end
+
+		last_max_message_id = tonumber(sql_response[1]['last_message_id'])
+	end
+
+	local co
+	local coroutine_create = coroutine.create
+	local coroutine_resume = coroutine.resume
+
+	hook.Add('Think', 'RealGlobalChat.Check', function()
+		if not co or not coroutine_resume(co) then
+			co = coroutine_create(global_chat_Check)
+			coroutine_resume(co)
+		end
+	end)
+
+	timer.Create('RealGlobalChat.CheckInfo', 300, 0, global_chat_CheckInfo)
 	hook.Run('RGchat.FirstStart')
 end)
 

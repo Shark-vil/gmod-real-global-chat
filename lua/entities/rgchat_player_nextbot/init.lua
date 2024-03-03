@@ -25,9 +25,10 @@ function ENT:RunBehaviour()
 	self.loco:SetJumpHeight(70)
 	self.loco:SetAvoidAllowed(true)
 	self.loco:SetDeathDropHeight(200)
-	self.loco:SetGravity(GetConVar('sv_gravity'):GetFloat())
+	self.loco:SetGravity(self:GetGravity())
 	self.loco:SetDesiredSpeed(200)
-	self.loco:SetAcceleration(800)
+	-- self.loco:SetAcceleration(400)
+	self.loco:SetAcceleration(600)
 	self.loco:SetJumpGapsAllowed(true)
 
 	while true and IsValid(self) do
@@ -42,24 +43,26 @@ function ENT:RunBehaviour()
 
 		for i = 1, #actions do
 			local action = actions[i]
-			if not self.BotData.LastUpdate or self.BotData.LastUpdate < action.last_update then
-				self.BotData.LastUpdate = action.last_update
+			if not data.LastUpdate or data.LastUpdate < action.last_update then
+				data.LastUpdate = action.last_update
 				self:SetAction(action)
 				self:UpdateVars()
 				self:ModelNetworkUpdate()
 
-				local look_at_pos = self.BotData.EyePos + self.BotData.EyeAng:Forward() * 100
+				local look_at_pos = data.EyePos + data.EyeAng:Forward() * 100
 
-				if not self.BotData.LastUpdateLookAt or self.BotData.LastUpdateLookAt < CurTime() then
+				if not data.LastUpdateLookAt or data.LastUpdateLookAt < CurTime() then
 					self:LookAt(look_at_pos)
-					self.BotData.LastUpdateLookAt = CurTime() + .5
+					data.LastUpdateLookAt = CurTime() + .5
 				end
 
 				self.loco:FaceTowards(look_at_pos)
 
-				if RealGloabalChat.Enum.ActJump[self.BotData.State] then
-					self.JumpReset = CurTime() + 1
+				if RealGloabalChat.Enum.ActJump[data.State] then
+					data.JumpReset = CurTime() + 1
 				end
+
+				data.CanSit = RealGloabalChat.Enum.ActSit[data.State]
 
 				local is_noclip_move_type = self:IsNoclipMoveType()
 				if is_noclip_move_type and not self:IsNoclip() then
@@ -68,22 +71,24 @@ function ENT:RunBehaviour()
 					self:StopNoclip()
 				end
 
-				if data.Gesture then
+				if data.CanSit then
+					self:SetState('sit')
+				elseif data.Gesture then
 					self:SetState('gesture')
 				elseif data.IsTyping then
 					self:SetState('typing')
-				elseif RealGloabalChat.Enum.ActIdle[self.BotData.State] then
+				elseif RealGloabalChat.Enum.ActIdle[data.State] then
 					self:SetState('idle')
 				else
 					self:SetState('move_to_pos')
 				end
 
-				if cvar_dev:GetBool() then
-					local ply = player.GetAll()[1]
-					if IsValid(ply) then
-						ply:ChatPrint('GRChatNextBot - ' .. self:GetActiveStateName())
-					end
-				end
+				-- if cvar_dev:GetBool() then
+				-- 	local ply = player.GetAll()[1]
+				-- 	if IsValid(ply) then
+				-- 		ply:ChatPrint('GRChatNextBot - ' .. self:GetActiveStateName())
+				-- 	end
+				-- end
 
 				self:Update()
 				self:UpdateCurrentState()

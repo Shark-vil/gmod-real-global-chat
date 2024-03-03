@@ -1,6 +1,6 @@
 local util_IsValidModel = util.IsValidModel
 local coroutine_yield = coroutine.yield
--- local timer_Exists = timer.Exists
+local timer_Exists = timer.Exists
 -- local type = type
 -- local Angle = Angle
 -- local Vector = Vector
@@ -14,6 +14,8 @@ local IsValid = IsValid
 local angle_m20_0_0 = Angle(-20, 0, 0)
 local vector_0_0_5 = Vector(0, 0, 5)
 local cvar_dev = GetConVar('developer')
+local cvar_gravity = GetConVar('sv_gravity')
+local vector_0_0_0 = Vector(0, 0, 0)
 
 function ENT:ModelNetworkUpdate()
 	local data = self:GetData()
@@ -57,29 +59,51 @@ function ENT:UpdateMovement()
 	local speed = self.BotData.MoveSpeed or 400
 	local timeout = CurTime() + 10
 	local devmode = cvar_dev:GetBool()
-	if not navmesh.IsLoaded() then
+	local state_name = self:GetActiveStateName()
+
+	self:CustomStartActivity(activity)
+
+	if self.BotData.CanSit then
+		self.loco:SetGravity(0)
+		self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
+			if not self.BotData.CanSit or state_name ~= self:GetActiveStateName() or self:IsNoclip() then
+				stop_timer()
+			else
+				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+				if pos then
+					self:SetPos(pos)
+					self.loco:SetVelocity(vector_0_0_0)
+				end
+			end
+		end)
+	elseif not navmesh.IsLoaded() then
 		if not self.BotData.LastTargetPos or self.BotData.LastTargetPos ~= move_pos then
 			self.BotData.LastTargetPos = move_pos
-			local timer_name = 'RgChatNextBotMove.' .. tostring(self:EntIndex())
-			timer_Create(timer_name, 0, 0, function()
-				if not IsValid(self) or move_pos:DistToSqr(self:GetPos()) <= 2500 or self:IsNoclip() or self:OnStuck() or not self:IsOnGround()  then
-					timer_Remove(timer_name)
-					return
-				end
-				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
-				if pos then self:SetPos(pos) end
-			end)
-			self:CustomStartActivity(activity)
+			if not self:IsNoclip() then
+				self.loco:SetGravity(self:GetGravity())
+				self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
+					if state_name ~= self:GetActiveStateName() or move_pos:DistToSqr(self:GetPos()) <= 2500 or self:IsNoclip() then
+						stop_timer()
+					else
+						local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+						if pos then
+							self:SetPos(pos)
+							self.loco:SetVelocity(self.BotData.Velocity or vector_0_0_0)
+						end
+					end
+				end)
+			end
 		end
 	else
+		self:StopTimer('RgChatNextBotMove')
 		local path = Path('Follow')
 		path:SetMinLookAheadDistance(300)
 		path:SetGoalTolerance(20)
 		path:MoveCursorToClosestPosition(move_pos, 2)
 		path:Compute(self, move_pos)
 		self.loco:SetDesiredSpeed(speed)
-		self.loco:SetAcceleration(800)
-		self:CustomStartActivity(activity)
+		-- self.loco:SetAcceleration(400)
+		self.loco:SetGravity(self:GetGravity())
 
 		if not path:IsValid() then
 			self:SetPos(move_pos)
@@ -113,9 +137,29 @@ end
 
 function ENT:IsNoclipMoveType()
 	local mt = self.BotData.MoveType
-	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) then return true end
+	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Enum.ActSit[self.BotData.State] then
+		return true
+	end
 
 	return false
+end
+
+function ENT:StartTimer(timer_name, delay, repetitions, func)
+	timer_name = timer_name .. '.' .. tostring(self:EntIndex())
+	local function stop_timer() timer_Remove(timer_name) end
+	timer_Create(timer_name, delay, repetitions, function()
+		if not IsValid(self) or self:Health() <= 0 then
+			timer_Remove(timer_name)
+			return
+		end
+		func(stop_timer)
+	end)
+end
+
+function ENT:StopTimer(timer_name)
+	timer_name = timer_name .. '.' .. tostring(self:EntIndex())
+	if not timer_Exists(timer_name) then return end
+	timer_Remove(timer_name)
 end
 
 function ENT:StartNoclip()
@@ -125,7 +169,6 @@ function ENT:StartNoclip()
 	self.BotData.IsNoclip = true
 	self:SetMovePos(nil)
 	self:AddGesture(ACT_GMOD_NOCLIP_LAYER, false)
-	local vector_0_0_0 = Vector(0, 0, 0)
 
 	timer.Create(timer_name, 0, 0, function()
 		if not IsValid(self) then
@@ -247,4 +290,8 @@ function ENT:LookAt(look_pos)
 		self:SetPoseParameter('aim_yaw', approachy)
 		self:SetPoseParameter('aim_pitch', approachp)
 	end)
+end
+
+function ENT:GetGravity()
+	return cvar_gravity:GetFloat()
 end
