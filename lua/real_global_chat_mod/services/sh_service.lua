@@ -321,8 +321,9 @@ end
 
 function RealGloabalChat:GetInfo(callback)
 	http_Fetch(url_address .. 'Api/Info', function(body, length, headers, code)
-		if code == 200 then
-			callback(body)
+		local response = util_JSONToTable(body)
+		if code == 200 and response then
+			callback(response)
 		else
 			http_Error(body)
 		end
