@@ -183,7 +183,7 @@ local function update_message_action(response)
 
 		if translate_result_message and result_message_no_spec ~= translate_result_message then
 			AdditionText(color_message_google)
-			AdditionText(' > [Translation] >')
+			AdditionText('\n[Translation] ')
 			AdditionText(result_color_message)
 			AdditionText(translate_result_message)
 		end
