@@ -4,7 +4,7 @@ RealGloabalChat = {
 }
 
 RealGloabalChat.Values.ApiUrl = 'https://rgcgmod.vincy.ru/'
-RealGloabalChat.Values.Version = '1.0.11'
+RealGloabalChat.Values.Version = '1.0.12'
 -- Stores client settings on the server about whether chat is enabled or not
 RealGloabalChat.Values.ModActive = {}
 -- Tables for caching models from addons
@@ -20,6 +20,7 @@ RealGloabalChat.Values.NextBotStates = {}
 RealGloabalChat.Values.Nextbots = {}
 -- Stores registered enumerations
 RealGloabalChat.Enum = {}
+RealGloabalChat.AllRegistredWeapons = {}
 
 if not file.Exists('rgchat_data', 'DATA') then
 	file.CreateDir('rgchat_data')

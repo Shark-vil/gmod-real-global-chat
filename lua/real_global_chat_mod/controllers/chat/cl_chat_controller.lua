@@ -209,15 +209,8 @@ local function global_chat_Check()
 		local is_success = false
 		local response
 
-		RealGloabalChat:GetChatMessagesCallback(ply, last_max_message_id, function(body, length, headers, code)
-			if code == 400 then
-				RealGloabalChat.http_Warn(body)
-			elseif code == 200 and body then
-				response = util_JSONToTable(body)
-			end
-
-			if not response then RealGloabalChat.http_Error(body) end
-
+		RealGloabalChat:GetChatMessages(ply, last_max_message_id, function(response_table)
+			response = response_table
 			is_success = true
 		end)
 

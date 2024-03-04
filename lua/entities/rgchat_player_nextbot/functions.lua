@@ -61,6 +61,27 @@ function ENT:ModelNetworkUpdate()
 	end
 end
 
+function ENT:GetWeaponENT()
+	if IsValid(self.WeaponENT) then return self.WeaponENT end
+	local lookup = self:LookupAttachment('anim_attachment_RH')
+	local attachment = self:GetAttachmentPoint('hand')
+
+	self.WeaponENT = ents.Create('base_anim')
+	self.WeaponENT:SetOwner(self)
+	self.WeaponENT:AddEffects(EF_BONEMERGE)
+	self.WeaponENT:SetMoveType(MOVETYPE_NONE)
+	self.WeaponENT:SetPos(attachment.Pos)
+	self.WeaponENT:SetAngles(attachment.Ang)
+	self.WeaponENT:SetParent(self, lookup)
+	-- self.WeaponENT:SetModel('models/hunter/plates/plate.mdl')
+	-- self.WeaponENT:SetMaterial('null')
+	self.WeaponENT:SetNoDraw(true)
+
+	self:DeleteOnRemove(self.WeaponENT)
+
+	return self.WeaponENT
+end
+
 function ENT:UpdateCurrentState()
 	local state_func = self:GetActiveState()
 
@@ -74,19 +95,20 @@ function ENT:UpdateMovement()
 	local move_pos = self:GetMovePos()
 	if not move_pos then return end
 	-- if move_pos:DistToSqr(self:GetPos()) <= 2500 then return end
-	local activity_id = self.BotData.State
+	local data = self:GetData()
+	local activity_id = data.State
 	local activity = RealGloabalChat.Enum.ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
-	local speed = self.BotData.MoveSpeed or 400
+	local speed = data.MoveSpeed or 400
 	local timeout = CurTime() + 10
 	local devmode = cvar_dev:GetBool()
 	local state_name = self:GetActiveStateName()
 
 	self:CustomStartActivity(activity)
 
-	if self.BotData.CanSit then
+	if data.CanSit then
 		self.loco:SetGravity(0)
 		self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
-			if not self.BotData.CanSit or state_name ~= self:GetActiveStateName() or self:IsNoclip() then
+			if not data.CanSit or state_name ~= self:GetActiveStateName() or self:IsNoclip() then
 				stop_timer()
 			else
 				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
@@ -97,8 +119,8 @@ function ENT:UpdateMovement()
 			end
 		end)
 	elseif not navmesh.IsLoaded() then
-		if not self.BotData.LastTargetPos or self.BotData.LastTargetPos ~= move_pos then
-			self.BotData.LastTargetPos = move_pos
+		if not data.LastTargetPos or data.LastTargetPos ~= move_pos then
+			data.LastTargetPos = move_pos
 			if not self:IsNoclip() then
 				self.loco:SetGravity(self:GetGravity())
 				self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
@@ -108,7 +130,7 @@ function ENT:UpdateMovement()
 						local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
 						if pos then
 							self:SetPos(pos)
-							self.loco:SetVelocity(self.BotData.Velocity or vector_0_0_0)
+							self.loco:SetVelocity(data.Velocity or vector_0_0_0)
 						end
 					end
 				end)
@@ -116,6 +138,7 @@ function ENT:UpdateMovement()
 		end
 	else
 		self:StopTimer('RgChatNextBotMove')
+
 		local path = Path('Follow')
 		path:SetMinLookAheadDistance(300)
 		path:SetGoalTolerance(20)
@@ -124,6 +147,7 @@ function ENT:UpdateMovement()
 		self.loco:SetDesiredSpeed(speed)
 		-- self.loco:SetAcceleration(400)
 		self.loco:SetGravity(self:GetGravity())
+		self.loco:SetVelocity(data.Velocity or vector_0_0_0)
 
 		if not path:IsValid() then
 			self:SetPos(move_pos)
@@ -189,6 +213,7 @@ function ENT:StartNoclip()
 	self.BotData.IsNoclip = true
 	self:SetMovePos(nil)
 	self:AddGesture(ACT_GMOD_NOCLIP_LAYER, false)
+	self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 
 	timer.Create(timer_name, 0, 0, function()
 		if not IsValid(self) then
@@ -211,6 +236,7 @@ function ENT:StopNoclip()
 	if not self.BotData.IsNoclip then return end
 	local timer_name = 'rgchatnextbotnoclip.' .. tostring(self:EntIndex())
 	timer.Remove(timer_name)
+	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:RemoveGesture(ACT_GMOD_NOCLIP_LAYER)
 	self.loco:SetGravity(GetConVar('sv_gravity'):GetFloat())
 	self.BotData.IsNoclip = false

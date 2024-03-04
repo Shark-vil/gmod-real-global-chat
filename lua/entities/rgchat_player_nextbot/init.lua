@@ -24,7 +24,7 @@ local table_Copy = table.Copy
 -- local ACT_HL2MP_WALK = ACT_HL2MP_WALK
 -- local type = type
 function ENT:RunBehaviour()
-	self.loco:SetJumpHeight(70)
+	self.loco:SetJumpHeight(50)
 	self.loco:SetAvoidAllowed(true)
 	self.loco:SetDeathDropHeight(200)
 	self.loco:SetGravity(self:GetGravity())
@@ -33,7 +33,11 @@ function ENT:RunBehaviour()
 	self.loco:SetAcceleration(600)
 	self.loco:SetJumpGapsAllowed(true)
 
-	self:CollectAllWeapons()
+	self:StartTimer('RGChatNextBotRotate', .1, 0, function()
+		if not self.BotData.Ang then return end
+		local rot = RealGloabalChat:MoveTowards(self:GetAngles(), self.BotData.Ang, 20)
+		if rot ~= self.BotData.Ang then self:SetAngles(rot) end
+	end)
 
 	while true and IsValid(self) do
 		local data = self:GetData()
@@ -52,22 +56,24 @@ function ENT:RunBehaviour()
 				self:SetAction(action)
 				self:UpdateVars()
 				self:ModelNetworkUpdate()
-				local weapon = self:GetActiveWeapon()
-				if not IsValid(weapon) or weapon:GetClass() ~= self.BotData.WeaponClass then
+
+				if self:GetActiveWeaponClassName() ~= self.BotData.WeaponClass then
 					self:SelectWeapon(self.BotData.WeaponClass)
 				end
 
-				local look_at_pos = data.EyePos + data.EyeAng:Forward() * 100
+				if data.EyePos and data.EyeAng then
+					local look_at_pos = data.EyePos + data.EyeAng:Forward() * 100
 
-				if not data.LastUpdateLookAt or data.LastUpdateLookAt < CurTime() then
-					self:LookAt(look_at_pos)
-					data.LastUpdateLookAt = CurTime() + .5
+					if not data.LastUpdateLookAt or data.LastUpdateLookAt < CurTime() then
+						self:LookAt(look_at_pos)
+						data.LastUpdateLookAt = CurTime() + .5
+					end
+
+					self.loco:FaceTowards(look_at_pos)
 				end
 
-				self.loco:FaceTowards(look_at_pos)
-
 				if RealGloabalChat.Enum.ActJump[data.State] then
-					data.JumpReset = CurTime() + 1
+					data.JumpReset = CurTime() + .5
 				end
 
 				data.CanSit = RealGloabalChat.Enum.ActSit[data.State]

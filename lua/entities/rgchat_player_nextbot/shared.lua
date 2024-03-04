@@ -18,22 +18,14 @@ function ENT:Initialize()
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:PhysWake()
 	self:SetHealth(100)
-
-	if SERVER then
-		self:StartTimer('RGChatNextBotRotate', .1, 0, function()
-			if not self.BotData.Ang then return end
-			local rot = RealGloabalChat:MoveTowards(self:GetAngles(), self.BotData.Ang, 20)
-			if rot ~= self.BotData.Ang then self:SetAngles(rot) end
-		end)
-	end
 end
 
 function ENT:Update()
-	if self:OnStuck() then self:SetPos(self.BotData.MovePos) end
-	-- self:SetAngles(self.BotData.Ang)
-	if self.BotData.Color then self:SetColor(self.BotData.Color) end
-	if RealGloabalChat.Enum.ActJump[self.BotData.State] and self.BotData.JumpReset and self.BotData.JumpReset < CurTime() then
-		self:StartActivity(RealGloabalChat.Enum.ActJumpToRun[self.BotData.State])
+	local data = self:GetData()
+	if self:OnStuck() then self:SetPos(data.MovePos) end
+	if data.Color then self:SetColor(data.Color) end
+	if RealGloabalChat.Enum.ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
+		self:CustomStartActivity(RealGloabalChat.Enum.ActJumpToRun[data.State])
 	end
 end
 
@@ -61,7 +53,7 @@ function ENT:UpdateVars()
 	local data = self:GetActiveAction()
 	if not data then return end
 	self.BotData.LastUpdate = data.last_update
-	self.BotData.MovePos = RealGloabalChat:PosStringToVector(data.pos)
+	self.BotData.MovePos = RealGloabalChat:PosStringToVector(data.pos) or Vector3(0, 0, 0)
 	self.BotData.Ang = RealGloabalChat:PosStringToAngle(data.ang)
 	self.BotData.Ang.z = 0
 	self.BotData.Ang.x = 0

@@ -11,14 +11,15 @@ states['typing'] = {
 
 states['sit'] = {
 	start = function(self)
-		-- self:SetMovePos(nil)
+		self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 		self:SetPos(self.BotData.MovePos)
 	end,
 	update = function(self)
-		-- self:SetPos(self.BotData.MovePos)
-		-- self:CustomStartActivity(self.BotData.State)
 		self:SetMovePos(self.BotData.MovePos)
 	end,
+	stop = function(self)
+		self:SetCollisionGroup(COLLISION_GROUP_WORLD)
+	end
 }
 
 states['gesture'] = {
@@ -37,10 +38,6 @@ states['move_to_pos'] = {
 	update = function(self)
 		if self:IsNoclip() then return end
 		self:SetMovePos(self.BotData.MovePos)
-		-- local dist =  self.BotData.MovePos:DistToSqr(self:GetPos())
-		-- if dist > 2250000 or self:OnStuck() then
-		-- 	self:SetPos(self.BotData.MovePos)
-		-- end
 	end,
 }
 

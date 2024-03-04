@@ -8,7 +8,7 @@ local util_JSONToTable = util.JSONToTable
 local http_Post = http.Post
 local http_Fetch = http.Fetch
 local system_GetCountry = system.GetCountry
-local isfunction = isfunction
+-- local isfunction = isfunction
 local ipairs = ipairs
 local tostring = tostring
 local math_sqrt = math.sqrt
@@ -42,7 +42,7 @@ RealGloabalChat.http_Warn = http_Warn
 
 local verified_token, verified_token_is_checked
 
-function RealGloabalChat:SendToChat(ply, messageText, invoke_Action, attempts)
+function RealGloabalChat:SendToChat(ply, messageText, attempts)
 	if attempts then
 		attempts = attempts + 1
 
@@ -68,39 +68,31 @@ function RealGloabalChat:SendToChat(ply, messageText, invoke_Action, attempts)
 	end
 
 	http_Post(url_address .. 'Api/Chat/SendToChat', {
-		steamId64 = ply:SteamID64(),
-		userName = ply:Nick(),
-		message = messageText,
-		chatRoomName = chatRoomName,
-		verifiedToken = verified_token
+		SteamId64 = ply:SteamID64(),
+		UserName = ply:Nick(),
+		Message = messageText,
+		ChatRoomName = chatRoomName,
+		VerifiedToken = verified_token,
+		-- Map = game_GetMap()
 	}, function(body, length, headers, code)
-		if code == 502 then
-			http_Warn('The global chat server is currently unavailable.')
-
-			return
-		end
-
-		local response = body
-
-		if response and response == 'ok' then
-			if invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
+		local response = util_JSONToTable(body)
+		if response and response.success then
+			if response.success == 0 then
+				if response.message then http_Warn(response.message) end
+				if response.error then http_Error(response.error) end
 			end
-		elseif code == 400 then
-			http_Warn(body)
 		else
 			http_Error(body)
 		end
 	end, function(error_message)
 		http_Error(error_message)
-
 		timer.Simple(1.5, function()
-			RealGloabalChat:SendToChat(ply, messageText, invoke_Action, attempts or 0)
+			RealGloabalChat:SendToChat(ply, messageText, attempts or 0)
 		end)
 	end)
 end
 
-function RealGloabalChat:GetChatMessages(ply, start_message_id, invoke_Action)
+function RealGloabalChat:GetChatMessages(ply, start_message_id, callback)
 	local get_params = ''
 
 	if cvar_cl_real_global_chat_country_mode:GetBool() then
@@ -118,45 +110,27 @@ function RealGloabalChat:GetChatMessages(ply, start_message_id, invoke_Action)
 	end
 
 	http_Fetch(url_address .. 'Api/Chat/GetChatMessages' .. get_params, function(body, length, headers, code)
-		if code == 502 then return end
 		local response = util_JSONToTable(body)
-
-		if response then
-			if invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
+		if response and response.success then
+			if response.success == 1 then
+				callback(response)
+				return
+			elseif response.success == 0 then
+				if response.message then http_Warn(response.message) end
+				if response.error then http_Error(response.error) end
 			end
 		else
 			http_Error(body)
 		end
-	end, http_Error)
-end
 
-function RealGloabalChat:GetChatMessagesCallback(ply, start_message_id, callback)
-	local get_params = ''
-
-	if cvar_cl_real_global_chat_country_mode:GetBool() then
-		get_params = '?chatRoomName=country.' .. string_lower(system_GetCountry())
-	else
-		get_params = '?chatRoomName=world'
-	end
-
-	if isnumber(start_message_id) then
-		if #get_params == 0 then
-			get_params = '?startMessageId=' .. start_message_id
-		else
-			get_params = get_params .. '&startMessageId=' .. start_message_id
-		end
-	end
-
-	http_Fetch(url_address .. 'Api/Chat/GetChatMessages' .. get_params, function(body, length, headers, code)
-		callback(body, length, headers, code)
-	end, function(err)
 		callback()
-		http_Error(err)
+	end, function(error_message)
+		http_Error(error_message)
+		callback()
 	end)
 end
 
-function RealGloabalChat:GetOnlineCount(invoke_Action)
+function RealGloabalChat:GetOnlineCount(callback)
 	local get_params = ''
 
 	if cvar_cl_real_global_chat_country_mode:GetBool() then
@@ -164,20 +138,15 @@ function RealGloabalChat:GetOnlineCount(invoke_Action)
 	end
 
 	http_Fetch(url_address .. 'Api/Chat/GetOnline' .. get_params, function(body, length, headers, code)
-		if code == 502 then return end
-		local response = body
-
-		if response then
-			if invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
-			end
+		if code == 200 then
+			callback(body)
 		else
 			http_Error(body)
 		end
 	end, http_Error)
 end
 
-function RealGloabalChat:UpdateOnline(invoke_Action)
+function RealGloabalChat:UpdateOnline()
 	local form_data = nil
 
 	form_data = {
@@ -189,12 +158,11 @@ function RealGloabalChat:UpdateOnline(invoke_Action)
 	end
 
 	http_Post(url_address .. 'Api/Chat/UpdateOnline', form_data, function(body, length, headers, code)
-		if code == 502 then return end
-		local response = body
-
-		if response and response == 'ok' then
-			if invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
+		local response = util_JSONToTable(body)
+		if response and response.success then
+			if response.success == 0 then
+				if response.message then http_Warn(response.message) end
+				if response.error then http_Error(response.error) end
 			end
 		else
 			http_Error(body)
@@ -223,7 +191,7 @@ function RealGloabalChat:FoundModelsInWorkshopAddon(current_dir, file_type, mode
 	return models_list
 end
 
-function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
+function RealGloabalChat:UpdateGameInfo(ply)
 	local ply_model = ply.rgchat_outfitter_mdl or ply:GetModel()
 	local ply_model_wsid = nil
 	local ply_alive = ply:Alive()
@@ -277,6 +245,19 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		ply_activity = ply:GetSequenceActivity(ply_sequence)
 	end
 
+	-- local required_fields = {
+	-- 	['SteamId64'] = true,
+	-- 	['UserName'] = true,
+	-- 	['Map'] = true,
+	-- 	['Color'] = true,
+	-- 	['Skin'] = true,
+	-- 	['Bodygroups'] = true,
+	-- 	['Model'] = true,
+	-- 	['ModelWsid'] = true,
+	-- 	['Pos'] = true,
+	-- 	['WeaponClass'] = true,
+	-- }
+
 	local form_data = {
 		SteamId64 = ply:SteamID64(),
 		UserName = ply:Name(),
@@ -313,13 +294,24 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 		ply.RGChatInflictor = nil
 	end
 
-	http_Post(url_address .. 'Api/GameInfo/UpdateGameInfo', form_data, function(body, length, headers, code)
-		if code == 502 then return end
-		local response = body
+	-- if not ply.RgChatOldUpdateForm then
+	-- 	ply.RgChatOldUpdateForm = form_data
+	-- else
+	-- 	for k, v in pairs(form_data) do
+	-- 		if not required_fields[k] and ply.RgChatOldUpdateForm[k] and ply.RgChatOldUpdateForm[k] == v then
+	-- 			form_data[k] = nil
+	-- 		end
+	-- 	end
 
-		if response and response == 'ok' then
-			if invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
+	-- 	ply.RgChatOldUpdateForm = form_data
+	-- end
+
+	http_Post(url_address .. 'Api/GameInfo/UpdateGameInfo', form_data, function(body, length, headers, code)
+		local response = util_JSONToTable(body)
+		if response and response.success then
+			if response.success == 0 then
+				if response.message then http_Warn(response.message) end
+				if response.error then http_Error(response.error) end
 			end
 		else
 			http_Error(body)
@@ -327,15 +319,10 @@ function RealGloabalChat:UpdateGameInfo(ply, invoke_Action)
 	end, http_Error)
 end
 
-function RealGloabalChat:GetInfo(invoke_Action)
+function RealGloabalChat:GetInfo(callback)
 	http_Fetch(url_address .. 'Api/Info', function(body, length, headers, code)
-		if code == 502 then return end
-		local response = util_JSONToTable(body)
-
-		if response then
-			if invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
-			end
+		if code == 200 then
+			callback(body)
 		else
 			http_Error(body)
 		end
@@ -397,17 +384,17 @@ function RealGloabalChat:MuteUser(connect_id)
 	has_reading_muted_users = true
 end
 
-function RealGloabalChat:GetGameInfo(invoke_Action)
+function RealGloabalChat:GetGameInfo(callback)
 	http_Fetch(url_address .. 'Api/GameInfo/GetGameInfo?mapName=' .. game_GetMap(), function(body, length, headers, code)
-		if code == 502 then return end
 		local response = util_JSONToTable(body)
-
 		if response and response.success then
-			if response.success == 1 and invoke_Action and isfunction(invoke_Action) then
-				invoke_Action(response)
+			if response.success == 1 then
+				callback(response)
+				return
+			elseif response.success == 0 then
+				if response.message then http_Warn(response.message) end
+				if response.error then http_Error(response.error) end
 			end
-		elseif code == 400 then
-			http_Warn(body)
 		else
 			http_Error(body)
 		end
@@ -477,7 +464,6 @@ function RealGloabalChat:BuildGma(wsid, gma_file, gma_data)
 		['png'] = true,
 		['jpg'] = true,
 		['jpeg'] = true,
-		['png'] = true,
 		['txt'] = true,
 		['ttf'] = true,
 		['html'] = true,
@@ -655,8 +641,44 @@ function RealGloabalChat:Translate(lang, text, callback)
 		callback(text, code)
 	end, {
 		['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8',
-		['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+		-- ['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 	})
+end
+
+function RealGloabalChat:CollectAllWeapons()
+	local weapon_list = {}
+	local weapons_world_models = {
+		['weapon_ar2'] = 'models/weapons/w_irifle.mdl',
+		['weapon_bugbait'] = 'models/weapons/w_bugbait.mdl',
+		['weapon_crossbow'] = 'models/weapons/w_crossbow.mdl',
+		['weapon_crowbar'] = 'models/weapons/w_crowbar.mdl',
+		['weapon_frag'] = 'models/weapons/w_grenade.mdl',
+		['weapon_physcannon'] = 'models/weapons/w_Physics.mdl',
+		['weapon_physgun'] = 'models/weapons/w_Physics.mdl',
+		['weapon_pistol'] = 'models/weapons/w_pistol.mdl',
+		['weapon_rpg'] = 'models/weapons/w_rocket_launcher.mdl',
+		['weapon_shotgun'] = 'models/weapons/w_shotgun.mdl',
+		['weapon_slam'] = 'models/weapons/w_slam.mdl',
+		['weapon_smg1'] = 'models/weapons/w_smg1.mdl',
+		['weapon_stunstick'] = 'models/weapons/w_stunbaton.mdl',
+		['weapon_medkit'] = 'models/weapons/w_medkit.mdl',
+		['gmod_tool'] = 'models/weapons/w_toolgun.mdl',
+	}
+
+	for _, wep in ipairs(weapons.GetList()) do
+		weapon_list[wep.ClassName] = {
+			WorldModel = wep.WorldModel,
+			WorldModelOffset = wep.WorldModelOffset
+		}
+	end
+
+	for className, worldModel in pairs(weapons_world_models) do
+		weapon_list[className] = {
+			WorldModel = worldModel
+		}
+	end
+
+	RealGloabalChat.AllRegistredWeapons = weapon_list
 end
 
 if SERVER then
@@ -671,3 +693,7 @@ if SERVER then
 		end
 	end)
 end
+
+hook.Add('InitPostEntity', 'RGChat.ParseWeapons', function()
+	RealGloabalChat:CollectAllWeapons()
+end)

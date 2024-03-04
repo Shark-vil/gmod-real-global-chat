@@ -4,6 +4,7 @@ local IsValid = IsValid
 local ents_FindByClass = ents.FindByClass
 local player_GetAll = player.GetAll
 local cvar_sv_real_global_chat_sync_players = GetConVar('sv_real_global_chat_sync_players')
+local cvar_dev = GetConVar('developer')
 
 local function http_Get_Game_Info(response)
 	if not response.data then return end
@@ -29,9 +30,11 @@ local function http_Get_Game_Info(response)
 		return
 	end
 
-	for _, ply in ipairs(player_GetAll()) do
-		if IsValid(ply) then
-			ignore_steamids[ply:SteamID64()] = true
+	if not cvar_dev:GetBool() then
+		for _, ply in ipairs(player_GetAll()) do
+			if IsValid(ply) then
+				ignore_steamids[ply:SteamID64()] = true
+			end
 		end
 	end
 
