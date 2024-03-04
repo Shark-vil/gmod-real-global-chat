@@ -143,15 +143,22 @@ function ENT:UpdateMovement()
 		path:SetMinLookAheadDistance(300)
 		path:SetGoalTolerance(20)
 		path:MoveCursorToClosestPosition(move_pos, 2)
-		path:Compute(self, move_pos)
-		self.loco:SetDesiredSpeed(speed)
+		-- path:Compute(self, move_pos)
 		-- self.loco:SetAcceleration(400)
-		self.loco:SetGravity(self:GetGravity())
-		self.loco:SetVelocity(data.Velocity or vector_0_0_0)
+		-- self.loco:SetGravity(self:GetGravity())
+		-- self.loco:SetVelocity(data.Velocity or vector_0_0_0)
+
+		local attempts = 0
+		repeat
+			attempts = attempts + 1
+			path:Compute(self, move_pos)
+		until attempts > 3 or path:IsValid()
 
 		if not path:IsValid() then
 			self:SetPos(move_pos)
 		else
+			self.loco:SetDesiredSpeed(speed)
+
 			while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and path:IsValid() do
 				if timeout < CurTime() then
 					self:SetPos(move_pos)
@@ -208,20 +215,16 @@ end
 
 function ENT:StartNoclip()
 	if self.BotData.IsNoclip then return end
-	local timer_name = 'rgchatnextbotnoclip.' .. tostring(self:EntIndex())
-	if timer.Exists(timer_name) then return end
 	self.BotData.IsNoclip = true
 	self:SetMovePos(nil)
 	self:AddGesture(ACT_GMOD_NOCLIP_LAYER, false)
 	self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 
-	timer.Create(timer_name, 0, 0, function()
-		if not IsValid(self) then
-			timer.Remove(timer_name)
-
+	self:StartTimer('RgChatNextBotNoclip', 0, 0, function(stop_timer)
+		if not self.BotData.IsNoclip then
+			self:StopTimer('RgChatNextBotNoclip')
 			return
 		end
-
 		if not self.BotData.MovePos then return end
 		self:SetMovePos(nil)
 		local speed = self.BotData.MoveSpeed and (self.BotData.MoveSpeed / 10) or 20
@@ -234,11 +237,10 @@ end
 
 function ENT:StopNoclip()
 	if not self.BotData.IsNoclip then return end
-	local timer_name = 'rgchatnextbotnoclip.' .. tostring(self:EntIndex())
-	timer.Remove(timer_name)
+	self:StopTimer('RgChatNextBotNoclip')
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:RemoveGesture(ACT_GMOD_NOCLIP_LAYER)
-	self.loco:SetGravity(GetConVar('sv_gravity'):GetFloat())
+	self.loco:SetGravity(self:GetGravity())
 	self.BotData.IsNoclip = false
 end
 
@@ -279,22 +281,14 @@ function ENT:GetAttachmentPoint(pointtype)
 end
 
 function ENT:StopLooking()
-	local ent_index = tostring(self:EntIndex())
-	timer_Remove('rgchat.lookat' .. ent_index)
+	self:StopTimer('RGChatNextBotLookAt')
 	self:ResetPose()
 end
 
 function ENT:ResetPose()
 	self.BotData.IsResettingPose = true
-	local ent_index = tostring(self:EntIndex())
 
-	timer_Create('rgchat.resetpose' .. ent_index, 0, 0, function()
-		if not IsValid(self) then
-			timer_Remove('rgchat.resetpose' .. ent_index)
-
-			return
-		end
-
+	self:StartTimer('RgChatResetBodyPosRotate', 0, 0, function(stop_timer)
 		local headposeyaw = self:GetPoseParameter('head_yaw')
 		local headposepitch = self:GetPoseParameter('head_pitch')
 		local aimposeyaw = self:GetPoseParameter('aim_yaw')
@@ -309,22 +303,14 @@ function ENT:ResetPose()
 		self:SetPoseParameter('aim_pitch', aimapproachp)
 
 		if headposeyaw == 0 and headposepitch == 0 and aimposeyaw == 0 and aimposepitch == 0 then
-			timer.Remove('rgchat.resetpose' .. ent_index)
+			self:StopTimer('RgChatResetBodyPosRotate')
 			self.BotData.IsResettingPose = false
 		end
 	end)
 end
 
 function ENT:LookAt(look_pos)
-	local ent_index = tostring(self:EntIndex())
-
-	timer_Create('rgchat.lookat' .. ent_index, 0, 0, function()
-		if not IsValid(self) then
-			timer_Remove('rgchat.lookat' .. ent_index)
-
-			return
-		end
-
+	self:StartTimer('RGChatNextBotLookAt', 0, 0, function(stop_timer)
 		local aimangle = (look_pos - self:GetAttachmentPoint('eyes').Pos):Angle()
 		local lookAng = self:WorldToLocalAngles(aimangle)
 		local poseP = (self:GetPoseParameter('head_pitch') + self:GetPoseParameter('aim_pitch')) / 2

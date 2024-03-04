@@ -53,7 +53,7 @@ function ENT:UpdateVars()
 	local data = self:GetActiveAction()
 	if not data then return end
 	self.BotData.LastUpdate = data.last_update
-	self.BotData.MovePos = RealGloabalChat:PosStringToVector(data.pos) or Vector3(0, 0, 0)
+	self.BotData.MovePos = RealGloabalChat:PosStringToVector(data.pos)
 	self.BotData.Ang = RealGloabalChat:PosStringToAngle(data.ang)
 	self.BotData.Ang.z = 0
 	self.BotData.Ang.x = 0
