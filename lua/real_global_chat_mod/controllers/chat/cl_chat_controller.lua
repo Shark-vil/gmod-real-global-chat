@@ -34,20 +34,9 @@ local sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
 local system_GetCountry = system.GetCountry
 local coroutine_wait = coroutine.wait
 local coroutine_yield = coroutine.yield
-local translate_timeout
 
 local function update_message_action(response)
 	if not response or response.success == 0 then return end
-	-- local skip_ids_count = #skip_ids_table
-
-	-- if skip_ids_count + 1 > 250 then
-	-- 	table_remove(skip_ids_table, 1)
-	-- 	skip_ids_count = skip_ids_count - 1
-	-- end
-
-	if file.Exists('rgchat_data/google_translate_timeout.txt', 'DATA') then
-		translate_timeout = tonumber(file.Read('rgchat_data/google_translate_timeout.txt', 'DATA'))
-	end
 
 	local local_player = LocalPlayer()
 	local self_nick_name = local_player:Nick()
@@ -154,28 +143,25 @@ local function update_message_action(response)
 			end
 		end
 
-		local result_message_no_spec, translate_result_message
-		if cvar_cl_real_global_chat_translator:GetBool() and (not translate_timeout or translate_timeout < os.time()) then
-			result_message_no_spec = result_message:gsub('[%p%c%s]', '')
-			if result_message_no_spec and #result_message_no_spec > 2 and not user_msg.message_filtred then
-				local on_translate = false
-				RealGloabalChat:Translate(system_GetCountry(), result_message_no_spec, function(new_result_message, code)
-					if code == 429 then
-						translate_timeout = os.time() + (60 * 60 * 24)
-						file.Write('rgchat_data/google_translate_timeout.txt', translate_timeout)
-						LocalPlayer():ChatPrint('[RGChat] Google has temporarily restricted the translation. There\'s a 24-hour timeout.')
-					elseif code == 200 then
-						translate_result_message = new_result_message
+		local translate_result_message
+		if cvar_cl_real_global_chat_translator:GetBool() then
+			local on_translate = false
+			RealGloabalChat:Translate(system_GetCountry(), result_message, function(new_result_message, code)
+				if code == 200 and new_result_message ~= result_message then
+					translate_result_message = new_result_message
+					translate_result_message = string.Trim(translate_result_message)
+					if string.sub(translate_result_message, 1, 1) == ',' then
+						translate_result_message = string.sub(translate_result_message, 2)
 					end
-					on_translate = true
-				end)
-
-				while not on_translate do
-					coroutine_yield()
 				end
+				on_translate = true
+			end)
 
-				coroutine_wait(1.5)
+			while not on_translate do
+				coroutine_yield()
 			end
+
+			coroutine_wait(1)
 		end
 
 		AdditionText(result_color_message)

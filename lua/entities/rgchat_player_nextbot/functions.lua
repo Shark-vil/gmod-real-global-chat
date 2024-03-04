@@ -7,6 +7,7 @@ local timer_Exists = timer.Exists
 local tostring = tostring
 local timer_Remove = timer.Remove
 local timer_Create = timer.Create
+local ismatrix = ismatrix
 local math_ApproachAngle = math.ApproachAngle
 local Path = Path
 local CurTime = CurTime
@@ -65,7 +66,6 @@ function ENT:GetWeaponENT()
 	if IsValid(self.WeaponENT) then return self.WeaponENT end
 	local lookup = self:LookupAttachment('anim_attachment_RH')
 	local attachment = self:GetAttachmentPoint('hand')
-
 	self.WeaponENT = ents.Create('base_anim')
 	self.WeaponENT:SetOwner(self)
 	self.WeaponENT:AddEffects(EF_BONEMERGE)
@@ -76,7 +76,6 @@ function ENT:GetWeaponENT()
 	-- self.WeaponENT:SetModel('models/hunter/plates/plate.mdl')
 	-- self.WeaponENT:SetMaterial('null')
 	self.WeaponENT:SetNoDraw(true)
-
 	self:DeleteOnRemove(self.WeaponENT)
 
 	return self.WeaponENT
@@ -102,16 +101,17 @@ function ENT:UpdateMovement()
 	local timeout = CurTime() + 10
 	local devmode = cvar_dev:GetBool()
 	local state_name = self:GetActiveStateName()
-
 	self:CustomStartActivity(activity)
 
 	if data.CanSit then
 		self.loco:SetGravity(0)
+
 		self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
 			if not data.CanSit or state_name ~= self:GetActiveStateName() or self:IsNoclip() then
 				stop_timer()
 			else
 				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+
 				if pos then
 					self:SetPos(pos)
 					self.loco:SetVelocity(vector_0_0_0)
@@ -121,13 +121,16 @@ function ENT:UpdateMovement()
 	elseif not navmesh.IsLoaded() then
 		if not data.LastTargetPos or data.LastTargetPos ~= move_pos then
 			data.LastTargetPos = move_pos
+
 			if not self:IsNoclip() then
 				self.loco:SetGravity(self:GetGravity())
+
 				self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
 					if state_name ~= self:GetActiveStateName() or move_pos:DistToSqr(self:GetPos()) <= 2500 or self:IsNoclip() then
 						stop_timer()
 					else
 						local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+
 						if pos then
 							self:SetPos(pos)
 							self.loco:SetVelocity(data.Velocity or vector_0_0_0)
@@ -138,7 +141,6 @@ function ENT:UpdateMovement()
 		end
 	else
 		self:StopTimer('RgChatNextBotMove')
-
 		local path = Path('Follow')
 		path:SetMinLookAheadDistance(300)
 		path:SetGoalTolerance(20)
@@ -147,7 +149,6 @@ function ENT:UpdateMovement()
 		-- self.loco:SetAcceleration(400)
 		-- self.loco:SetGravity(self:GetGravity())
 		-- self.loco:SetVelocity(data.Velocity or vector_0_0_0)
-
 		local attempts = 0
 		repeat
 			attempts = attempts + 1
@@ -179,7 +180,6 @@ function ENT:UpdateMovement()
 				coroutine_yield()
 			end
 		end
-
 		-- if move_pos:DistToSqr(self:GetPos()) > 2500 then
 		-- 	self:SetPos(move_pos)
 		-- end
@@ -188,21 +188,25 @@ end
 
 function ENT:IsNoclipMoveType()
 	local mt = self.BotData.MoveType
-	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Enum.ActSit[self.BotData.State] then
-		return true
-	end
+	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Enum.ActSit[self.BotData.State] then return true end
 
 	return false
 end
 
 function ENT:StartTimer(timer_name, delay, repetitions, func)
 	timer_name = timer_name .. '.' .. tostring(self:EntIndex())
-	local function stop_timer() timer_Remove(timer_name) end
+
+	local function stop_timer()
+		timer_Remove(timer_name)
+	end
+
 	timer_Create(timer_name, delay, repetitions, function()
 		if not IsValid(self) or self:Health() <= 0 then
 			timer_Remove(timer_name)
+
 			return
 		end
+
 		func(stop_timer)
 	end)
 end
@@ -223,8 +227,10 @@ function ENT:StartNoclip()
 	self:StartTimer('RgChatNextBotNoclip', 0, 0, function(stop_timer)
 		if not self.BotData.IsNoclip then
 			self:StopTimer('RgChatNextBotNoclip')
+
 			return
 		end
+
 		if not self.BotData.MovePos then return end
 		self:SetMovePos(nil)
 		local speed = self.BotData.MoveSpeed and (self.BotData.MoveSpeed / 10) or 20
@@ -278,6 +284,30 @@ function ENT:GetAttachmentPoint(pointtype)
 			return self:GetAttachment(lookup)
 		end
 	end
+end
+
+function ENT:GetBonePosAngs(index)
+	local pos, angle = self:GetBonePosition(index)
+
+	if pos and pos == self:GetPos() then
+		local matrix = self:GetBoneMatrix(index)
+
+		if ismatrix(matrix) and matrix ~= nil then
+			pos = matrix:GetTranslation()
+		else
+			return {
+				Pos = self:GetPos() + self:OBBCenter(),
+				Ang = self:GetForward():Angle()
+			}
+		end
+	elseif not pos then
+		pos = self:GetPos() + self:OBBCenter()
+	end
+
+	return {
+		Pos = pos,
+		Ang = angle
+	}
 end
 
 function ENT:StopLooking()

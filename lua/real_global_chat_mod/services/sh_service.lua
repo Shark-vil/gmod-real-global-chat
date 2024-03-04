@@ -610,21 +610,16 @@ function RealGloabalChat:ReadGma(gma_file)
 end
 
 function RealGloabalChat:Translate(lang, text, callback)
-	http_Post('https://translate.google.com/translate_a/single?client=at&dt=t&dt=rm&dj=1', {
-		['sl'] = 'auto',
-		['tl'] = lang:lower(),
-		['q'] = text
+	http_Post('https://translate.vincy.ru/translate', {
+		source = 'auto',
+		target = lang:lower(),
+		format = 'text',
+		q = text
 	}, function(body, size, headers, code)
-		if code ~= 200 then
-			callback(text, code)
-
-			return
-		end
-
 		local response = util_JSONToTable(body)
 
-		if response and response['sentences'] and response['sentences'][1] and response['sentences'][1]['trans'] then
-			local new_text = response['sentences'][1]['trans']
+		if response and response['translatedText'] then
+			local new_text = response['translatedText']
 
 			if new_text then
 				new_text = string_Trim(new_text)
@@ -640,10 +635,7 @@ function RealGloabalChat:Translate(lang, text, callback)
 		callback(text, code)
 	end, function()
 		callback(text, code)
-	end, {
-		['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8',
-		-- ['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
-	})
+	end)
 end
 
 function RealGloabalChat:CollectAllWeapons()
