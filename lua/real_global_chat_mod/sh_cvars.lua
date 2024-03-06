@@ -3,7 +3,7 @@ local registred_cvars = {
 	{ 'cl_rgc_filter', '1', FCVAR_ARCHIVE, '', 0, 1 },
 	{ 'cl_rgc_filter_strict', '0', FCVAR_ARCHIVE, '', 0, 1 },
 	{ 'cl_rgc_country_mode', '0', FCVAR_ARCHIVE, '', 0, 1 },
-	{ 'cl_rgc_ping_sound', '0', FCVAR_ARCHIVE, '', 0, 1 },
+	{ 'cl_rgc_ping_sound', '1', FCVAR_ARCHIVE, '', 0, 1 },
 	{ 'cl_rgc_visible_player_map_name', '1', FCVAR_ARCHIVE, '', 0, 1 },
 	{ 'cl_rgc_download_model_size_limit', '100', FCVAR_ARCHIVE, '', 0, 2048 },
 	{ 'cl_rgc_translator', '1', FCVAR_ARCHIVE, '', 0, 1 },
