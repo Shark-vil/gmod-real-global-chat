@@ -1,4 +1,4 @@
-RealGloabalChat.Enum.ActIdle = {
+RealGloabalChat.Values.Enum .ActIdle = {
 	[ACT_HL2MP_IDLE_PISTOL] = true,
 	[ACT_HL2MP_IDLE_AR2] = true,
 	[ACT_HL2MP_IDLE_REVOLVER] = true,
@@ -17,7 +17,7 @@ RealGloabalChat.Enum.ActIdle = {
 	[ACT_HL2MP_IDLE_FIST] = true,
 }
 
-RealGloabalChat.Enum.ActSit = {
+RealGloabalChat.Values.Enum .ActSit = {
 	[ACT_HL2MP_SIT_PISTOL] = true,
 	[ACT_HL2MP_SIT_AR2] = true,
 	[ACT_HL2MP_SIT_SHOTGUN] = true,
@@ -36,7 +36,7 @@ RealGloabalChat.Enum.ActSit = {
 	[ACT_DRIVE_AIRBOAT] = true,
 }
 
-RealGloabalChat.Enum.ActRun = {
+RealGloabalChat.Values.Enum .ActRun = {
 	[ACT_HL2MP_RUN_PISTOL] = true,
 	[ACT_HL2MP_RUN_AR2] = true,
 	[ACT_HL2MP_RUN_REVOLVER] = true,
@@ -55,7 +55,7 @@ RealGloabalChat.Enum.ActRun = {
 	[ACT_HL2MP_RUN_FIST] = true,
 }
 
-RealGloabalChat.Enum.ActWalk = {
+RealGloabalChat.Values.Enum .ActWalk = {
 	[ACT_HL2MP_WALK_PISTOL] = true,
 	[ACT_HL2MP_WALK_AR2] = true,
 	[ACT_HL2MP_WALK_REVOLVER] = true,
@@ -74,7 +74,7 @@ RealGloabalChat.Enum.ActWalk = {
 	[ACT_HL2MP_WALK_FIST] = true,
 }
 
-RealGloabalChat.Enum.ActJump = {
+RealGloabalChat.Values.Enum .ActJump = {
 	[ACT_HL2MP_JUMP_PISTOL] = true,
 	[ACT_HL2MP_JUMP_AR2] = true,
 	[ACT_HL2MP_JUMP_REVOLVER] = true,
@@ -93,7 +93,7 @@ RealGloabalChat.Enum.ActJump = {
 	[ACT_HL2MP_JUMP_FIST] = true,
 }
 
-RealGloabalChat.Enum.ActJumpToRun = {
+RealGloabalChat.Values.Enum .ActJumpToRun = {
 	[ACT_HL2MP_JUMP_PISTOL] = ACT_HL2MP_RUN_PISTOL,
 	[ACT_HL2MP_JUMP_AR2] = ACT_HL2MP_RUN_AR2,
 	[ACT_HL2MP_JUMP_REVOLVER] = ACT_HL2MP_RUN_REVOLVER,
@@ -112,7 +112,7 @@ RealGloabalChat.Enum.ActJumpToRun = {
 	[ACT_HL2MP_JUMP_FIST] = ACT_HL2MP_RUN_FIST,
 }
 
-RealGloabalChat.Enum.ActGmodTaunt = {
+RealGloabalChat.Values.Enum .ActGmodTaunt = {
 	[ACT_GMOD_TAUNT_SALUTE] = true,
 	[ACT_GMOD_TAUNT_PERSISTENCE] = true,
 	[ACT_GMOD_TAUNT_MUSCLE] = true,

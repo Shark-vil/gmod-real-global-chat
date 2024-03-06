@@ -19,8 +19,9 @@ RealGloabalChat.Values.NextBotStates = {}
 -- Stores a reference to the entity of all existing nexbots on the map
 RealGloabalChat.Values.Nextbots = {}
 -- Stores registered enumerations
-RealGloabalChat.Enum = {}
+RealGloabalChat.Values.Enum  = {}
 RealGloabalChat.AllRegistredWeapons = {}
+-- RealGloabalChat.Values.Cvars = {}
 
 if not file.Exists('rgchat_data', 'DATA') then
 	file.CreateDir('rgchat_data')

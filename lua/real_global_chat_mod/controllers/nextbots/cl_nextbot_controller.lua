@@ -13,7 +13,7 @@ local game_MountGMA = game.MountGMA
 local steamworks_DownloadUGC = steamworks.DownloadUGC
 local util_IsValidModel = util.IsValidModel
 local steamworks_FileInfo = steamworks.FileInfo
-local cvar_cl_real_global_chat_download_model_size_limit = GetConVar('cl_real_global_chat_download_model_size_limit')
+local cvar_cl_real_global_chat_download_model_size_limit = GetConVar('cl_rgc_download_model_size_limit')
 
 hook.Add('PostDrawOpaqueRenderables', 'RGCHat_NextBot_UserName_Draw', function()
 	local bots = ents_FindByClass('rgchat_player_nextbot')
@@ -182,7 +182,7 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 	end
 end)
 
-cvars.AddChangeCallback('cl_real_global_chat_download_model_size_limit', function(_, _, new_value)
+cvars.AddChangeCallback('cl_rgc_download_model_size_limit', function(_, _, new_value)
 	local new_limit = tonumber(new_value)
 
 	for wsid, size in pairs(size_limt_cache) do

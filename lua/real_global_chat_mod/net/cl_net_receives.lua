@@ -1,12 +1,12 @@
 local LocalPlayer = LocalPlayer
 local IsValid = IsValid
 local lang = RealGloabalChat.Values.Language
-local cvar_cl_real_global_chat_status = GetConVar('cl_real_global_chat_status')
-local cvar_cl_real_global_chat_filter = GetConVar('cl_real_global_chat_filter')
-local cvar_cl_real_global_chat_filter_strict = GetConVar('cl_real_global_chat_filter_strict')
-local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_country_mode')
-local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_real_global_chat_ping_sound')
-local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_real_global_chat_visible_player_map_name')
+local cvar_cl_real_global_chat_status = GetConVar('cl_rgc_status')
+local cvar_cl_real_global_chat_filter = GetConVar('cl_rgc_filter')
+local cvar_cl_real_global_chat_filter_strict = GetConVar('cl_rgc_filter_strict')
+local cvar_cl_real_global_chat_country_mode = GetConVar('cl_rgc_country_mode')
+local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_rgc_ping_sound')
+local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_rgc_visible_player_map_name')
 
 net.Receive('RealGlobalChatSetStatus', function()
 	local status_value = net.ReadInt(3)
@@ -17,17 +17,17 @@ net.Receive('RealGlobalChatSetStatus', function()
 		LocalPlayer():ChatPrint(lang['rgchat_on'])
 	end
 
-	RunConsoleCommand('cl_real_global_chat_status', status_value)
+	RunConsoleCommand('cl_rgc_status', status_value)
 end)
 
 net.Receive('RealGlobalChatSetPingSFX', function()
 	local new_value = cvar_cl_real_global_chat_ping_sound:GetInt()
 
 	if new_value ~= 0 then
-		RunConsoleCommand('cl_real_global_chat_ping_sound', 0)
+		RunConsoleCommand('cl_rgc_ping_sound', 0)
 		LocalPlayer():ChatPrint(lang['rgchat_ping_sfx_off'])
 	else
-		RunConsoleCommand('cl_real_global_chat_ping_sound', 1)
+		RunConsoleCommand('cl_rgc_ping_sound', 1)
 		LocalPlayer():ChatPrint(lang['rgchat_ping_sfx_on'])
 	end
 end)
@@ -36,10 +36,10 @@ net.Receive('RealGlobalChatSetMapName', function()
 	local new_value = cvar_cl_real_global_chat_visible_player_map_name:GetInt()
 
 	if new_value ~= 0 then
-		RunConsoleCommand('cl_real_global_chat_visible_player_map_name', 0)
+		RunConsoleCommand('cl_rgc_visible_player_map_name', 0)
 		LocalPlayer():ChatPrint(lang['rgchat_mapname_off'])
 	else
-		RunConsoleCommand('cl_real_global_chat_visible_player_map_name', 1)
+		RunConsoleCommand('cl_rgc_visible_player_map_name', 1)
 		LocalPlayer():ChatPrint(lang['rgchat_mapname_on'])
 	end
 end)
@@ -48,10 +48,10 @@ net.Receive('RealGlobalChatSetCountryMode', function()
 	local new_value = cvar_cl_real_global_chat_country_mode:GetInt()
 
 	if new_value ~= 0 then
-		RunConsoleCommand('cl_real_global_chat_country_mode', 0)
+		RunConsoleCommand('cl_rgc_country_mode', 0)
 		LocalPlayer():ChatPrint(lang['rgchat_on_type_world'])
 	else
-		RunConsoleCommand('cl_real_global_chat_country_mode', 1)
+		RunConsoleCommand('cl_rgc_country_mode', 1)
 		LocalPlayer():ChatPrint(lang['rgchat_on_type_country'])
 	end
 end)
@@ -61,18 +61,18 @@ net.Receive('RealGlobalChatSetFilter', function()
 
 	if filter_value == 0 then
 		if cvar_cl_real_global_chat_filter:GetInt() ~= 0 then
-			RunConsoleCommand('cl_real_global_chat_filter', 0)
+			RunConsoleCommand('cl_rgc_filter', 0)
 			LocalPlayer():ChatPrint(lang['rgchat_off_filter'])
 		else
-			RunConsoleCommand('cl_real_global_chat_filter', 1)
+			RunConsoleCommand('cl_rgc_filter', 1)
 			LocalPlayer():ChatPrint(lang['rgchat_on_filter'])
 		end
 	elseif filter_value == 1 then
 		if cvar_cl_real_global_chat_filter_strict:GetInt() ~= 0 then
-			RunConsoleCommand('cl_real_global_chat_filter_strict', 0)
+			RunConsoleCommand('cl_rgc_filter_strict', 0)
 			LocalPlayer():ChatPrint(lang['rgchat_off_filter_strict'])
 		else
-			RunConsoleCommand('cl_real_global_chat_filter_strict', 1)
+			RunConsoleCommand('cl_rgc_filter_strict', 1)
 			LocalPlayer():ChatPrint(lang['rgchat_on_filter_strict'])
 
 			if cvar_cl_real_global_chat_filter:GetInt() == 0 then

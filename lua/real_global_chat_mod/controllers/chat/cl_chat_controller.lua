@@ -12,14 +12,14 @@ local color_message = Color(255, 255, 255)
 local color_message_command = Color(247, 173, 246)
 local color_message_filtred = Color(241, 137, 137)
 local color_message_google = Color(153, 176, 254)
-local cvar_cl_real_global_chat_status = GetConVar('cl_real_global_chat_status')
-local cvar_cl_real_global_chat_filter = GetConVar('cl_real_global_chat_filter')
-local cvar_cl_real_global_chat_filter_strict = GetConVar('cl_real_global_chat_filter_strict')
-local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_country_mode')
-local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_real_global_chat_ping_sound')
-local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_real_global_chat_visible_player_map_name')
-local cvar_cl_real_global_chat_translator = GetConVar('cl_real_global_chat_translator')
-local cvar_cl_real_global_chat_target_translate = GetConVar('cl_real_global_chat_target_translate')
+local cvar_cl_real_global_chat_status = GetConVar('cl_rgc_status')
+local cvar_cl_real_global_chat_filter = GetConVar('cl_rgc_filter')
+local cvar_cl_real_global_chat_filter_strict = GetConVar('cl_rgc_filter_strict')
+local cvar_cl_real_global_chat_country_mode = GetConVar('cl_rgc_country_mode')
+local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_rgc_ping_sound')
+local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_rgc_visible_player_map_name')
+local cvar_cl_real_global_chat_translator = GetConVar('cl_rgc_translator')
+local cvar_cl_real_global_chat_target_translate = GetConVar('cl_rgc_target_translate')
 local last_max_message_id = nil
 local sql_is_inject = false
 local has_print_outdated_version = false
@@ -144,28 +144,31 @@ local function update_message_action(response)
 			end
 		end
 
-		local translate_result_message
-		if cvar_cl_real_global_chat_translator:GetBool() then
-			local on_translate = false
-			local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
-			target_translate = string.Trim(target_translate)
-			if #target_translate == 0 then target_translate = nil end
-			RealGloabalChat:Translate(target_translate or system_GetCountry(), result_message, function(new_result_message, code)
-				if code == 200 and new_result_message ~= result_message then
-					translate_result_message = new_result_message
-					translate_result_message = string.Trim(translate_result_message)
-					if string.sub(translate_result_message, 1, 1) == ',' then
-						translate_result_message = string.sub(translate_result_message, 2)
+		local check_result_message = result_message:gsub('[%p%c%s]', '')
+		if #check_result_message > 3 then
+			local translate_result_message
+			if cvar_cl_real_global_chat_translator:GetBool() then
+				local on_translate = false
+				local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
+				target_translate = string.Trim(target_translate)
+				if #target_translate == 0 then target_translate = nil end
+				RealGloabalChat:Translate(target_translate or system_GetCountry(), result_message, function(new_result_message, code)
+					if code == 200 and new_result_message ~= result_message then
+						translate_result_message = new_result_message
+						translate_result_message = string.Trim(translate_result_message)
+						if string.sub(translate_result_message, 1, 1) == ',' then
+							translate_result_message = string.sub(translate_result_message, 2)
+						end
 					end
+					on_translate = true
+				end)
+
+				while not on_translate do
+					coroutine_yield()
 				end
-				on_translate = true
-			end)
 
-			while not on_translate do
-				coroutine_yield()
+				coroutine_wait(1)
 			end
-
-			coroutine_wait(1)
 		end
 
 		AdditionText(result_color_message)
@@ -267,6 +270,8 @@ net.Receive('RealGlobalChatSpawnMessage', function()
 			last_players_count = count
 			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. string.Replace(lang['chat_online'], '%count%', count))
 		end)
+
+		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_menu'])
 	end)
 
 	net.Start('RealGlobalChatServerSycnActive')
@@ -302,7 +307,7 @@ net.Receive('RealGlobalChatSpawnMessage', function()
 	hook.Run('RGchat.FirstStart')
 end)
 
-cvars.AddChangeCallback('cl_real_global_chat_status', function(_, _, new_value)
+cvars.AddChangeCallback('cl_rgc_status', function(_, _, new_value)
 	net.Start('RealGlobalChatServerSycnActive')
 	net.WriteBool(tostring(new_value) == '1')
 	net.SendToServer()

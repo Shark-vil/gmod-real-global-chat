@@ -9,7 +9,7 @@ local timer_Remove = timer.Remove
 local timer_Create = timer.Create
 local ismatrix = ismatrix
 local math_ApproachAngle = math.ApproachAngle
-local Path = Path
+-- local Path = Path
 local CurTime = CurTime
 local IsValid = IsValid
 local angle_m20_0_0 = Angle(-20, 0, 0)
@@ -96,7 +96,7 @@ function ENT:UpdateMovement()
 	-- if move_pos:DistToSqr(self:GetPos()) <= 2500 then return end
 	local data = self:GetData()
 	local activity_id = data.State
-	local activity = RealGloabalChat.Enum.ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
+	local activity = RealGloabalChat.Values.Enum .ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
 	local speed = data.MoveSpeed or 400
 	local timeout = CurTime() + 10
 	local devmode = cvar_dev:GetBool()
@@ -212,7 +212,7 @@ end
 
 function ENT:IsNoclipMoveType()
 	local mt = self.BotData.MoveType
-	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Enum.ActSit[self.BotData.State] then return true end
+	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Values.Enum .ActSit[self.BotData.State] then return true end
 
 	return false
 end

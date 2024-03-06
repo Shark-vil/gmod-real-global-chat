@@ -3,7 +3,7 @@ local ipairs = ipairs
 local IsValid = IsValid
 local ents_FindByClass = ents.FindByClass
 local player_GetAll = player.GetAll
-local cvar_sv_real_global_chat_sync_players = GetConVar('sv_real_global_chat_sync_players')
+local cvar_sv_real_global_chat_sync_players = GetConVar('sv_rgc_sync_players')
 local cvar_dev = GetConVar('developer')
 
 local function http_Get_Game_Info(response)
@@ -97,11 +97,11 @@ hook.Add('OnEntityCreated', 'RGChatSpawnRelation', function(ent)
 	end
 end)
 
-cvars.AddChangeCallback('sv_real_global_chat_sync_players', function(_, _, new_value)
+cvars.AddChangeCallback('sv_rgc_sync_players', function(_, _, new_value)
 	if tonumber(new_value) > 0 then return end
 
 	timer.Simple(1.5, function()
-		if GetConVar('sv_real_global_chat_sync_players'):GetBool() then return end
+		if GetConVar('sv_rgc_sync_players'):GetBool() then return end
 		local bots = ents_FindByClass('rgchat_player_nextbot')
 
 		for i = #bots, 1, -1 do

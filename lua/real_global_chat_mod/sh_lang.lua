@@ -1,8 +1,10 @@
 local lang = GetConVar('cl_language'):GetString()
 local lang_data = {}
+local lang_data_default = {}
 
 if lang == 'russian' then
 	lang_data['rgchat_info'] = '[RGC Инфо]'
+	lang_data['chat_menu'] = 'Открыть меню чата - /rgchat'
 	lang_data['chat_status_off'] = 'Вы отключили глобальный чат.'
 	lang_data['chat_status_on'] = 'Глобальный чат активен.'
 	lang_data['chat_online'] = 'Онлайн %count% игроков.'
@@ -24,6 +26,24 @@ if lang == 'russian' then
 	lang_data['rgchat_mapname_on'] = 'Вы включили отображение карт в никнеймах.'
 	lang_data['failed_check_info'] = 'Не удалось проверить информацию о дополнении.'
 	lang_data['outdated_version'] = 'У вас установлена старая версия. Перезапустите игру чтобы обновить аддон.'
+	lang_data['menu_rgc_status'] = 'Состояние глобального чата'
+	lang_data['menu_rgc_status_desc'] = 'Если флажок активен, вы будете видеть сообщения в чате и других игроков на карте. Они также будут видеть вас.'
+	lang_data['menu_rgc_translator'] = 'Переводчик текста'
+	lang_data['menu_rgc_translator_desc'] = 'Позволяет переводить текст на ваш язык в режиме реального времени. Если текст не переводится, попробуйте установить язык с помощью команды чата. Пример:\n/rgchattranslateto en'
+	lang_data['menu_rgc_country_mode'] = 'Режим общенияы - страна'
+	lang_data['menu_rgc_country_mode_desc'] = 'Если эта опция активна, вы подключитесь к чату своей страны. ВАЖНО: вы не увидите сообщений от людей из вашей страны, если они находятся в мировом чате!'
+	lang_data['menu_rgc_visible_player_map_name'] = 'Показать карту игрока'
+	lang_data['menu_rgc_visible_player_map_name_desc'] = 'Если активно, то перед ником игрока вы увидите название карты, на которой он сейчас играет.'
+	lang_data['menu_rgc_ping_sound'] = 'Проигрывать звуковой эффект пинга'
+	lang_data['menu_rgc_ping_sound_desc'] = 'Если активно, вы будете слышать звук пинга каждый раз, когда кто-то упоминает вас.\nNOTE:\nЧтобы упомянуть игрока, используйте команду:\n/ping NICK\nили напишите сообщение следующим образом:\nNICK, текст'
+	lang_data['menu_rgc_filter'] = 'Фильтр сообщений (Цензура)'
+	lang_data['menu_rgc_filter_desc'] = 'Если активно, то сомнительные слова будут скрыты звездочками. Скрыты будут только слова из заготовленного списка.\nNOTE: если вы хотите замутить/размутить игрока, напишите команду:\n/rgchatmute ID\nID - это число, которое вы видите перед ником. Например: #23'
+	lang_data['menu_rgc_filter_strict'] = 'Строгий фильтр (Дополнительно)'
+	lang_data['menu_rgc_filter_strict_desc'] = 'Если фильтр активен, то сообщение, содержащее сомнительные слова, будет полностью скрыто. ВАЖНО: общий фильтр должен быть активен (флажок выше).'
+	lang_data['menu_rgc_sync_players'] = '[Админ] Синхронизация игроков'
+	lang_data['menu_rgc_sync_players_desc'] = 'Если активно, вы увидите других игроков на карте через нексботов. Вы можете убивать ботов, но реальные игроки не получат урона. На данный момент нет никаких возможностей взаимодействия. Нексботы не сталкиваются с вами или вашими объектами.'
+	lang_data['menu_rgc_download_model_size_limit'] = 'Максимальный размер модели игрока'
+	lang_data['menu_rgc_download_model_size_limit_desc'] = 'Устанавливает максимальный размер, который может быть загружен для отображения моделей игроков на неэкстботах. Если вы хотите отключить эту функцию, установите значение 0.'
 elseif lang == 'polish' then
 	-- Credits: the text translated - Rydzyk 
 	lang_data['rgchat_info'] = '[RGC Info]'
@@ -48,29 +68,56 @@ elseif lang == 'polish' then
 	lang_data['rgchat_mapname_on'] = 'Włączono wyświetlanie map w pseudonimach.'
 	lang_data['failed_check_info'] = 'Nie udało się sprawdzić informacji o dodatku.'
 	lang_data['outdated_version'] = 'Masz zainstalowaną starą wersję. Uruchom ponownie grę, aby zaktualizować dodatek.'
-else
-	lang_data['rgchat_info'] = '[RGC Info]'
-	lang_data['chat_status_off'] = 'You turned off global chat.'
-	lang_data['chat_status_on'] = 'Global chat is active.'
-	lang_data['chat_online'] = 'Online %count% players.'
-	lang_data['chat_type_world'] = 'World'
-	lang_data['chat_type_country'] = 'Country'
-	lang_data['chat_filtered'] = '<Filtered>'
-	lang_data['rgchat_on'] = 'You turned ON the global chat.'
-	lang_data['rgchat_off'] = 'You turned OFF the global chat.'
-	lang_data['rgchat_on_type_country'] = 'Now you are talking to the whole country.'
-	lang_data['rgchat_on_type_world'] = 'Now you are talking to the whole world.'
-	lang_data['rgchat_on_filter'] = 'You turned ON the chat filter.'
-	lang_data['rgchat_off_filter'] = 'You turned OFF the chat filter.'
-	lang_data['rgchat_on_filter_strict'] = 'You turned ON the STRICT chat filter mode.'
-	lang_data['rgchat_off_filter_strict'] = 'You turned OFF the STRICT chat filter mode.'
-	lang_data['rgchat_filter_strict_warn'] = 'Strict filter doesn\'t work without /rgchatfilter enabled'
-	lang_data['rgchat_ping_sfx_on'] = 'You turned ON the ping sound.'
-	lang_data['rgchat_ping_sfx_off'] = 'You turned OFF the ping sound.'
-	lang_data['rgchat_mapname_off'] = 'You disabled the display of maps in nicknames.'
-	lang_data['rgchat_mapname_on'] = 'You enabled the display of maps in nicknames.'
-	lang_data['failed_check_info'] = 'Failed to check addon information.'
-	lang_data['outdated_version'] = 'You have an old version installed. Restart the game to update the addon.'
+end
+
+-- English
+lang_data_default['rgchat_info'] = '[RGC Info]'
+lang_data_default['chat_menu'] = 'Open chat menu - /rgchat'
+lang_data_default['chat_status_off'] = 'You turned off global ch1t.'
+lang_data_default['chat_status_on'] = 'Global chat is active.'
+lang_data_default['chat_online'] = 'Online %count% players.'
+lang_data_default['chat_type_world'] = 'World'
+lang_data_default['chat_type_country'] = 'Country'
+lang_data_default['chat_filtered'] = '<Filtered>'
+lang_data_default['rgchat_on'] = 'You turned ON the global chat.'
+lang_data_default['rgchat_off'] = 'You turned OFF the global chat.'
+lang_data_default['rgchat_on_type_country'] = 'Now you are talking to the whole country.'
+lang_data_default['rgchat_on_type_world'] = 'Now you are talking to the whole world.'
+lang_data_default['rgchat_on_filter'] = 'You turned ON the chat filter.'
+lang_data_default['rgchat_off_filter'] = 'You turned OFF the chat filter.'
+lang_data_default['rgchat_on_filter_strict'] = 'You turned ON the STRICT chat filter mode.'
+lang_data_default['rgchat_off_filter_strict'] = 'You turned OFF the STRICT chat filter mode.'
+lang_data_default['rgchat_filter_strict_warn'] = 'Strict filter doesn\'t work without /rgchatfilter enabled'
+lang_data_default['rgchat_ping_sfx_on'] = 'You turned ON the ping sound.'
+lang_data_default['rgchat_ping_sfx_off'] = 'You turned OFF the ping sound.'
+lang_data_default['rgchat_mapname_off'] = 'You disabled the display of maps in nicknames.'
+lang_data_default['rgchat_mapname_on'] = 'You enabled the display of maps in nicknames.'
+lang_data_default['failed_check_info'] = 'Failed to check addon information.'
+lang_data_default['outdated_version'] = 'You have an old version installed. Restart the game to update the addon.'
+lang_data_default['menu_rgc_status'] = 'Global chat status'
+lang_data_default['menu_rgc_status_desc'] = 'If the checkbox is active, you will see chat messages and other players on the map. They will also see you.'
+lang_data_default['menu_rgc_translator'] = 'Translator of text'
+lang_data_default['menu_rgc_translator_desc'] = 'Allows real-time translation of text into your language. If the text does not translate, try setting your language via the chat command. Example:\n/rgchattranslateto en'
+lang_data_default['menu_rgc_country_mode'] = 'Communication mode - country'
+lang_data_default['menu_rgc_country_mode_desc'] = 'If this is active, you will connect to your country\'s chat room. IMPORTANT: you will not see a message from people in your country if they are in the world chat!'
+lang_data_default['menu_rgc_visible_player_map_name'] = 'Show player map'
+lang_data_default['menu_rgc_visible_player_map_name_desc'] = 'If active, you will see in front of the player\'s nickname the name of the map where he is currently playing.'
+lang_data_default['menu_rgc_ping_sound'] = 'Play the ping sound effect'
+lang_data_default['menu_rgc_ping_sound_desc'] = 'If active, you will hear a ping sound every time someone mentions you.\nNOTE:\nTo mention a player, use the command:\n/ping NICK\nor write a message like this:\nNICK, text'
+lang_data_default['menu_rgc_filter'] = 'Message Filter (Censorship)'
+lang_data_default['menu_rgc_filter_desc'] = 'If active, questionable words will be hidden with asterisks. Only words from the prepared list will be hidden.\nNOTE: if you want to mute/unmute a person, write the command:\n/rgchatmute ID\nID is the number you see in front of the nickname. For example: #23'
+lang_data_default['menu_rgc_filter_strict'] = 'Strict Filter (Advanced)'
+lang_data_default['menu_rgc_filter_strict_desc'] = 'If active, the message containing questionable words will be hidden completely. IMPORTANT: the general filter must be active (checkbox above).'
+lang_data_default['menu_rgc_sync_players'] = '[Admin Only] Synchronization of players'
+lang_data_default['menu_rgc_sync_players_desc'] = 'If active, you will see other players on the map via nexbots. You can kill bots, but real players will not take damage. At the moment, there are no interaction features yet. Nextbots have no collisions with you or your objects.'
+lang_data_default['menu_rgc_download_model_size_limit'] = 'Maximum player model size'
+lang_data_default['menu_rgc_download_model_size_limit_desc'] = 'Sets the maximum size that can be loaded to show player models on non-extbots. If you want to disable this, set the value to 0.'
+
+-- Set language
+for k, v in pairs(lang_data_default) do
+	if not lang_data[k] then
+		lang_data[k] = v
+	end
 end
 
 RealGloabalChat.Values.Language = lang_data

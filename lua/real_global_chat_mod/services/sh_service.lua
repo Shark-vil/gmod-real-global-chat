@@ -18,7 +18,7 @@ local game_GetMap = game.GetMap
 local Angle = Angle
 local color_rgchat_tag = Color(237, 204, 73)
 local color_message = Color(255, 255, 255)
-local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_country_mode')
+local cvar_cl_real_global_chat_country_mode = GetConVar('cl_rgc_country_mode')
 local has_reading_muted_users = false
 local IsValid = IsValid
 local Color = Color
@@ -324,7 +324,7 @@ function RealGloabalChat:UpdateGameInfo(ply)
 		if ply.RgChatActiveGesture then
 			ply_gesture = ply.RgChatActiveGesture
 		else
-			for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
+			for gesture_id, _ in pairs(RealGloabalChat.Values.Enum .ActGmodTaunt) do
 				if ply:IsPlayingGesture(gesture_id) then
 					ply_gesture = gesture_id
 					break
@@ -540,7 +540,7 @@ end
 function RealGloabalChat:ModIsActive(ply)
 	if CLIENT then
 		if not cvar_cl_real_global_chat_status then
-			cvar_cl_real_global_chat_status = GetConVar('cl_real_global_chat_status')
+			cvar_cl_real_global_chat_status = GetConVar('cl_rgc_status')
 		end
 
 		return cvar_cl_real_global_chat_status:GetBool()

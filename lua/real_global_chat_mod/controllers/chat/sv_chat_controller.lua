@@ -17,8 +17,8 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 
 	if command_text_lines[1] == '/rgchatplayers' then
 		if ply:IsAdmin() or ply:IsSuperAdmin() then
-			local new_cvar = GetConVar('sv_real_global_chat_sync_players'):GetInt() == 1 and 0 or 1
-			RunConsoleCommand('sv_real_global_chat_sync_players', new_cvar)
+			local new_cvar = GetConVar('sv_rgc_sync_players'):GetInt() == 1 and 0 or 1
+			RunConsoleCommand('sv_rgc_sync_players', new_cvar)
 
 			if new_cvar == 1 then
 				ply:ChatPrint('ON - You will now see the other players')
@@ -37,7 +37,7 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 			new_size = 0
 		end
 
-		ply:ConCommand('cl_real_global_chat_download_model_size_limit ' .. new_size)
+		ply:ConCommand('cl_rgc_download_model_size_limit ' .. new_size)
 		ply:ChatPrint('[RGChat] New workshop download limit: ' .. tostring(new_size) .. ' mb')
 
 		return ''
@@ -105,7 +105,7 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 	end
 
 	if command_text_lines[1] == '/rgchattranslateto' then
-		ply:ConCommand('cl_real_global_chat_target_translate "' .. tostring(command_text_lines[2])  .. '"')
+		ply:ConCommand('cl_rgc_target_translate "' .. tostring(command_text_lines[2])  .. '"')
 		if command_text_lines[2] then
 			ply:ChatPrint('[RGChat] New target translate: ' .. tostring(command_text_lines[2]))
 		else

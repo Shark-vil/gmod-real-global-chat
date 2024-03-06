@@ -24,8 +24,8 @@ function ENT:Update()
 	local data = self:GetData()
 	if self:OnStuck() then self:SetPos(data.MovePos) end
 	if data.Color then self:SetColor(data.Color) end
-	if RealGloabalChat.Enum.ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
-		self:CustomStartActivity(RealGloabalChat.Enum.ActJumpToRun[data.State])
+	if RealGloabalChat.Values.Enum .ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
+		self:CustomStartActivity(RealGloabalChat.Values.Enum .ActJumpToRun[data.State])
 	end
 end
 
@@ -60,7 +60,7 @@ function ENT:UpdateVars()
 	self.BotData.EyePos = RealGloabalChat:PosStringToVector(data.eye_pos)
 	self.BotData.EyeAng = RealGloabalChat:PosStringToAngle(data.eye_ang)
 	self.BotData.State = data.activity or ACT_HL2MP_IDLE
-	self.BotData.MoveSpeed = RealGloabalChat.Enum.ActRun[self.BotData.State] and data.run_speed or data.walk_speed
+	self.BotData.MoveSpeed = RealGloabalChat.Values.Enum .ActRun[self.BotData.State] and data.run_speed or data.walk_speed
 	self.BotData.IsTyping = data.is_typing == 1
 	self.BotData.Sequence = data.sequence
 	self.BotData.Gesture = data.gesture
