@@ -64,7 +64,7 @@ function ENT:UpdateVars()
 	self.BotData.IsTyping = data.is_typing == 1
 	self.BotData.Sequence = data.sequence
 	self.BotData.Gesture = data.gesture
-	self.BotData.WeaponActivity = data.weapon_activity
+	-- self.BotData.WeaponActivity = data.weapon_activity
 	self.BotData.WeaponClass = data.weapon_class
 	self.BotData.MoveType = data.move_type
 	self.BotData.Alive = data.alive == 1

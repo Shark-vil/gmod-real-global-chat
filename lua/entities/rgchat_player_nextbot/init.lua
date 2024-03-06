@@ -29,9 +29,15 @@ function ENT:RunBehaviour()
 	self.loco:SetDeathDropHeight(200)
 	self.loco:SetGravity(self:GetGravity())
 	self.loco:SetDesiredSpeed(200)
-	-- self.loco:SetAcceleration(400)
 	self.loco:SetAcceleration(600)
 	self.loco:SetJumpGapsAllowed(true)
+
+	self._navmesh_is_loaded = navmesh.IsLoaded()
+	if self._navmesh_is_loaded then
+		self._Path = Path('Follow')
+		self._Path:SetMinLookAheadDistance(300)
+		self._Path:SetGoalTolerance(20)
+	end
 
 	self:StartTimer('RGChatNextBotRotate', .1, 0, function()
 		if not self.BotData.Ang then return end
@@ -81,7 +87,7 @@ function ENT:RunBehaviour()
 				local is_noclip_move_type = self:IsNoclipMoveType()
 				if is_noclip_move_type and not self:IsNoclip() then
 					self:StartNoclip()
-				elseif not is_noclip_move_type and self:IsNoclip() then
+				elseif not is_noclip_move_type and self:IsNoclip() and (not self._navmesh_is_loaded or self:IsOnGround()) then
 					self:StopNoclip()
 				end
 
@@ -96,13 +102,6 @@ function ENT:RunBehaviour()
 				else
 					self:SetState('move_to_pos')
 				end
-
-				-- if cvar_dev:GetBool() then
-				-- 	local ply = player.GetAll()[1]
-				-- 	if IsValid(ply) then
-				-- 		ply:ChatPrint('GRChatNextBot - ' .. self:GetActiveStateName())
-				-- 	end
-				-- end
 
 				self:Update()
 				self:UpdateCurrentState()

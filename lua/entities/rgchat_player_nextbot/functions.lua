@@ -110,7 +110,7 @@ function ENT:UpdateMovement()
 			if not data.CanSit or state_name ~= self:GetActiveStateName() or self:IsNoclip() then
 				stop_timer()
 			else
-				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * (speed * 2))
 
 				if pos then
 					self:SetPos(pos)
@@ -118,18 +118,35 @@ function ENT:UpdateMovement()
 				end
 			end
 		end)
-	elseif not navmesh.IsLoaded() then
-		if not data.LastTargetPos or data.LastTargetPos ~= move_pos then
-			data.LastTargetPos = move_pos
+	else
+		local is_valid_path = self._navmesh_is_loaded
+		local path
 
-			if not self:IsNoclip() then
+		if is_valid_path then
+			path = self._Path
+			path:MoveCursorToClosestPosition(move_pos, 2)
+			path:Compute(self, move_pos)
+			is_valid_path = path:IsValid()
+		end
+
+		if not is_valid_path then
+			if not data.LastTargetPos or data.LastTargetPos ~= move_pos then
+				data.LastTargetPos = move_pos
+
+				local acceleration = self:GetAcceleration(move_pos)
+				if self:GetDefaultAcceleration() == acceleration then
+					acceleration = 0
+				else
+					acceleration = acceleration / 2
+				end
+
 				self.loco:SetGravity(self:GetGravity())
 
 				self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
 					if state_name ~= self:GetActiveStateName() or move_pos:DistToSqr(self:GetPos()) <= 2500 or self:IsNoclip() then
 						stop_timer()
 					else
-						local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * speed)
+						local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * (speed + acceleration))
 
 						if pos then
 							self:SetPos(pos)
@@ -138,52 +155,59 @@ function ENT:UpdateMovement()
 					end
 				end)
 			end
+
+			return
 		end
-	else
+
 		self:StopTimer('RgChatNextBotMove')
-		local path = Path('Follow')
-		path:SetMinLookAheadDistance(300)
-		path:SetGoalTolerance(20)
-		path:MoveCursorToClosestPosition(move_pos, 2)
-		-- path:Compute(self, move_pos)
-		-- self.loco:SetAcceleration(400)
-		-- self.loco:SetGravity(self:GetGravity())
-		-- self.loco:SetVelocity(data.Velocity or vector_0_0_0)
-		local attempts = 0
-		repeat
-			attempts = attempts + 1
-			path:Compute(self, move_pos)
-		until attempts > 3 or path:IsValid()
 
-		if not path:IsValid() then
-			self:SetPos(move_pos)
-		else
-			self.loco:SetDesiredSpeed(speed)
+		local reset_acceleration = true
 
-			while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and path:IsValid() do
-				if timeout < CurTime() then
-					self:SetPos(move_pos)
-				end
-
-				if path:GetAge() > 0.75 then
-					path:Compute(self, move_pos)
-				end
-
-				path:Update(self)
-
-				if devmode then
-					path:Draw()
-				end
-
-				self:Update()
-				self:UpdateCurrentState()
-				coroutine_yield()
+		while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and path:IsValid() do
+			if timeout < CurTime() then
+				self:SetPos(move_pos)
 			end
+
+			if path:GetAge() > 0.75 then
+				path:MoveCursorToClosestPosition(move_pos, 2)
+				path:Compute(self, move_pos)
+				reset_acceleration = true
+			end
+
+			if reset_acceleration then
+				self.loco:SetDesiredSpeed(speed)
+				self.loco:SetAcceleration(self:GetAcceleration(move_pos))
+
+				reset_acceleration = false
+			end
+
+			path:Update(self)
+
+			if devmode then
+				path:Draw()
+			end
+
+			self:Update()
+			self:UpdateCurrentState()
+			coroutine_yield()
 		end
-		-- if move_pos:DistToSqr(self:GetPos()) > 2500 then
-		-- 	self:SetPos(move_pos)
-		-- end
 	end
+end
+
+function ENT:GetAcceleration(move_pos)
+	if move_pos then
+		local dist = self:GetPos():DistToSqr(move_pos)
+		if dist >= 1000000 then
+			return 1000
+		elseif dist >= 250000 then
+			return 900
+		end
+	end
+	return self:GetDefaultAcceleration()
+end
+
+function ENT:GetDefaultAcceleration()
+	return 800
 end
 
 function ENT:IsNoclipMoveType()
@@ -226,7 +250,7 @@ function ENT:StartNoclip()
 
 	self:StartTimer('RgChatNextBotNoclip', 0, 0, function(stop_timer)
 		if not self.BotData.IsNoclip then
-			self:StopTimer('RgChatNextBotNoclip')
+			stop_timer()
 
 			return
 		end
@@ -333,7 +357,7 @@ function ENT:ResetPose()
 		self:SetPoseParameter('aim_pitch', aimapproachp)
 
 		if headposeyaw == 0 and headposepitch == 0 and aimposeyaw == 0 and aimposepitch == 0 then
-			self:StopTimer('RgChatResetBodyPosRotate')
+			stop_timer()
 			self.BotData.IsResettingPose = false
 		end
 	end)

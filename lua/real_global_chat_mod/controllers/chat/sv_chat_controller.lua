@@ -2,7 +2,7 @@ local string_sub = string.sub
 local string_Trim = string.Trim
 local string_Split = string.Split
 local string_lower = string.lower
-local pairs = pairs
+-- local pairs = pairs
 
 hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 	text = string_Trim(text)
@@ -104,14 +104,33 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 		return ''
 	end
 
-	if ulx and ulx.cmdsByCategory and string_sub(command_text_lines[1], 1, 1) == '!' then
-		local ulx_cmd = string_sub(command_text_lines[1], 2)
-		for cat, cmds in pairs(ulx.cmdsByCategory) do
-			for i = 1, #cmds do
-				if cmds[i].cmd == 'ulx ' .. ulx_cmd then
-					return
-				end
-			end
+	if command_text_lines[1] == '/rgchattranslateto' then
+		ply:ConCommand('cl_real_global_chat_target_translate "' .. tostring(command_text_lines[2])  .. '"')
+		if command_text_lines[2] then
+			ply:ChatPrint('[RGChat] New target translate: ' .. tostring(command_text_lines[2]))
+		else
+			ply:ChatPrint('[RGChat] New target translate: default country')
+		end
+
+		return ''
+	end
+
+	-- if ulx and ulx.cmdsByCategory and string_sub(command_text_lines[1], 1, 1) == '!' then
+	-- 	local ulx_cmd = string_sub(command_text_lines[1], 2)
+	-- 	for cat, cmds in pairs(ulx.cmdsByCategory) do
+	-- 		for i = 1, #cmds do
+	-- 			if cmds[i].cmd == 'ulx ' .. ulx_cmd then
+	-- 				return
+	-- 			end
+	-- 		end
+	-- 	end
+	-- end
+
+	-- skip any chat commands
+	if #text >= 2 then
+		local first_char = string_sub(text, 1, 1)
+		if first_char == '/' or first_char == '!' or first_char == '?' then
+			return
 		end
 	end
 

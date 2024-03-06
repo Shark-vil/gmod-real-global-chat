@@ -33,6 +33,7 @@ RealGloabalChat.Enum.ActSit = {
 	[ACT_HL2MP_SIT_FIST] = true,
 	[ACT_DRIVE_JEEP] = true,
 	[ACT_DRIVE_POD] = true,
+	[ACT_DRIVE_AIRBOAT] = true,
 }
 
 RealGloabalChat.Enum.ActRun = {

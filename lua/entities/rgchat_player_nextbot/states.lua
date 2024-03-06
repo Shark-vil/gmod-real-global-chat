@@ -53,6 +53,8 @@ states['idle'] = {
 			end
 			self:SetMovePos(nil)
 		end
-		self:CustomStartActivity(self.BotData.State)
+		if not self:GetMovePos() then
+			self:CustomStartActivity(self.BotData.State)
+		end
 	end,
 }

@@ -7,6 +7,7 @@ if CLIENT then
 	CreateConVar('cl_real_global_chat_visible_player_map_name', '0', FCVAR_ARCHIVE, '', 0, 1)
 	CreateConVar('cl_real_global_chat_download_model_size_limit', '100', FCVAR_ARCHIVE, '', 0)
 	CreateConVar('cl_real_global_chat_translator', '0', FCVAR_ARCHIVE, '', 0, 1)
+	CreateConVar('cl_real_global_chat_target_translate', '', FCVAR_ARCHIVE, '')
 
 	concommand.Add('rgchat_switch', function()
 		local lang = RealGloabalChat.Values.Language

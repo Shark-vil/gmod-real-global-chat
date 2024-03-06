@@ -19,6 +19,7 @@ local cvar_cl_real_global_chat_country_mode = GetConVar('cl_real_global_chat_cou
 local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_real_global_chat_ping_sound')
 local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_real_global_chat_visible_player_map_name')
 local cvar_cl_real_global_chat_translator = GetConVar('cl_real_global_chat_translator')
+local cvar_cl_real_global_chat_target_translate = GetConVar('cl_real_global_chat_target_translate')
 local last_max_message_id = nil
 local sql_is_inject = false
 local has_print_outdated_version = false
@@ -146,7 +147,10 @@ local function update_message_action(response)
 		local translate_result_message
 		if cvar_cl_real_global_chat_translator:GetBool() then
 			local on_translate = false
-			RealGloabalChat:Translate(system_GetCountry(), result_message, function(new_result_message, code)
+			local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
+			target_translate = string.Trim(target_translate)
+			if #target_translate == 0 then target_translate = nil end
+			RealGloabalChat:Translate(target_translate or system_GetCountry(), result_message, function(new_result_message, code)
 				if code == 200 and new_result_message ~= result_message then
 					translate_result_message = new_result_message
 					translate_result_message = string.Trim(translate_result_message)

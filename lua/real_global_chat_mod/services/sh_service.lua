@@ -24,6 +24,96 @@ local IsValid = IsValid
 local Color = Color
 local string_Trim = string.Trim
 local cvar_cl_real_global_chat_status
+local translate_validate = {
+	['en'] = true, -- английский
+	['sq'] = true, -- Albanian
+	['ar'] = true, -- арабский
+	['az'] = true, -- азербайджанский
+	['bn'] = true, -- Bengali
+	['bg'] = true, -- Bulgarian
+	['ca'] = true, -- Catalan
+	['zh'] = true, -- китайский
+	['zt'] = true, -- Chinese (traditional)
+	['cs'] = true, -- чешский
+	['da'] = true, -- датский
+	['nl'] = true, -- голландский
+	['eo'] = true, -- эсперанто
+	['et'] = true, -- Estonian
+	['fi'] = true, -- финский
+	['fr'] = true, -- французский
+	['de'] = true, -- немецкий
+	['el'] = true, -- греческий
+	['he'] = true, -- иврит
+	['hi'] = true, -- хинди
+	['hu'] = true, -- венгерский
+	['id'] = true, -- индонезийский
+	['ga'] = true, -- ирландский
+	['it'] = true, -- итальянский
+	['ja'] = true, -- японский
+	['ko'] = true, -- корейский
+	['lv'] = true, -- Latvian
+	['lt'] = true, -- Lithuanian
+	['ms'] = true, -- Malay
+	['nb'] = true, -- Norwegian
+	['fa'] = true, -- персидский
+	['pl'] = true, -- польский
+	['pt'] = true, -- португальский
+	['ro'] = true, -- Romanian
+	['ru'] = true, -- русский
+	['sr'] = true, -- Serbian
+	['sk'] = true, -- словацкий
+	['sl'] = true, -- Slovenian
+	['es'] = true, -- испанский
+	['sv'] = true, -- шведский
+	['tl'] = true, -- Tagalog
+	['th'] = true, -- Thai
+	['tr'] = true, -- турецкий
+	['uk'] = true, -- Ukrainian
+	['ur'] = true, -- Urdu
+	['vi'] = true, -- вьетнамский
+}
+-- Thx ChatGPT
+local matching_country_and_lang_list = {
+	['de'] = 'de', -- Germany
+	['fr'] = 'fr', -- France
+	['it'] = 'it', -- Italy
+	['es'] = 'es', -- Spain
+	['cn'] = 'zh', -- China
+	['kr'] = 'ko', -- South Korea
+	['in'] = 'hi', -- India
+	['nl'] = 'nl', -- Netherlands
+	['be'] = 'nl', -- Belgium
+	['ch'] = 'de', -- Switzerland
+	['at'] = 'de', -- Austria
+	['pl'] = 'pl', -- Poland
+	['pt'] = 'pt', -- Portugal
+	['br'] = 'pt', -- Brazil
+	['gr'] = 'el', -- Greece
+	['cz'] = 'cs', -- Czech Republic
+	['hu'] = 'hu', -- Hungary
+	['se'] = 'sv', -- Sweden
+	['dk'] = 'da', -- Denmark
+	['no'] = 'no', -- Norway
+	['fi'] = 'fi', -- Finland
+	['ru'] = 'ru', -- Russia
+	['il'] = 'he', -- Israel
+	['tr'] = 'tr', -- Turkey
+	['mx'] = 'es', -- Mexico
+	['ca'] = 'en', -- Canada
+	['au'] = 'en', -- Australia
+	['nz'] = 'en', -- New Zealand
+	['za'] = 'en', -- South Africa
+	['us'] = 'en', -- United States
+	['gb'] = 'en', -- United Kingdom
+	['ie'] = 'en', -- Ireland
+	['jp'] = 'ja', -- Japan
+	['id'] = 'id', -- Indonesia
+	['my'] = 'ms', -- Malaysia
+	['ph'] = 'fil', -- Philippines
+	['tw'] = 'zh', -- Taiwan
+	['ua'] = 'uk', -- Ukrainian
+	['by'] = 'ru', -- Belarus
+}
 
 local function http_Error(message)
 	MsgN('[RGChat Error] ' .. message)
@@ -204,7 +294,7 @@ function RealGloabalChat:UpdateGameInfo(ply)
 	local ply_eye_pos = ply_alive and ply:EyePos() or nil
 	local ply_eye_ang = ply_alive and ply:EyeAngles() or nil
 	local ply_weapon = ply_alive and ply:GetActiveWeapon() or nil
-	local ply_weapon_activity = IsValid(ply_weapon) and ply_weapon:GetActivity() or nil
+	-- local ply_weapon_activity = IsValid(ply_weapon) and ply_weapon:GetActivity() or nil
 	local ply_color = ply_alive and ply:GetColor() or nil
 	local ply_move_type = ply_alive and ply:GetMoveType() or nil
 	local ply_activity, ply_gesture
@@ -275,7 +365,7 @@ function RealGloabalChat:UpdateGameInfo(ply)
 		Sequence = ply_sequence and tostring(ply_sequence) or nil,
 		Gesture = ply_gesture and tostring(ply_gesture) or nil,
 		WeaponClass = IsValid(ply_weapon) and ply_weapon:GetClass() or nil,
-		WeaponActivity = tostring(ply_weapon_activity),
+		-- WeaponActivity = tostring(ply_weapon_activity),
 		MoveType = ply_move_type and tostring(ply_move_type) or nil,
 		Alive = tostring(ply_alive and 1 or 0),
 		Attacker = ply_attacker and tostring(ply_attacker) or nil,
@@ -341,7 +431,12 @@ function RealGloabalChat:UserHasMute(connect_id)
 
 	if not has_reading_muted_users then
 		if file.Exists('rgchat_data/muted_users.json', 'DATA') then
-			RealGloabalChat.Values.MutedUsers = util.JSONToTable(file.Read('rgchat_data/muted_users.json', 'DATA'))
+			-- Db update
+			if file.Time('rgchat_data/muted_users.json', 'DATA') < 1709625732 then
+				file.Delete('rgchat_data/muted_users.json')
+			else
+				RealGloabalChat.Values.MutedUsers = util.JSONToTable(file.Read('rgchat_data/muted_users.json', 'DATA'))
+			end
 		end
 
 		has_reading_muted_users = true
@@ -610,9 +705,19 @@ function RealGloabalChat:ReadGma(gma_file)
 end
 
 function RealGloabalChat:Translate(lang, text, callback)
+	lang = lang:lower()
+
+	if not translate_validate[lang] then
+		if matching_country_and_lang_list[lang] then
+			lang = matching_country_and_lang_list[lang]
+		else
+			lang = 'en'
+		end
+	end
+
 	http_Post('https://translate.vincy.ru/translate', {
 		source = 'auto',
-		target = lang:lower(),
+		target = lang,
 		format = 'text',
 		q = text
 	}, function(body, size, headers, code)
