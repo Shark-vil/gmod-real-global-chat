@@ -19,6 +19,7 @@ local Angle = Angle
 local color_rgchat_tag = Color(237, 204, 73)
 local color_message = Color(255, 255, 255)
 local cvar_cl_real_global_chat_country_mode = GetConVar('cl_rgc_country_mode')
+local cvar_developer = GetConVar('developer')
 local has_reading_muted_users = false
 local IsValid = IsValid
 local Color = Color
@@ -715,24 +716,39 @@ function RealGloabalChat:Translate(lang, text, callback)
 		end
 	end
 
-	http_Post('https://translate.vincy.ru/translate', {
+	local form_data = {
 		source = 'auto',
 		target = lang,
 		format = 'text',
 		q = text
-	}, function(body, size, headers, code)
+	}
+
+	if cvar_developer:GetBool() then
+		MsgN('[RGChat] Web send: https://translate.vincy.ru/translate')
+		PrintTable(form_data)
+	end
+
+	http_Post('https://translate.vincy.ru/translate', form_data, function(body, size, headers, code)
 		local response = util_JSONToTable(body)
 
-		if response and response['translatedText'] then
-			local new_text = response['translatedText']
+		if cvar_developer:GetBool() then
+			MsgN('[RGChat] Web response: https://translate.vincy.ru/translate')
+			print(body)
+		end
 
-			if new_text then
-				new_text = string_Trim(new_text)
+		if response and response['translatedText'] and response['detectedLanguage'] then
+			local confidence = response['detectedLanguage']['confidence']
+			if confidence and isnumber(confidence) and confidence >= 50 then
+				local new_text = response['translatedText']
 
-				if #new_text ~= 0 then
-					callback(new_text, code)
+				if new_text then
+					new_text = string_Trim(new_text)
 
-					return
+					if #new_text ~= 0 then
+						callback(new_text, code)
+
+						return
+					end
 				end
 			end
 		end

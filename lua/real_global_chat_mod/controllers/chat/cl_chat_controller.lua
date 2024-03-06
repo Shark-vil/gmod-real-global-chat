@@ -145,36 +145,35 @@ local function update_message_action(response)
 		end
 
 		local check_result_message = result_message:gsub('[%p%c%s]', '')
-		if #check_result_message > 3 then
-			local translate_result_message
-			if cvar_cl_real_global_chat_translator:GetBool() then
-				local on_translate = false
-				local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
-				target_translate = string.Trim(target_translate)
-				if #target_translate == 0 then target_translate = nil end
-				RealGloabalChat:Translate(target_translate or system_GetCountry(), result_message, function(new_result_message, code)
-					if code == 200 and new_result_message ~= result_message then
-						translate_result_message = new_result_message
-						translate_result_message = string.Trim(translate_result_message)
-						if string.sub(translate_result_message, 1, 1) == ',' then
-							translate_result_message = string.sub(translate_result_message, 2)
-						end
+		local translate_result_message
+
+		if #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() then
+			local on_translate = false
+			local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
+			target_translate = string.Trim(target_translate)
+			if #target_translate == 0 then target_translate = nil end
+			RealGloabalChat:Translate(target_translate or system_GetCountry(), result_message, function(new_result_message, code)
+				if code == 200 and new_result_message ~= result_message then
+					translate_result_message = new_result_message
+					translate_result_message = string.Trim(translate_result_message)
+					if string.sub(translate_result_message, 1, 1) == ',' then
+						translate_result_message = string.sub(translate_result_message, 2)
 					end
-					on_translate = true
-				end)
-
-				while not on_translate do
-					coroutine_yield()
 				end
+				on_translate = true
+			end)
 
-				coroutine_wait(1)
+			while not on_translate do
+				coroutine_yield()
 			end
+
+			coroutine_wait(1)
 		end
 
 		AdditionText(result_color_message)
 		AdditionText(result_message)
 
-		if translate_result_message and result_message_no_spec ~= translate_result_message then
+		if translate_result_message and translate_result_message:gsub('[%p%c%s]', ''):lower() ~= result_message:gsub('[%p%c%s]', ''):lower() then
 			AdditionText(color_message_google)
 			AdditionText('\n[Translation] ')
 			AdditionText(result_color_message)
