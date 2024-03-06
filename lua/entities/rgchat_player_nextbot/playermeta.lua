@@ -404,7 +404,7 @@ function ENT:Say(texttosay)
 end
 
 function ENT:OnKilled(dmginfo)
-	hook.Call('OnNPCKilled', GAMEMODE, self, dmginfo:GetAttacker(), dmginfo:GetInflictor())
+	-- hook.Call('OnNPCKilled', GAMEMODE, self, dmginfo:GetAttacker(), dmginfo:GetInflictor())
 
 	if self.CurrentWeapon ~= nil then
 		self.CurrentWeapon:Remove()
