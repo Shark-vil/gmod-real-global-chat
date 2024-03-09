@@ -20,30 +20,44 @@ local cvar_cl_real_global_chat_ping_sound = GetConVar('cl_rgc_ping_sound')
 local cvar_cl_real_global_chat_visible_player_map_name = GetConVar('cl_rgc_visible_player_map_name')
 local cvar_cl_real_global_chat_translator = GetConVar('cl_rgc_translator')
 local cvar_cl_real_global_chat_target_translate = GetConVar('cl_rgc_target_translate')
+local cvar_cl_language = GetConVar('cl_language')
 local last_max_message_id = nil
 local sql_is_inject = false
 local has_print_outdated_version = false
 local util_JSONToTable = util.JSONToTable
 local string_StartsWith = string.StartsWith
 local string_sub = string.sub
+local string_Trim = string.Trim
 local sql_Query = sql.Query
 local ipairs = ipairs
 local player_GetHumans = player.GetHumans
 local last_players_count
 local lang = RealGloabalChat.Values.Language
 local sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
-local system_GetCountry = system.GetCountry
 local coroutine_wait = coroutine.wait
 local coroutine_yield = coroutine.yield
 
 local function update_message_action(response)
 	if not response or response.success == 0 then return end
 
+	local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
+	if isstring(target_translate) then
+		target_translate = string_Trim(target_translate)
+		if target_translate == 'nil' then target_translate = nil end
+	end
+	if not target_translate or target_translate == '' then
+		target_translate = system.GetCountry()
+		if not target_translate or target_translate == '' then
+			target_translate = cvar_cl_language:GetString()
+		end
+	end
+
 	local local_player = LocalPlayer()
 	local self_nick_name = local_player:Nick()
 
 	for _, user_msg in ipairs(response.messages) do
 		local has_skip_msg = false
+		local has_muted = false
 
 		for _, ply in ipairs(player_GetHumans()) do
 			if IsValid(ply) and ply:SteamID64() == user_msg.steamid64 then
@@ -120,6 +134,7 @@ local function update_message_action(response)
 		AdditionText(' ' .. user_msg.username)
 
 		if RealGloabalChat:UserHasMute(user_msg.connect_id) then
+			has_muted = true
 			AdditionText(color_message_command)
 			AdditionText(' <Muted>')
 		else
@@ -147,17 +162,14 @@ local function update_message_action(response)
 		local check_result_message = result_message:gsub('[%p%c%s]', '')
 		local translate_result_message
 
-		if #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() then
+		if not has_muted and #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() then
 			local on_translate = false
-			local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
-			target_translate = string.Trim(target_translate)
-			if #target_translate == 0 then target_translate = nil end
-			RealGloabalChat:Translate(target_translate or system_GetCountry(), result_message, function(new_result_message, code)
+			RealGloabalChat:Translate(target_translate, result_message, function(new_result_message, code)
 				if code == 200 and new_result_message ~= result_message then
 					translate_result_message = new_result_message
-					translate_result_message = string.Trim(translate_result_message)
-					if string.sub(translate_result_message, 1, 1) == ',' then
-						translate_result_message = string.sub(translate_result_message, 2)
+					translate_result_message = string_Trim(translate_result_message)
+					if string_sub(translate_result_message, 1, 1) == ',' then
+						translate_result_message = string_sub(translate_result_message, 2)
 					end
 				end
 				on_translate = true
@@ -170,19 +182,21 @@ local function update_message_action(response)
 			coroutine_wait(1)
 		end
 
-		AdditionText(result_color_message)
-		AdditionText(result_message)
-
-		if translate_result_message and translate_result_message:gsub('[%p%c%s]', ''):lower() ~= result_message:gsub('[%p%c%s]', ''):lower() then
-			AdditionText(color_message_google)
-			AdditionText('\n[Translation] ')
+		if not has_muted then
 			AdditionText(result_color_message)
-			AdditionText(translate_result_message)
+			AdditionText(result_message)
+
+			if translate_result_message and translate_result_message:gsub('[%p%c%s]', ''):lower() ~= result_message:gsub('[%p%c%s]', ''):lower() then
+				AdditionText(color_message_google)
+				AdditionText('\n[Translation] ')
+				AdditionText(result_color_message)
+				AdditionText(translate_result_message)
+			end
 		end
 
 		chat.AddText(unpack(text_constructor))
 
-		if has_ping then
+		if not has_muted and has_ping then
 			system.FlashWindow()
 
 			if cvar_cl_real_global_chat_ping_sound:GetBool() then

@@ -74,6 +74,57 @@ local translate_validate = {
 	['vi'] = true, -- вьетнамский
 }
 -- Thx ChatGPT
+local country_language_codes = {
+	['japan'] = 'ja',
+	['romania'] = 'ro',
+	['slovakia'] = 'sk',
+	['azerbaijan'] = 'az',
+	['israel'] = 'he',
+	['india'] = 'hi',
+	['finland'] = 'fi',
+	['saudi arabia'] = 'ar',
+	['bangladesh'] = 'bn',
+	['spain'] = 'es',
+	['hungary'] = 'hu',
+	['malaysia'] = 'ms',
+	['vietnam'] = 'vi',
+	['albania'] = 'sq',
+	['south africa'] = 'zt',
+	['slovenia'] = 'sl',
+	['pakistan'] = 'ur',
+	['ukraine'] = 'uk',
+	['poland'] = 'pl',
+	['indonesia'] = 'id',
+	['netherlands'] = 'nl',
+	['norway'] = 'nb',
+	['turkey'] = 'tr',
+	['thailand'] = 'th',
+	['philippines'] = 'tl',
+	['sweden'] = 'sv',
+	['serbia'] = 'sr',
+	['united states'] = 'en',
+	['russia'] = 'ru',
+	['czech republic'] = 'cs',
+	['greece'] = 'el',
+	['italy'] = 'it',
+	['iran'] = 'fa',
+	['france'] = 'fr',
+	['lithuania'] = 'lt',
+	['estonia'] = 'et',
+	['esperanto'] = 'eo',
+	['south korea'] = 'ko',
+	['china'] = 'zh',
+	['canada'] = 'ca',
+	['portugal'] = 'pt',
+	['germany'] = 'de',
+	['latvia'] = 'lv',
+	['ireland'] = 'ga',
+	['denmark'] = 'da',
+	['bulgaria'] = 'bg',
+	['urkaine'] = 'uk',
+	['taiwan'] = 'zh',
+}
+-- Thx ChatGPT
 local matching_country_and_lang_list = {
 	['de'] = 'de', -- Germany
 	['fr'] = 'fr', -- France
@@ -706,7 +757,15 @@ function RealGloabalChat:ReadGma(gma_file)
 end
 
 function RealGloabalChat:Translate(lang, text, callback)
-	lang = lang:lower()
+	lang = string_lower(lang)
+
+	if cvar_developer:GetBool() then
+		print('[RGChat]', lang, text)
+	end
+
+	if country_language_codes[lang] then
+		lang = country_language_codes[lang]
+	end
 
 	if not translate_validate[lang] then
 		if matching_country_and_lang_list[lang] then
@@ -738,7 +797,7 @@ function RealGloabalChat:Translate(lang, text, callback)
 
 		if response and response['translatedText'] and response['detectedLanguage'] then
 			local confidence = response['detectedLanguage']['confidence']
-			if confidence and isnumber(confidence) and confidence >= 50 then
+			if confidence and isnumber(confidence) and confidence >= 5 then
 				local new_text = response['translatedText']
 
 				if new_text then

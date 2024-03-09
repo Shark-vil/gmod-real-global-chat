@@ -63,11 +63,11 @@ local util_TraceLine = util.TraceLine
 -- 	['gmod_tool'] = 'models/weapons/w_toolgun.mdl',
 -- }
 
-local function GetHoldType(worldmodel)
-	if weapon_hold_types[worldmodel] then return weapon_hold_types[worldmodel] end
+-- local function GetHoldType(worldmodel)
+-- 	if weapon_hold_types[worldmodel] then return weapon_hold_types[worldmodel] end
 
-	return 'normal'
-end
+-- 	return 'normal'
+-- end
 
 function ENT:GetShootPos()
 	return self:GetPos() + self:GetHeadHeightVector() + self:GetForward()
@@ -401,14 +401,4 @@ end
 -- end
 
 function ENT:Say(texttosay)
-end
-
-function ENT:OnKilled(dmginfo)
-	-- hook.Call('OnNPCKilled', GAMEMODE, self, dmginfo:GetAttacker(), dmginfo:GetInflictor())
-
-	if self.CurrentWeapon ~= nil then
-		self.CurrentWeapon:Remove()
-	end
-
-	self:BecomeRagdoll(dmginfo)
 end

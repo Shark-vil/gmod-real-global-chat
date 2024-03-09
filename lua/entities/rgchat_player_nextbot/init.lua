@@ -124,3 +124,11 @@ end
 function ENT:BodyUpdate()
 	self:BodyMoveXY(0, 0)
 end
+
+function ENT:OnKilled(dmginfo)
+	if IsValid(self.CurrentWeapon) then
+		self.CurrentWeapon:Remove()
+	end
+
+	SafeRemoveEntity(self)
+end

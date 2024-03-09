@@ -97,8 +97,13 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 	end
 
 	if command_text_lines[1] == '/rgchatmute' then
+		local connect_id = command_text_lines[2] or ''
+		if connect_id and #connect_id ~= 0 and string.sub(connect_id, 1, 1) == '#' then
+			connect_id = string.sub(connect_id, 2)
+		end
+
 		net.Start('RealGlobalChatMuteUser')
-		net.WriteString(command_text_lines[2] or '')
+		net.WriteString(connect_id)
 		net.Send(ply)
 
 		return ''

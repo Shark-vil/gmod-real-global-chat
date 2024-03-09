@@ -1,6 +1,10 @@
 local function open_menu()
 	local lang = RealGloabalChat.Values.Language
 	local cvar_rgc_download_model_size_limit = GetConVar('cl_rgc_download_model_size_limit')
+	local cvar_cl_swapskin_darkui_enabled = GetConVar('cl_swapskin_darkui_enabled')
+	local pm_model_size_old_value = cvar_rgc_download_model_size_limit:GetInt()
+	local material_boosty = Material('artist/shark_vil/boosty.png')
+	local material_discord = Material('artist/shark_vil/discord.png')
 
 	local function base_setup_element(element, dock_value, cvar_name)
 		if isfunction(element.SizeToContents) then
@@ -69,7 +73,7 @@ local function open_menu()
 
 	local main_panel = vgui.Create('DPanel', main_frame)
 	main_panel:Dock(FILL)
-	main_panel:SetBackgroundColor(Color(0, 0, 0))
+	main_panel:SetBackgroundColor(Color(27, 27, 27))
 
 	local scroll_panel = vgui.Create('DScrollPanel', main_panel)
 	scroll_panel:Dock(FILL)
@@ -83,7 +87,7 @@ local function open_menu()
 
 	local label_modstate = scroll_panel:Add('DLabel')
 	label_modstate:SetText(lang['menu_rgc_status_desc'])
-	label_modstate:SetFont('GModToolHelp')
+	label_modstate:SetFont('CreditsText')
 	label_modstate:SetAutoStretchVertical(true)
 	base_setup_element(label_modstate)
 
@@ -96,7 +100,7 @@ local function open_menu()
 
 	local label_translator = scroll_panel:Add('DLabel')
 	label_translator:SetText(lang['menu_rgc_translator_desc'])
-	label_translator:SetFont('GModToolHelp')
+	label_translator:SetFont('CreditsText')
 	label_translator:SetAutoStretchVertical(true)
 	base_setup_element(label_translator)
 
@@ -109,7 +113,7 @@ local function open_menu()
 
 	local label_country = scroll_panel:Add('DLabel')
 	label_country:SetText(lang['menu_rgc_country_mode_desc'])
-	label_country:SetFont('GModToolHelp')
+	label_country:SetFont('CreditsText')
 	label_country:SetAutoStretchVertical(true)
 	base_setup_element(label_country)
 
@@ -122,7 +126,7 @@ local function open_menu()
 
 	local label_mapname = scroll_panel:Add('DLabel')
 	label_mapname:SetText(lang['menu_rgc_visible_player_map_name_desc'])
-	label_mapname:SetFont('GModToolHelp')
+	label_mapname:SetFont('CreditsText')
 	label_mapname:SetAutoStretchVertical(true)
 	base_setup_element(label_mapname)
 
@@ -135,7 +139,7 @@ local function open_menu()
 
 	local label_ping = scroll_panel:Add('DLabel')
 	label_ping:SetText(lang['menu_rgc_ping_sound_desc'])
-	label_ping:SetFont('GModToolHelp')
+	label_ping:SetFont('CreditsText')
 	label_ping:SetAutoStretchVertical(true)
 	base_setup_element(label_ping)
 
@@ -148,7 +152,7 @@ local function open_menu()
 
 	local label_filter = scroll_panel:Add('DLabel')
 	label_filter:SetText(lang['menu_rgc_filter_desc'])
-	label_filter:SetFont('GModToolHelp')
+	label_filter:SetFont('CreditsText')
 	label_filter:SetAutoStretchVertical(true)
 	base_setup_element(label_filter)
 
@@ -161,7 +165,7 @@ local function open_menu()
 
 	local label_filter_strict = scroll_panel:Add('DLabel')
 	label_filter_strict:SetText(lang['menu_rgc_filter_strict_desc'])
-	label_filter_strict:SetFont('GModToolHelp')
+	label_filter_strict:SetFont('CreditsText')
 	label_filter_strict:SetAutoStretchVertical(true)
 	base_setup_element(label_filter_strict)
 
@@ -174,7 +178,7 @@ local function open_menu()
 
 	local label_syncplayers = scroll_panel:Add('DLabel')
 	label_syncplayers:SetText(lang['menu_rgc_sync_players_desc'])
-	label_syncplayers:SetFont('GModToolHelp')
+	label_syncplayers:SetFont('CreditsText')
 	label_syncplayers:SetAutoStretchVertical(true)
 	base_setup_element(label_syncplayers)
 
@@ -182,24 +186,33 @@ local function open_menu()
 	title_pmmodelsize:SetText(lang['menu_rgc_download_model_size_limit'])
 	title_pmmodelsize:SetFont('Trebuchet24')
 	title_pmmodelsize:SetAutoStretchVertical(true)
-	base_setup_element(title_pmmodelsize, { 15, 5, 15, 0 })
+	base_setup_element(title_pmmodelsize, { 15, 5, 15, 10 })
 
-	local slider_pmmodelsize = scroll_panel:Add('DNumSlider')
+	local panel_pmmodelsize = scroll_panel:Add('DPanel')
+	panel_pmmodelsize:SetHeight(45)
+	panel_pmmodelsize:SetBackgroundColor(Color(61, 61, 61))
+	base_setup_element(panel_pmmodelsize)
+
+	local slider_dark_mode = 0
+	if cvar_cl_swapskin_darkui_enabled and cvar_cl_swapskin_darkui_enabled:GetBool() then
+		slider_dark_mode = 1
+	end
+
+	local slider_pmmodelsize = vgui.Create('DNumSlider', panel_pmmodelsize)
 	slider_pmmodelsize:SetMin(0)
 	slider_pmmodelsize:SetMax(1024)
 	slider_pmmodelsize:SetDecimals(0)
 	slider_pmmodelsize:SetConVar('cl_rgc_download_model_size_limit')
 	slider_pmmodelsize:SetText(lang['menu_rgc_download_model_size_limit'])
 	slider_pmmodelsize:SetTooltip(lang['menu_rgc_download_model_size_limit_desc'])
-	slider_pmmodelsize:SetDark(1)
-	local pmmodelsize_old_value = cvar_rgc_download_model_size_limit:GetInt()
+	slider_pmmodelsize:SetDark(slider_dark_mode)
 	function slider_pmmodelsize:OnValueChanged(new_value)
 		local new_value_number = tonumber(new_value)
 		timer.Create('RGChatMenuSetNewModelSizeLimit', 1, 1, function()
-			if new_value_number and new_value_number == pmmodelsize_old_value then
+			if new_value_number and new_value_number == pm_model_size_old_value then
 				return
 			end
-			pmmodelsize_old_value = cvar_rgc_download_model_size_limit:GetInt()
+			pm_model_size_old_value = cvar_rgc_download_model_size_limit:GetInt()
 			if not new_value_number or new_value_number <= 0 then
 				RunConsoleCommand('say', '/rgchatwslimit 0')
 			else
@@ -211,8 +224,79 @@ local function open_menu()
 
 	local label_pmmodelsize = scroll_panel:Add('DLabel')
 	label_pmmodelsize:SetText(lang['menu_rgc_download_model_size_limit_desc'])
-	label_pmmodelsize:SetFont('GModToolHelp')
+	label_pmmodelsize:SetFont('CreditsText')
 	label_pmmodelsize:SetAutoStretchVertical(true)
 	base_setup_element(label_pmmodelsize)
+
+	local title_chat_commands = scroll_panel:Add('DLabel')
+	title_chat_commands:SetText('Chat commands')
+	title_chat_commands:SetFont('Trebuchet24')
+	title_chat_commands:SetAutoStretchVertical(true)
+	base_setup_element(title_chat_commands, { 15, 5, 15, 0 })
+
+	local label_help = scroll_panel:Add('DLabel')
+	label_help:SetFont('CreditsText')
+	label_help:SetText([[Open menu:
+- /rgchat
+Mute or unmute player:
+- /rgchatmute ID
+- Example: /rgchatmute #23 or rgchatmute 23
+Ping player:
+- /ping NICK or NICL, [any text]
+Nextboot switch:
+- /rgchatplayers
+Set player model limit:
+- /rgchatwslimit NUMBER
+- Example: /rgchatwslimit 150
+- Disable: /rgchatwslimit 0
+Country mode switch:
+- /rgchatmode
+Filter switch:
+- /rgchatfilter
+Strict filter switch:
+- /rgchatfilterstrict
+Player map visibility switch:
+- /rgchatmap
+Enable global chat mod:
+- /rgchaton
+Disable global chat mod:
+- /rgchatoff
+Ping SFX switch:
+- /rgchatpingsfx
+Set translation language
+- /rgchattranslateto LANGUAGE_CODE
+- Exanple: /rgchattranslateto en]])
+	base_setup_element(label_help)
+
+	local image_boosty = scroll_panel:Add('DButton')
+	image_boosty:SetHeight(150)
+	function image_boosty:Paint(w, h)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.SetMaterial(material_boosty)
+		surface.DrawTexturedRect(0, 0, w, h)
+	end
+	function image_boosty:DoClick()
+		gui.OpenURL('https://boosty.to/shark_vil')
+	end
+	image_boosty:Dock(TOP)
+	image_boosty:DockMargin(15, 15, 15, 15)
+
+	local image_discord = scroll_panel:Add('DButton')
+	image_discord:SetHeight(150)
+	function image_discord:Paint(w, h)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.SetMaterial(material_discord)
+		surface.DrawTexturedRect(0, 0, w, h)
+	end
+	function image_discord:DoClick()
+		gui.OpenURL('https://discord.gg/wZwtQTU')
+	end
+	image_discord:Dock(TOP)
+	image_discord:DockMargin(15, 15, 15, 15)
+
+	local space_element = scroll_panel:Add('DLabel')
+	space_element:SetText('')
+	space_element:SetHeight(20)
+	base_setup_element(space_element)
 end
 concommand.Add('rgchat_menu', open_menu)
