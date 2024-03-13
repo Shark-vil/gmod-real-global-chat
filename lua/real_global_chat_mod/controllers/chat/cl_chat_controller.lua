@@ -3,8 +3,6 @@ local LocalPlayer = LocalPlayer
 local IsValid = IsValid
 local isnumber = isnumber
 local table_insert = table.insert
--- local table_remove = table.remove
--- local skip_ids_table = {}
 local CurTime = CurTime
 local color_rgchat_tag = Color(207, 237, 73)
 local color_username = Color(255, 255, 104)
@@ -13,7 +11,6 @@ local color_message = Color(255, 255, 255)
 local color_message_command = Color(247, 173, 246)
 local color_message_filtred = Color(241, 137, 137)
 local color_message_google = Color(153, 176, 254)
-local cvar_cl_real_global_chat_status = GetConVar('cl_rgc_status')
 local cvar_cl_real_global_chat_filter = GetConVar('cl_rgc_filter')
 local cvar_cl_real_global_chat_filter_strict = GetConVar('cl_rgc_filter_strict')
 local cvar_cl_real_global_chat_country_mode = GetConVar('cl_rgc_country_mode')
@@ -32,7 +29,6 @@ local string_Trim = string.Trim
 local sql_Query = sql.Query
 local ipairs = ipairs
 local player_GetHumans = player.GetHumans
-local last_players_count
 local lang = RealGloabalChat.Values.Language
 local sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
 local coroutine_wait = coroutine.wait
@@ -249,55 +245,30 @@ local function http_Handler_CheckInfo(data)
 	end
 end
 
-local function global_chat_CheckInfo()
+local function check_mod_version()
 	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
 	RealGloabalChat:GetInfo(http_Handler_CheckInfo)
 end
 
-timer.Create('RealGlobalChat.CheckOnline', 20, 0, function()
-	if not RealGloabalChat:ModIsActive() then return end
-	local ply = LocalPlayer()
-	if not IsValid(ply) then return end
+local function print_welcome_message()
+	if not RealGloabalChat:ModIsActive() then
+		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_off'])
+	else
+		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_on'])
+	end
 
 	RealGloabalChat:GetOnlineCount(function(count)
-		if not last_players_count or last_players_count ~= count then
-			last_players_count = count
-			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. string.Replace(lang['chat_online'], '%count%', count))
-		end
-	end)
-end)
-
-timer.Create('RealGlobalChat.UpdateOnline', 30, 0, function()
-	if not RealGloabalChat:ModIsActive() then return end
-	local ply = LocalPlayer()
-	if not IsValid(ply) then return end
-	RealGloabalChat:UpdateOnline()
-end)
-
-net.Receive('RealGlobalChatSpawnMessage', function()
-	LocalPlayer().RGChatReady = true
-
-	timer.Simple(.3, function()
-		if not RealGloabalChat:ModIsActive() then
-			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_off'])
-		else
-			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_status_on'])
-		end
-
-		RealGloabalChat:GetOnlineCount(function(count)
-			last_players_count = count
-			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. string.Replace(lang['chat_online'], '%count%', count))
-		end)
-
-		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_menu'])
+		last_players_count = count
+		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. string.Replace(lang['chat_online'], '%count%', count))
 	end)
 
-	net.Start('RealGlobalChatServerSycnActive')
-	net.WriteBool(cvar_cl_real_global_chat_status:GetBool())
-	net.SendToServer()
-	-- timer.Create('RealGlobalChat.Check', 1, 0, global_chat_Check)
+	chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['chat_menu'])
+end
+
+hook.Add('RGchat.FirstStart', 'RealGlobalChat.LoadChatController', function()
+	timer.Simple(1, print_welcome_message)
 
 	if not sql_is_inject then
 		sql_is_inject = true
@@ -312,15 +283,14 @@ net.Receive('RealGlobalChatSpawnMessage', function()
 		last_max_message_id = tonumber(sql_response[1]['last_message_id'])
 	end
 
-	hook.Add('Think', 'RealGlobalChat.Check', function()
+	hook.Add('Think', 'RealGlobalChat.UpdateClientMessage', function()
 		if not co or not coroutine_resume(co) then
 			co = coroutine_create(global_chat_Check)
 			coroutine_resume(co)
 		end
 	end)
 
-	timer.Create('RealGlobalChat.CheckInfo', 300, 0, global_chat_CheckInfo)
-	hook.Run('RGchat.FirstStart')
+	timer.Create('RealGlobalChat.CheckVersion', 69, 0, check_mod_version)
 end)
 
 cvars.AddChangeCallback('cl_rgc_status', function(_, _, new_value)

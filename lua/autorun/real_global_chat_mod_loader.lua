@@ -68,6 +68,7 @@ load('sh_lang.lua')
 load('sh_cvars.lua')
 
 load('modules/sh_json.lua')
+load('cire/sh_run.lua')
 
 load('services/sh_helper_service.lua')
 load('services/sh_service.lua')
@@ -83,6 +84,7 @@ load('net/cl_net_receives.lua')
 
 load('controllers/chat/sv_chat_controller.lua')
 load('controllers/chat/cl_chat_controller.lua')
+load('controllers/chat/cl_online.lua')
 load('controllers/game_info/sv_game_info_controller.lua')
 
 load('controllers/nextbots/sv_nextbot_controller.lua')
