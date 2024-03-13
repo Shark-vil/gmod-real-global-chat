@@ -18,6 +18,10 @@ function ENT:Initialize()
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:PhysWake()
 	self:SetHealth(100)
+	if SERVER then
+		self:SetLagCompensated(true)
+		self:SetSolidMask(MASK_PLAYERSOLID)
+	end
 end
 
 function ENT:Update()

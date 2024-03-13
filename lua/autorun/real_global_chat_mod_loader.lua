@@ -1,10 +1,14 @@
+if SERVER then
+	resource.AddWorkshop('3162234054')
+end
+
 RealGloabalChat = {
 	Values = {},
 	Enum = {},
 }
 
 RealGloabalChat.Values.ApiUrl = 'https://rgcgmod.vincy.ru/'
-RealGloabalChat.Values.Version = '1.0.12'
+RealGloabalChat.Values.Version = '1.1.0'
 -- Stores client settings on the server about whether chat is enabled or not
 RealGloabalChat.Values.ModActive = {}
 -- Tables for caching models from addons
@@ -21,6 +25,7 @@ RealGloabalChat.Values.Nextbots = {}
 -- Stores registered enumerations
 RealGloabalChat.Values.Enum  = {}
 RealGloabalChat.AllRegistredWeapons = {}
+RealGloabalChat.Module = {}
 -- RealGloabalChat.Values.Cvars = {}
 
 if not file.Exists('rgchat_data', 'DATA') then
@@ -62,7 +67,13 @@ end
 load('sh_lang.lua')
 load('sh_cvars.lua')
 
+load('modules/sh_json.lua')
+
+load('services/sh_helper_service.lua')
 load('services/sh_service.lua')
+load('services/sh_translate_service.lua')
+load('services/sh_workshop_service.lua')
+load('services/sh_nextbot_service.lua')
 
 load('data/sh_acts.lua')
 load('data/sh_cache_workshop_models.lua')

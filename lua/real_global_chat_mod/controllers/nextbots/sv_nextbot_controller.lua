@@ -5,6 +5,7 @@ local ents_FindByClass = ents.FindByClass
 local player_GetAll = player.GetAll
 local cvar_sv_real_global_chat_sync_players = GetConVar('sv_rgc_sync_players')
 local cvar_dev = GetConVar('developer')
+local last_update
 
 local function http_Get_Game_Info(response)
 	if not response.data then return end
@@ -60,6 +61,12 @@ local function http_Get_Game_Info(response)
 			return a.last_update < b.last_update
 		end)
 
+		for _, action in ipairs(v.actions) do
+			if not last_update or last_update < action.last_update then
+				last_update = action.last_update
+			end
+		end
+
 		local ent = RealGloabalChat.Values.Nextbots[v.steamid64]
 		if not ent or not IsValid(ent) then
 			local first_action = v.actions[1]
@@ -83,7 +90,7 @@ end
 hook.Add('RGchat.FirstStart', 'RGChat.StartNextBotService', function()
 	local function game_Info_Check()
 		if not cvar_sv_real_global_chat_sync_players:GetBool() then return end
-		RealGloabalChat:GetGameInfo(http_Get_Game_Info)
+		RealGloabalChat:GetGameInfo(last_update, http_Get_Game_Info)
 	end
 
 	timer.Create('RealGlobalChat.GameInfo.Check', 1, 0, game_Info_Check)

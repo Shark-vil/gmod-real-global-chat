@@ -5,6 +5,7 @@ local isnumber = isnumber
 local table_insert = table.insert
 -- local table_remove = table.remove
 -- local skip_ids_table = {}
+local CurTime = CurTime
 local color_rgchat_tag = Color(207, 237, 73)
 local color_username = Color(255, 255, 104)
 local color_username_verified = Color(182, 255, 104)
@@ -36,9 +37,16 @@ local lang = RealGloabalChat.Values.Language
 local sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
 local coroutine_wait = coroutine.wait
 local coroutine_yield = coroutine.yield
+local coroutine_create = coroutine.create
+local coroutine_resume = coroutine.resume
+local co, translate_load_delay
 
 local function update_message_action(response)
 	if not response or response.success == 0 then return end
+
+	if not translate_load_delay then
+		translate_load_delay = CurTime() + 1
+	end
 
 	local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
 	if isstring(target_translate) then
@@ -162,7 +170,7 @@ local function update_message_action(response)
 		local check_result_message = result_message:gsub('[%p%c%s]', '')
 		local translate_result_message
 
-		if not has_muted and #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() then
+		if not has_muted and #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() and translate_load_delay < CurTime() then
 			local on_translate = false
 			RealGloabalChat:Translate(target_translate, result_message, function(new_result_message, code)
 				if code == 200 and new_result_message ~= result_message then
@@ -211,7 +219,6 @@ end
 local function global_chat_Check()
 	local ply = LocalPlayer()
 	if IsValid(ply) and RealGloabalChat:ModIsActive() then
-		-- RealGloabalChat:GetChatMessages(ply, last_max_message_id, update_message_action)
 		local is_success = false
 		local response
 
@@ -304,10 +311,6 @@ net.Receive('RealGlobalChatSpawnMessage', function()
 
 		last_max_message_id = tonumber(sql_response[1]['last_message_id'])
 	end
-
-	local co
-	local coroutine_create = coroutine.create
-	local coroutine_resume = coroutine.resume
 
 	hook.Add('Think', 'RealGlobalChat.Check', function()
 		if not co or not coroutine_resume(co) then

@@ -45,6 +45,7 @@ hook.Add('PostDrawOpaqueRenderables', 'RGCHat_NextBot_UserName_Draw', function()
 end)
 
 local size_limt_cache = {}
+local has_start_loaded = false
 
 timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 	local max_size = cvar_cl_real_global_chat_download_model_size_limit:GetInt()
@@ -67,13 +68,18 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 			continue
 		end
 
+		if has_start_loaded then continue end
+
 		if not wsid or RealGloabalChat.Values.AddonsModelsDownloadChecked[wsid] or max_size == 0 then continue end
 		RealGloabalChat.Values.AddonsModelsDownloadChecked[wsid] = true
+
 		local wsid_number = tonumber(wsid)
 		if not wsid_number then continue end
-		MsgN('[RGChat] Try download model - ' .. wsid .. ' : ' .. tostring(model) .. ' from ' .. tostring(bot))
-		local has_next = false
 
+		MsgN('[RGChat] Try download model - ' .. wsid .. ' : ' .. tostring(model) .. ' from ' .. tostring(bot))
+
+		--[[
+		local has_next = false
 		for _, v in ipairs(engine_GetAddons()) do
 			if v.wsid == wsid_number and not v.mounted then
 				local ok, _ = game_MountGMA(v.file)
@@ -88,6 +94,8 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 		end
 
 		if has_next then continue end
+		--]]
+
 		notification.AddProgress('rgchatworkshop.' .. wsid, '[RGChat] Preparing download - ' .. wsid .. ' : ' .. model)
 		local timer_name = 'rgchatworkshop.' .. wsid .. '.timeout'
 
@@ -100,9 +108,12 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 		end
 
 		local function kill_progress()
+			has_start_loaded = false
 			kill_progress_timer()
 			notification.Kill('rgchatworkshop.' .. wsid)
 		end
+
+		has_start_loaded = true
 
 		steamworks_FileInfo(wsid, function(result)
 			if not result then

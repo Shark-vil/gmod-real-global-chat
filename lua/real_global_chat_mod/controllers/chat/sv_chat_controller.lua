@@ -2,7 +2,8 @@ local string_sub = string.sub
 local string_Trim = string.Trim
 local string_Split = string.Split
 local string_lower = string.lower
--- local pairs = pairs
+local isfunction = isfunction
+local IsValid = IsValid
 
 hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 	text = string_Trim(text)
@@ -98,6 +99,7 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 
 	if command_text_lines[1] == '/rgchatmute' then
 		local connect_id = command_text_lines[2] or ''
+
 		if connect_id and #connect_id ~= 0 and string.sub(connect_id, 1, 1) == '#' then
 			connect_id = string.sub(connect_id, 2)
 		end
@@ -110,7 +112,8 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 	end
 
 	if command_text_lines[1] == '/rgchattranslateto' then
-		ply:ConCommand('cl_rgc_target_translate "' .. tostring(command_text_lines[2])  .. '"')
+		ply:ConCommand('cl_rgc_target_translate "' .. tostring(command_text_lines[2]) .. '"')
+
 		if command_text_lines[2] then
 			ply:ChatPrint('[RGChat] New target translate: ' .. tostring(command_text_lines[2]))
 		else
@@ -120,22 +123,21 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 		return ''
 	end
 
-	-- if ulx and ulx.cmdsByCategory and string_sub(command_text_lines[1], 1, 1) == '!' then
-	-- 	local ulx_cmd = string_sub(command_text_lines[1], 2)
-	-- 	for cat, cmds in pairs(ulx.cmdsByCategory) do
-	-- 		for i = 1, #cmds do
-	-- 			if cmds[i].cmd == 'ulx ' .. ulx_cmd then
-	-- 				return
-	-- 			end
-	-- 		end
-	-- 	end
-	-- end
-
-	-- skip any chat commands
-	if #text >= 2 then
+	-- Ignore possible commands
+	if command_text_lines[1] ~= 'ping' and #text > 2 then
 		local first_char = string_sub(text, 1, 1)
-		if first_char == '/' or first_char == '!' or first_char == '?' then
-			return
+		if first_char == '/' or first_char == '!' or first_char == '?' then return end
+	end
+
+	-- Ignore the words of the magic wand mod.
+	-- https://steamcommunity.com/sharedfiles/filedetails/?id=875498456
+	if HpwRewrite and isfunction(HpwRewrite.GetPlayerSpell) then
+		local weapon = ply:GetActiveWeapon()
+
+		if IsValid(weapon) and weapon:GetClass() == 'weapon_hpwr_stick' and isfunction(weapon.GetWandCurrentSpell) and isfunction(weapon.CheckSpellUseable) and isfunction(weapon.EmptySpellAttack) then
+			local spell_name = weapon:GetWandCurrentSpell()
+			local current_spell = HpwRewrite:GetPlayerSpell(ply, spell_name)
+			if current_spell and text == (current_spell.WhatToSay or spell_name) .. '!' then return end
 		end
 	end
 

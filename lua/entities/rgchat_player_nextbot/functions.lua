@@ -17,6 +17,8 @@ local vector_0_0_5 = Vector(0, 0, 5)
 local cvar_dev = GetConVar('developer')
 local cvar_gravity = GetConVar('sv_gravity')
 local vector_0_0_0 = Vector(0, 0, 0)
+local vector_0_0_1 = Vector(0, 0, 1)
+local util_TraceLine = util.TraceLine
 
 function ENT:ModelNetworkUpdate()
 	local data = self:GetData()
@@ -98,7 +100,6 @@ function ENT:UpdateMovement()
 	local activity_id = data.State
 	local activity = RealGloabalChat.Values.Enum .ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
 	local speed = data.MoveSpeed or 400
-	local timeout = CurTime() + 10
 	local devmode = cvar_dev:GetBool()
 	local state_name = self:GetActiveStateName()
 	self:CustomStartActivity(activity)
@@ -129,6 +130,8 @@ function ENT:UpdateMovement()
 			is_valid_path = path:IsValid()
 		end
 
+		self.loco:SetGravity(self:GetGravity())
+
 		if not is_valid_path then
 			if not data.LastTargetPos or data.LastTargetPos ~= move_pos then
 				data.LastTargetPos = move_pos
@@ -139,8 +142,6 @@ function ENT:UpdateMovement()
 				else
 					acceleration = acceleration / 2
 				end
-
-				self.loco:SetGravity(self:GetGravity())
 
 				self:StartTimer('RgChatNextBotMove', 0, 0, function(stop_timer)
 					if state_name ~= self:GetActiveStateName() or move_pos:DistToSqr(self:GetPos()) <= 2500 or self:IsNoclip() then
@@ -162,10 +163,12 @@ function ENT:UpdateMovement()
 		self:StopTimer('RgChatNextBotMove')
 
 		local reset_acceleration = true
+		local timeout = CurTime() + 5
 
-		while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and path:IsValid() do
+		while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self.loco:IsOnGround() and path:IsValid() do
 			if timeout < CurTime() then
 				self:SetPos(move_pos)
+				break
 			end
 
 			if path:GetAge() > 0.75 then
@@ -177,8 +180,12 @@ function ENT:UpdateMovement()
 			if reset_acceleration then
 				self.loco:SetDesiredSpeed(speed)
 				self.loco:SetAcceleration(self:GetAcceleration(move_pos))
-
+				self.loco:SetDeceleration(1000000)
 				reset_acceleration = false
+			end
+
+			if not self:IsOnGround() or not self.loco:IsOnGround() then
+				self:DropToFloor()
 			end
 
 			path:Update(self)
@@ -198,16 +205,16 @@ function ENT:GetAcceleration(move_pos)
 	if move_pos then
 		local dist = self:GetPos():DistToSqr(move_pos)
 		if dist >= 1000000 then
-			return 1000
+			return 800
 		elseif dist >= 250000 then
-			return 900
+			return 600
 		end
 	end
 	return self:GetDefaultAcceleration()
 end
 
 function ENT:GetDefaultAcceleration()
-	return 800
+	return 400
 end
 
 function ENT:IsNoclipMoveType()

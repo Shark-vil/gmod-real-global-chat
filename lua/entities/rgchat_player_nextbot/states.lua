@@ -19,6 +19,7 @@ states['sit'] = {
 	end,
 	stop = function(self)
 		self:SetCollisionGroup(COLLISION_GROUP_WORLD)
+		self:DropToFloor()
 	end
 }
 
