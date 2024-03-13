@@ -20,13 +20,13 @@ local cvar_cl_real_global_chat_translator = GetConVar('cl_rgc_translator')
 local cvar_cl_real_global_chat_target_translate = GetConVar('cl_rgc_target_translate')
 local cvar_cl_language = GetConVar('cl_language')
 local last_max_message_id = nil
-local sql_is_inject = false
+-- local sql_is_inject = false
 local has_print_outdated_version = false
 local util_JSONToTable = util.JSONToTable
 local string_StartsWith = string.StartsWith
 local string_sub = string.sub
 local string_Trim = string.Trim
-local sql_Query = sql.Query
+-- local sql_Query = sql.Query
 local ipairs = ipairs
 local player_GetHumans = player.GetHumans
 local lang = RealGloabalChat.Values.Language
@@ -77,7 +77,8 @@ local function update_message_action(response)
 			last_max_message_id = user_msg.random_id
 		end
 
-		sql_Query('UPDATE rgchat_data SET last_message_id=' .. last_max_message_id .. ' WHERE id=1;')
+		-- sql_Query('UPDATE rgchat_data SET last_message_id=' .. last_max_message_id .. ' WHERE id=1;')
+
 		local world_type
 
 		if cvar_cl_real_global_chat_country_mode:GetBool() then
@@ -212,7 +213,7 @@ local function update_message_action(response)
 	end
 end
 
-local function global_chat_Check()
+local function chat_messages_receiver()
 	local ply = LocalPlayer()
 	if IsValid(ply) and RealGloabalChat:ModIsActive() then
 		local is_success = false
@@ -236,20 +237,18 @@ local function global_chat_Check()
 	coroutine_wait(1)
 end
 
-local function http_Handler_CheckInfo(data)
-	if not data then
-		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['failed_check_info'])
-	elseif not has_print_outdated_version and data.version ~= RealGloabalChat.Values.Version then
-		chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['outdated_version'])
-		has_print_outdated_version = true
-	end
-end
-
 local function check_mod_version()
 	if not RealGloabalChat:ModIsActive() then return end
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
-	RealGloabalChat:GetInfo(http_Handler_CheckInfo)
+	RealGloabalChat:GetInfo(function(data)
+		if not data then
+			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['failed_check_info'])
+		elseif not has_print_outdated_version and data.version ~= RealGloabalChat.Values.Version then
+			chat.AddText(color_rgchat_tag, lang['rgchat_info'] .. ' ', color_message, ': ' .. lang['outdated_version'])
+			has_print_outdated_version = true
+		end
+	end)
 end
 
 local function print_welcome_message()
@@ -268,33 +267,35 @@ local function print_welcome_message()
 end
 
 hook.Add('RGchat.FirstStart', 'RealGlobalChat.LoadChatController', function()
-	timer.Simple(1, print_welcome_message)
+	-- if not sql_is_inject then
+	-- 	sql_is_inject = true
+	-- 	sql_Query('CREATE TABLE IF NOT EXISTS rgchat_data (id NUMBER PRIMARY KEY, last_message_id NUMBER);')
+	-- 	sql_Query('INSERT OR IGNORE INTO rgchat_data(id, last_message_id) VALUES(1, 0);')
+	-- 	local sql_response = sql_Query('SELECT last_message_id FROM rgchat_data WHERE id=1;')
 
-	if not sql_is_inject then
-		sql_is_inject = true
-		sql_Query('CREATE TABLE IF NOT EXISTS rgchat_data (id NUMBER PRIMARY KEY, last_message_id NUMBER);')
-		sql_Query('INSERT OR IGNORE INTO rgchat_data(id, last_message_id) VALUES(1, 0);')
-		local sql_response = sql_Query('SELECT last_message_id FROM rgchat_data WHERE id=1;')
+	-- 	if not sql_response or not sql_response[1] or not sql_response[1]['last_message_id'] then
+	-- 		ErrorNoHalt('Something went wrong when trying to initialize the SQL table.')
+	-- 	end
 
-		if not sql_response or not sql_response[1] or not sql_response[1]['last_message_id'] then
-			ErrorNoHalt('Something went wrong when trying to initialize the SQL table.')
-		end
-
-		last_max_message_id = tonumber(sql_response[1]['last_message_id'])
-	end
+	-- 	last_max_message_id = tonumber(sql_response[1]['last_message_id'])
+	-- end
 
 	hook.Add('Think', 'RealGlobalChat.UpdateClientMessage', function()
 		if not co or not coroutine_resume(co) then
-			co = coroutine_create(global_chat_Check)
+			co = coroutine_create(chat_messages_receiver)
 			coroutine_resume(co)
 		end
 	end)
 
+	timer.Simple(1, print_welcome_message)
 	timer.Create('RealGlobalChat.CheckVersion', 69, 0, check_mod_version)
 end)
 
 cvars.AddChangeCallback('cl_rgc_status', function(_, _, new_value)
+	local is_active = tostring(new_value) == '1'
+	if not is_active then translate_load_delay = nil end
+
 	net.Start('RealGlobalChatServerSycnActive')
-	net.WriteBool(tostring(new_value) == '1')
+	net.WriteBool(is_active)
 	net.SendToServer()
 end, 'on_player_saync_cl_real_global_chat_status')

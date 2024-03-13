@@ -68,7 +68,7 @@ load('sh_lang.lua')
 load('sh_cvars.lua')
 
 load('modules/sh_json.lua')
-load('cire/sh_run.lua')
+load('core/sh_run.lua')
 
 load('services/sh_helper_service.lua')
 load('services/sh_service.lua')
