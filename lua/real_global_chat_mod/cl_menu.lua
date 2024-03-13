@@ -300,3 +300,18 @@ Set translation language
 	base_setup_element(space_element)
 end
 concommand.Add('rgchat_menu', open_menu)
+
+list.Set(
+	'DesktopWindows',
+	'RealGlobalChat',
+	{
+		title = 'Real Global Chat',
+		icon = 'icon64/rgchat.png',
+		width = 1,
+		height = 1,
+		onewindow = true,
+		init = function(icn, pnl)
+			RunConsoleCommand('rgchat_menu')
+		end
+	}
+)
