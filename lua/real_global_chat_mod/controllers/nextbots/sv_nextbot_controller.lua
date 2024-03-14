@@ -7,8 +7,8 @@ local cvar_sv_real_global_chat_sync_players = GetConVar('sv_rgc_sync_players')
 local cvar_dev = GetConVar('developer')
 local last_update
 
-local function http_Get_Game_Info(response)
-	if not response.data then return end
+local function nextbotsActionsUpdate(response)
+	if not response or not response.data then return end
 	local data = response.data
 	local ignore_steamids = {}
 	local all_players_disable = true
@@ -50,6 +50,7 @@ local function http_Get_Game_Info(response)
 		end
 
 		if not is_valid then
+			ent:RgChatDisconnected()
 			ent:Remove()
 		end
 	end
@@ -90,7 +91,7 @@ end
 hook.Add('RGchat.FirstStart', 'RGChat.StartNextBotService', function()
 	local function game_Info_Check()
 		if not cvar_sv_real_global_chat_sync_players:GetBool() then return end
-		RealGloabalChat:GetGameInfo(last_update, http_Get_Game_Info)
+		RealGloabalChat:GetGameInfo(last_update, nextbotsActionsUpdate)
 	end
 
 	timer.Create('RealGlobalChat.GameInfo.Check', 1, 0, game_Info_Check)

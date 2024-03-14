@@ -113,6 +113,43 @@ function ENT:RunBehaviour()
 	end
 end
 
+function ENT:Use(activator)
+	if not IsValid(activator) or not activator:IsPlayer() then return end
+	if self.EntHasUseDelay and self.EntHasUseDelay > CurTime() then
+		self.EntHasUseDelay = CurTime() + .2
+		return
+	end
+
+	local target_id = activator:GetNWString('RGC_SYNC_TARGET', '')
+	if target_id == '' then
+		target_id = self.BotData.SteamId64
+	else
+		target_id = ''
+	end
+
+	activator:SetNWString('RGC_SYNC_TARGET', target_id)
+
+	if target_id ~= '' then
+		activator:ChatPrint('[RGChat] Now your props are linked')
+	else
+		activator:ChatPrint('[RGChat] Your props are no longer linked')
+	end
+
+	hook.Run('RGChat.SetPlayerSyncTarget', activator, self.BotData.SteamId64, target_id ~= '')
+
+	self.EntHasUseDelay = CurTime() + .2
+end
+
+function ENT:RgChatDisconnected()
+	for _, ply in ipairs(player.GetAll()) do
+		local target_entity_sync = ply:GetNWString('RGC_SYNC_TARGET', '')
+		if target_entity_sync ~= '' and self.BotData.SteamId64 and target_entity_sync == self.BotData.SteamId64 then
+			ply:SetNWString('RGC_SYNC_TARGET', '')
+			ply:ChatPrint('[RGChat] Your props are no longer linked')
+		end
+	end
+end
+
 function ENT:OnTakeDamage(dmginfo)
 	local attacker = dmginfo:GetAttacker()
 	if IsValid(attacker) and attacker:IsPlayer() then

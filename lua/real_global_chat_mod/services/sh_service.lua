@@ -4,13 +4,14 @@ local tonumber = tonumber
 local url_address = RealGloabalChat.Values.ApiUrl
 local isnumber = isnumber
 local string_lower = string.lower
-local util_JSONToTable = function (data)
-	local ok, result = xpcall(function()
-		return RealGloabalChat.Module.Json.decode(data)
-	end, function() end)
-	if not ok then return end
-	return result
-end
+-- local util_JSONToTable = function (data)
+-- 	local ok, result = xpcall(function()
+-- 		return RealGloabalChat.Module.Json.decode(data)
+-- 	end, function() end)
+-- 	if not ok then return end
+-- 	return result
+-- end
+local util_JSONToTable = util.JSONToTable
 local util_TableToJSON = function(data)
 	local ok, result = xpcall(function()
 		return RealGloabalChat.Module.Json.encode(data)
@@ -56,11 +57,34 @@ local function http_Warn(message)
 	MsgN('[RGChat Warn] ' .. message)
 end
 
+local function http_success_function(code, body, callback)
+	local response = util_JSONToTable(body)
+	if response and response.success then
+		if response.success == 0 then
+			if response.message then
+				http_Warn(response.message)
+			elseif response.error then
+				http_Error(response.error)
+			end
+		end
+	else
+		http_Error(body)
+	end
+	if isfunction(callback) then
+		callback(response, code, body)
+	end
+end
+
+local function http_error_function(error_message, callback)
+	http_Error(error_message)
+	if isfunction(callback) then callback() end
+end
+
 RealGloabalChat.http_Error = http_Error
 RealGloabalChat.http_Warn = http_Warn
 local verified_token, verified_token_is_checked
 
-function RealGloabalChat:SendToChat(ply, messageText, attempts)
+function RealGloabalChat:SendToChat(ply, messageText, attempts, callback)
 	if attempts then
 		attempts = attempts + 1
 
@@ -93,24 +117,21 @@ function RealGloabalChat:SendToChat(ply, messageText, attempts)
 		verified_token = verified_token,
 	})
 
+	local request_url = url_address .. 'Api/Chat/SendToChat'
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
 	HTTP({
-		url = url_address .. 'Api/Chat/SendToChat',
+		url = request_url,
 		method = 'POST',
 		headers = http_json_content_type,
 		body = content,
 		success = function(code, body, headers)
-			local response = util_JSONToTable(body)
-
-			if response and response.success then
-				if response.success == 0 then
-					http_Warn(response.message or response.error)
-				end
-			else
-				http_Error(body)
-			end
+			http_success_function(code, body, callback)
 		end,
 		failed = function(error_message)
-			http_Error(error_message)
+			http_error_function(error_message, callback)
 
 			timer.Simple(1.5, function()
 				RealGloabalChat:SendToChat(ply, messageText, attempts or 0)
@@ -136,31 +157,15 @@ function RealGloabalChat:GetChatMessages(ply, start_message_id, callback)
 		end
 	end
 
-	http_Fetch(url_address .. 'Api/Chat/GetChatMessages' .. get_params, function(body, length, headers, code)
-		local response = util_JSONToTable(body)
+	local request_url = url_address .. 'Api/Chat/GetChatMessages' .. get_params
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
 
-		if response and response.success then
-			if response.success == 1 then
-				callback(response)
-
-				return
-			elseif response.success == 0 then
-				if response.message then
-					http_Warn(response.message)
-				end
-
-				if response.error then
-					http_Error(response.error)
-				end
-			end
-		else
-			http_Error(body)
-		end
-
-		callback()
+	http_Fetch(request_url, function(body, length, headers, code)
+		http_success_function(code, body, callback)
 	end, function(error_message)
-		http_Error(error_message)
-		callback()
+		http_error_function(error_message, callback)
 	end)
 end
 
@@ -171,7 +176,12 @@ function RealGloabalChat:GetOnlineCount(callback)
 		get_params = '?chatRoomName=country.' .. string_lower(system_GetCountry())
 	end
 
-	http_Fetch(url_address .. 'Api/Chat/GetOnline' .. get_params, function(body, length, headers, code)
+	local request_url = url_address .. 'Api/Chat/GetOnline' .. get_params
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
+	http_Fetch(request_url, function(body, length, headers, code)
 		if code == 200 then
 			callback(body)
 		else
@@ -180,7 +190,7 @@ function RealGloabalChat:GetOnlineCount(callback)
 	end, http_Error)
 end
 
-function RealGloabalChat:UpdateOnline()
+function RealGloabalChat:UpdateOnline(callback)
 	local form_data = nil
 
 	form_data = {
@@ -191,23 +201,16 @@ function RealGloabalChat:UpdateOnline()
 		form_data.chatRoomName = 'country.' .. string_lower(system_GetCountry())
 	end
 
-	http_Post(url_address .. 'Api/Chat/UpdateOnline', form_data, function(body, length, headers, code)
-		local response = util_JSONToTable(body)
+	local request_url = url_address .. 'Api/Chat/UpdateOnline'
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
 
-		if response and response.success then
-			if response.success == 0 then
-				if response.message then
-					http_Warn(response.message)
-				end
-
-				if response.error then
-					http_Error(response.error)
-				end
-			end
-		else
-			http_Error(body)
-		end
-	end, http_Error)
+	http_Post(request_url, form_data, function(body, length, headers, code)
+		http_success_function(code, body, callback)
+	end, function(error_message)
+		http_error_function(error_message, callback)
+	end)
 end
 
 function RealGloabalChat:FoundModelsInWorkshopAddon(current_dir, file_type, models_list)
@@ -231,7 +234,178 @@ function RealGloabalChat:FoundModelsInWorkshopAddon(current_dir, file_type, mode
 	return models_list
 end
 
-function RealGloabalChat:UpdateGameInfo(ply, action_list)
+function RealGloabalChat:GetEntities(target_steamid64, callback)
+	local get_params = '?steamId64=' .. target_steamid64
+
+	-- if last_update then
+	-- 	get_params = get_params .. '&lastNetId=' .. last_update
+	-- end
+
+	local request_url = url_address .. 'Api/GameInfo/GetEntities' .. get_params
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
+	http_Fetch(request_url, function(body, length, headers, code)
+		http_success_function(code, body, callback)
+	end, function(error_message)
+		http_error_function(error_message, callback)
+	end)
+end
+
+function RealGloabalChat:CleanupEntities(ply, entities, callback)
+	local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
+	if rgc_sync_target == '' then rgc_sync_target = ply:SteamID64() end
+
+	local content = util_TableToJSON({
+		steamid64 = ply:SteamID64(),
+		username = ply:Name(),
+		entities = entities,
+		target_steamid64 = rgc_sync_target
+	})
+
+	local request_url = url_address .. 'Api/GameInfo/CleanupEntities'
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
+	HTTP({
+		url = request_url,
+		method = 'POST',
+		headers = http_json_content_type,
+		body = content,
+		success = function(code, body, headers)
+			http_success_function(code, body, callback)
+		end,
+		failed = function(error_message)
+			http_error_function(error_message, callback)
+		end
+	})
+end
+
+function RealGloabalChat:AddEntities(ply, entities, callback)
+	local valid_entities = {}
+
+	for _, ent in ipairs(entities) do
+		if IsValid(ent) then
+			local ent_pos = ent:GetPos()
+			local ent_ang = ent:GetAngles()
+
+			table_insert(valid_entities, {
+				ent_index = ent:EntIndex(),
+				model = ent:GetModel(),
+				class_name = ent:GetClass(),
+				pos = ent_pos.x .. ',' .. ent_pos.y .. ',' .. ent_pos.z,
+				ang = ent_ang.x .. ',' .. ent_ang.y .. ',' .. ent_ang.z,
+			})
+		end
+	end
+
+	local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
+	if rgc_sync_target == '' then rgc_sync_target = ply:SteamID64() end
+
+	local content = util_TableToJSON({
+		steamid64 = ply:SteamID64(),
+		username = ply:Name(),
+		entities = valid_entities,
+		target_steamid64 = rgc_sync_target
+	})
+
+	local request_url = url_address .. 'Api/GameInfo/AddEntities'
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
+	HTTP({
+		url = request_url,
+		method = 'POST',
+		headers = http_json_content_type,
+		body = content,
+		success = function(code, body, headers)
+			http_success_function(code, body, callback)
+		end,
+		failed = function(error_message)
+			http_error_function(error_message, callback)
+		end
+	})
+end
+
+function RealGloabalChat:UpdateEntities(ply, entities, callback)
+	local valid_entities = {}
+
+	for _, ent in ipairs(entities) do
+		if IsValid(ent) then
+			local ent_pos = ent:GetPos()
+			local ent_ang = ent:GetAngles()
+
+			table_insert(valid_entities, {
+				ent_index = ent:EntIndex(),
+				model = ent:GetModel(),
+				class_name = ent:GetClass(),
+				pos = ent_pos.x .. ',' .. ent_pos.y .. ',' .. ent_pos.z,
+				ang = ent_ang.x .. ',' .. ent_ang.y .. ',' .. ent_ang.z,
+				net_id = ent.RgChatNetId
+			})
+		end
+	end
+
+	local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
+	if rgc_sync_target == '' then rgc_sync_target = ply:SteamID64() end
+
+	local content = util_TableToJSON({
+		steamid64 = ply:SteamID64(),
+		username = ply:Name(),
+		entities = valid_entities,
+		target_steamid64 = rgc_sync_target
+	})
+
+	local request_url = url_address .. 'Api/GameInfo/UpdateEntities'
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
+	HTTP({
+		url = request_url,
+		method = 'POST',
+		headers = http_json_content_type,
+		body = content,
+		success = function(code, body, headers)
+			http_success_function(code, body, callback)
+		end,
+		failed = function(error_message)
+			http_error_function(error_message, callback)
+		end
+	})
+end
+
+-- function RealGloabalChat:LockEntity(ply, ent_net_id, lock, callback)
+-- 	local content = util_TableToJSON({
+-- 		steamid64 = ply:SteamID64(),
+-- 		username = ply:Name(),
+-- 		net_id = ent_net_id,
+-- 		lock = lock,
+-- 	})
+
+-- 	local request_url = url_address .. 'Api/GameInfo/LockEntity'
+-- 	-- if cvar_developer:GetBool() then
+-- 	-- 	MsgN('[RGChat] ' .. request_url)
+-- 	-- end
+
+-- 	HTTP({
+-- 		url = request_url,
+-- 		method = 'POST',
+-- 		headers = http_json_content_type,
+-- 		body = content,
+-- 		success = function(code, body, headers)
+-- 			http_success_function(code, body, callback)
+-- 		end,
+-- 		failed = function(error_message)
+-- 			http_error_function(error_message, callback)
+-- 		end
+-- 	})
+-- end
+
+function RealGloabalChat:UpdateGameInfo(ply, action_list, callback)
 	local ply_model = ply.rgchat_outfitter_mdl or ply:GetModel()
 	local ply_model_wsid = nil
 
@@ -248,29 +422,22 @@ function RealGloabalChat:UpdateGameInfo(ply, action_list)
 		actions = action_list
 	})
 
+	local request_url = url_address .. 'Api/GameInfo/UpdateGameInfo'
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
+
 	HTTP({
-		url = url_address .. 'Api/GameInfo/UpdateGameInfo',
+		url = request_url,
 		method = 'POST',
 		headers = http_json_content_type,
 		body = content,
 		success = function(code, body, headers)
-			local response = util_JSONToTable(body)
-
-			if response and response.success then
-				if response.success == 0 then
-					if response.message then
-						http_Warn(response.message)
-					end
-
-					if response.error then
-						http_Error(response.error)
-					end
-				end
-			else
-				http_Error(body)
-			end
+			http_success_function(code, body, callback)
 		end,
-		failed = http_Error
+		failed = function(error_message)
+			http_error_function(error_message, callback)
+		end
 	})
 end
 
@@ -351,7 +518,6 @@ end
 function RealGloabalChat:GetInfo(callback)
 	http_Fetch(url_address .. 'Api/Info', function(body, length, headers, code)
 		local response = util_JSONToTable(body)
-
 		if code == 200 and response then
 			callback(response)
 		else
@@ -427,27 +593,16 @@ function RealGloabalChat:GetGameInfo(last_update, callback)
 		get_params = get_params .. '&lastUpdate=' .. last_update
 	end
 
-	http_Fetch(url_address .. 'Api/GameInfo/GetGameInfo' .. get_params, function(body, length, headers, code)
-		local response = util_JSONToTable(body)
+	local request_url = url_address .. 'Api/GameInfo/GetGameInfo' .. get_params
+	-- if cvar_developer:GetBool() then
+	-- 	MsgN('[RGChat] ' .. request_url)
+	-- end
 
-		if response and response.success then
-			if response.success == 1 then
-				callback(response)
-
-				return
-			elseif response.success == 0 then
-				if response.message then
-					http_Warn(response.message)
-				end
-
-				if response.error then
-					http_Error(response.error)
-				end
-			end
-		else
-			http_Error(body)
-		end
-	end, http_Error)
+	http_Fetch(request_url, function(body, length, headers, code)
+		http_success_function(code, body, callback)
+	end, function(error_message)
+		http_error_function(error_message, callback)
+	end)
 end
 
 function RealGloabalChat:ModIsActive(ply)

@@ -44,6 +44,8 @@ if lang == 'russian' then
 	lang_data['menu_rgc_sync_players_desc'] = 'Если активно, вы увидите других игроков на карте через нексботов. Вы можете убивать ботов, но реальные игроки не получат урона. На данный момент нет никаких возможностей взаимодействия. Нексботы не сталкиваются с вами или вашими объектами.'
 	lang_data['menu_rgc_download_model_size_limit'] = 'Максимальный размер модели игрока'
 	lang_data['menu_rgc_download_model_size_limit_desc'] = 'Устанавливает максимальный размер, который может быть загружен для отображения моделей игроков на неэкстботах. Если вы хотите отключить эту функцию, установите значение 0.'
+	lang_data['menu_rgc_sync_props'] = '[Admin] Синхронизация сущностей'
+	lang_data['menu_rgc_sync_props_desc'] = 'ВНИМАНИЕ: ЭТА ФУНКЦИЯ НЕ ЗАВЕРШЕНА, И МОЖЕТ ИМЕТЬ ОШИБКИ. Эта опция позволяет вам видеть и взаимодействовать с объектами других игроков. Чтобы войтив мир игрока, нажмите E (Использовать) по некстботу игрока.'
 elseif lang == 'polish' then
 	-- Credits: the text translated - Rydzyk 
 	lang_data['rgchat_info'] = '[RGC Info]'
@@ -112,6 +114,8 @@ lang_data_default['menu_rgc_sync_players'] = '[Admin Only] Synchronization of pl
 lang_data_default['menu_rgc_sync_players_desc'] = 'If active, you will see other players on the map via nexbots. You can kill bots, but real players will not take damage. At the moment, there are no interaction features yet. Nextbots have no collisions with you or your objects.'
 lang_data_default['menu_rgc_download_model_size_limit'] = 'Maximum player model size'
 lang_data_default['menu_rgc_download_model_size_limit_desc'] = 'Sets the maximum size that can be loaded to show player models on non-extbots. If you want to disable this, set the value to 0.'
+lang_data_default['menu_rgc_sync_props'] = '[Admin] Entity synchronization'
+lang_data_default['menu_rgc_sync_props_desc'] = 'NOTE: THIS FUNCTION IS NOT COMPLETE AND MAY HAVE BUGS. This option allows you to see and interact with other players\' objects. To enter the player\'s world, press E (Use) on the player\'s Nextboot.'
 
 -- Set language
 for k, v in pairs(lang_data_default) do

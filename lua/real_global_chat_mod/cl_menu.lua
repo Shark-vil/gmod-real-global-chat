@@ -1,4 +1,6 @@
-local function open_menu()
+local main_frame
+
+local function openSettingsMenu()
 	local lang = RealGloabalChat.Values.Language
 	local cvar_rgc_download_model_size_limit = GetConVar('cl_rgc_download_model_size_limit')
 	local cvar_cl_swapskin_darkui_enabled = GetConVar('cl_swapskin_darkui_enabled')
@@ -64,7 +66,11 @@ local function open_menu()
 		end
 	end
 
-	local main_frame = vgui.Create('DFrame')
+	if IsValid(main_frame) then
+		main_frame:Remove()
+	end
+
+	main_frame = vgui.Create('DFrame')
 	main_frame:SetTitle('RGChat Menu')
 	main_frame:SetSize(500, 450)
 	main_frame:Center()
@@ -181,6 +187,19 @@ local function open_menu()
 	label_syncplayers:SetFont('CreditsText')
 	label_syncplayers:SetAutoStretchVertical(true)
 	base_setup_element(label_syncplayers)
+
+	local checkbox_syncprops = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_syncprops:SetConVar('sv_rgc_sync_entities')
+	checkbox_syncprops:SetText(lang['menu_rgc_sync_props'])
+	checkbox_syncprops:SetTooltip(lang['menu_rgc_sync_props_desc'])
+	checkbox_syncprops:SetFont('Trebuchet24')
+	base_setup_element(checkbox_syncprops, { 15, 5, 15, 0 }, 'sv_rgc_sync_entities')
+
+	local label_syncprops = scroll_panel:Add('DLabel')
+	label_syncprops:SetText(lang['menu_rgc_sync_props_desc'])
+	label_syncprops:SetFont('CreditsText')
+	label_syncprops:SetAutoStretchVertical(true)
+	base_setup_element(label_syncprops)
 
 	local title_pmmodelsize = scroll_panel:Add('DLabel')
 	title_pmmodelsize:SetText(lang['menu_rgc_download_model_size_limit'])
@@ -299,7 +318,7 @@ Set translation language
 	space_element:SetHeight(20)
 	base_setup_element(space_element)
 end
-concommand.Add('rgchat_menu', open_menu)
+concommand.Add('rgchat_menu', openSettingsMenu)
 
 list.Set(
 	'DesktopWindows',
@@ -309,9 +328,10 @@ list.Set(
 		icon = 'icon64/rgchat.png',
 		width = 1,
 		height = 1,
-		onewindow = true,
+		onewindow = false,
 		init = function(icn, pnl)
 			RunConsoleCommand('rgchat_menu')
+			if IsValid(pnl) then pnl:Remove() end
 		end
 	}
 )

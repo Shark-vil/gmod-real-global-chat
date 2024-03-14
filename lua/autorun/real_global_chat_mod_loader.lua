@@ -86,6 +86,7 @@ load('controllers/chat/sv_chat_controller.lua')
 load('controllers/chat/cl_chat_controller.lua')
 load('controllers/chat/cl_online.lua')
 load('controllers/game_info/sv_game_info_controller.lua')
+load('controllers/game_info/sv_entities_sync.lua')
 
 load('controllers/nextbots/sv_nextbot_controller.lua')
 load('controllers/nextbots/cl_nextbot_controller.lua')

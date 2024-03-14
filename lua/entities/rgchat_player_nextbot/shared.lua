@@ -7,6 +7,7 @@ ENT.Base = 'base_nextbot'
 ENT.Spawnable = false
 ENT.BotData = {}
 ENT.States = {}
+ENT.EntityWatchers = {}
 ENT.OpinionOnEnts = {}
 ENT.VJ_AddEntityToSNPCAttackList = true
 ENT.dt = ''
