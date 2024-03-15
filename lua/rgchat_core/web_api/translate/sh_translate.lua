@@ -169,10 +169,33 @@ function RealGloabalChat.WebApi.Translate:Translate(lang, text, callback)
 		end
 	end
 
-	if (lang == 'en' and text:match('[' .. _english_chars .. ']')) or (lang == 'ru' and text:match('[' .. _russain_chars .. ']')) then
+	local eng_chars_count = 0
+	local ru_chars_count = 0
+	local stop_translate = false
+
+	for _ in text:gmatch('[' .. _english_chars .. ']') do
+		eng_chars_count = eng_chars_count + 1
+	end
+
+	for _ in text:gmatch('[' .. _russain_chars .. ']') do
+		ru_chars_count = ru_chars_count + 1
+	end
+
+	if lang == 'en' and eng_chars_count > ru_chars_count then
+		stop_translate = true
+	elseif lang == 'ru' and ru_chars_count > eng_chars_count then
+		stop_translate = true
+	end
+
+	if stop_translate then
 		callback()
 		return
 	end
+
+	-- if (lang == 'en' and text:match('[' .. _english_chars .. ']')) or (lang == 'ru' and text:match('[' .. _russain_chars .. ']')) then
+	-- 	callback()
+	-- 	return
+	-- end
 
 	local content = util.TableToJSON({
 		source = 'auto',
