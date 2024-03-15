@@ -1,19 +1,22 @@
-local _registred_workers = {}
+local _registred_workers, _coroutine_resume, _coroutine_create, _isstring, _tostring
+
+_registred_workers = {}
+_coroutine_resume = coroutine.resume
+_coroutine_create = coroutine.create
+_isstring = isstring
+_tostring = tostring
 
 function RealGloabalChat:AddBackgroundWorker(name, handler)
-	local workerFunction = function()
-		while true do
-			handler()
-			coroutine.yield()
-		end
-	end
-
-	local task = coroutine.create(workerFunction)
+	local task
 	hook.Add('Think', 'RGChatBackgroundWorker.' .. name, function()
-		local ok, err = coroutine.resume(task)
+		if not task then task = _coroutine_create(handler) end
+		local ok, err = _coroutine_resume(task)
 		if not ok then
-			task = coroutine.create(workerFunction)
-			ErrorNoHalt(name, err)
+			task = _coroutine_create(handler)
+			_coroutine_resume(task)
+			if _isstring(err) then
+				RealGloabalChat:LogError(name .. ' | ' .. _tostring(err))
+			end
 		end
 	end)
 end

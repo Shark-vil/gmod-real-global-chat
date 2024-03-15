@@ -100,7 +100,7 @@ function _RenderMessages(response)
 		builder:Add((user_message.verified and user_message.verified == 1) and _color_username_verified or _color_username)
 		builder:Add(' ' .. user_message.username)
 
-		if not has_hidden then
+		if not has_hidden and user_message.message_type == 0 then
 			local text_nickname, text_message, has_ping_by_nickname
 
 			if string.StartsWith(result_message, self_nickname) then
@@ -120,23 +120,21 @@ function _RenderMessages(response)
 				result_message = ', ' .. result_message
 			end
 
-			if user_message.message_type == 0 then
-				local check_result_message = result_message:gsub('[%p%c%s%d]', '')
+			local check_result_message = result_message:gsub('[%p%c%s%d]', '')
 
-				if #check_result_message > 3 and ConVar:GetBool('cl_rgc_translator') then
-					local code, new_result_message = RealGloabalChat.WebApi.Translate:TranslateWait(RealGloabalChat.Api:GetLanguage(), result_message)
+			if #check_result_message > 3 and ConVar:GetBool('cl_rgc_translator') then
+				local code, new_result_message = RealGloabalChat.WebApi.Translate:TranslateWait(RealGloabalChat.Api:GetLanguage(), result_message)
 
-					if code and code == 200 and new_result_message ~= result_message then
-						translate_result_message = new_result_message
-						translate_result_message = string.Trim(translate_result_message)
+				if code and code == 200 and new_result_message ~= result_message then
+					translate_result_message = new_result_message
+					translate_result_message = string.Trim(translate_result_message)
 
-						if string.sub(translate_result_message, 1, 1) == ',' then
-							translate_result_message = string.sub(translate_result_message, 2)
-						end
+					if string.sub(translate_result_message, 1, 1) == ',' then
+						translate_result_message = string.sub(translate_result_message, 2)
+					end
 
-						if translate_result_message:gsub('[%p%c%s%d]', ''):lower() == result_message:gsub('[%p%c%s%d]', ''):lower() then
-							translate_result_message = nil
-						end
+					if translate_result_message:gsub('[%p%c%s%d]', ''):lower() == result_message:gsub('[%p%c%s%d]', ''):lower() then
+						translate_result_message = nil
 					end
 				end
 			end
@@ -174,19 +172,20 @@ function _RenderMessages(response)
 end
 
 function _Handler()
-	if RealGloabalChat.Api:PlayerChatIsActive() then
-		local code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
-
-		if code and code == 200 and response and response.success and response.success == 1 then
-			if not _last_message_id then
-				_SetLastMessageId(response)
-			else
-				_RenderMessages(response)
+	while true do
+		if RealGloabalChat.Api:PlayerChatIsActive() then
+			local code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
+			if code and code == 200 and response and response.success and response.success == 1 then
+				if not isnumber(_last_message_id) then
+					_SetLastMessageId(response)
+				else
+					_RenderMessages(response)
+				end
 			end
 		end
-	end
 
-	coroutine.wait(1)
+		coroutine.wait(1)
+	end
 end
 
 RealGloabalChat:AddBackgroundWorker('chat', _Handler)
