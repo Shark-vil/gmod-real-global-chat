@@ -69,11 +69,14 @@ function _RenderMessages(response)
 		local result_color_message = _color_message
 		local translate_result_message
 		local has_ping = false
+		local has_filtred = false
+		local has_muted = RealGloabalChat:HasMutedUser(user_message.connect_id)
 
 		if ConVar:GetBool('cl_rgc_filter') and user_message.message_filtred then
 			if ConVar:GetBool('cl_rgc_filter_strict') then
 				result_message = Language:Get('chat_filtered')
 				result_color_message = _color_message_filtred
+				has_filtred = true
 			else
 				result_message = user_message.message_filtred
 			end
@@ -92,10 +95,7 @@ function _RenderMessages(response)
 		builder:Add((user_message.verified and user_message.verified == 1) and _color_username_verified or _color_username)
 		builder:Add(' ' .. user_message.username)
 
-		-- if user has muted
-		-- ...
-		-- else
-		do
+		if not has_muted and not has_filtred then
 			local text_nickname, text_message, has_ping_by_nickname
 
 			if string.StartsWith(result_message, self_nickname) then
@@ -114,31 +114,36 @@ function _RenderMessages(response)
 			if not has_ping_by_nickname then
 				result_message = ', ' .. result_message
 			end
-		end
 
-		if user_message.message_type == 0 then
-			local check_result_message = result_message:gsub('[%p%c%s%d]', '')
+			if not has_muted and user_message.message_type == 0 then
+				local check_result_message = result_message:gsub('[%p%c%s%d]', '')
 
-			if #check_result_message > 3 and ConVar:GetBool('cl_rgc_translator') then
-				local code, new_result_message = RealGloabalChat.WebApi.Translate:TranslateWait(RealGloabalChat.Api:GetLanguage(), result_message)
+				if #check_result_message > 3 and ConVar:GetBool('cl_rgc_translator') then
+					local code, new_result_message = RealGloabalChat.WebApi.Translate:TranslateWait(RealGloabalChat.Api:GetLanguage(), result_message)
 
-				if code and code == 200 and new_result_message ~= result_message then
-					translate_result_message = new_result_message
-					translate_result_message = string.Trim(translate_result_message)
+					if code and code == 200 and new_result_message ~= result_message then
+						translate_result_message = new_result_message
+						translate_result_message = string.Trim(translate_result_message)
 
-					if string.sub(translate_result_message, 1, 1) == ',' then
-						translate_result_message = string.sub(translate_result_message, 2)
-					end
+						if string.sub(translate_result_message, 1, 1) == ',' then
+							translate_result_message = string.sub(translate_result_message, 2)
+						end
 
-					if translate_result_message:gsub('[%p%c%s%d]', ''):lower() == result_message:gsub('[%p%c%s%d]', ''):lower() then
-						translate_result_message = nil
+						if translate_result_message:gsub('[%p%c%s%d]', ''):lower() == result_message:gsub('[%p%c%s%d]', ''):lower() then
+							translate_result_message = nil
+						end
 					end
 				end
 			end
 		end
 
-		builder:Add(result_color_message, 'color_message')
-		builder:Add(result_message, 'message')
+		if has_muted then
+			builder:Add(_color_message_filtred)
+			builder:Add(', <Muted>')
+		else
+			builder:Add(result_color_message, 'color_message')
+			builder:Add(result_message, 'message')
+		end
 
 		if translate_result_message then
 			builder:Add(_color_message_google)
@@ -147,7 +152,7 @@ function _RenderMessages(response)
 			builder:Add(translate_result_message)
 		end
 
-		if user_message.message_type == 1 then
+		if not has_muted and user_message.message_type == 1 then
 			local system_message = util.JSONToTable(user_message.message)
 
 			if system_message and _chat_commands[system_message.command] then
