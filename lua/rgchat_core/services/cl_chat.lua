@@ -64,22 +64,27 @@ function _RenderMessages(response)
 	for _, user_message in ipairs(response.messages) do
 		if not _IsNewMessageId(user_message) then continue end
 		_last_message_id = user_message.random_id
-		-- if skip_steamid64_list[user_message.steamid64] then continue end
+		if skip_steamid64_list[user_message.steamid64] then continue end
 		local result_message = user_message.message
 		local result_color_message = _color_message
 		local translate_result_message
 		local has_ping = false
 		local has_filtred = false
-		local has_muted = RealGloabalChat:HasMutedUser(user_message.connect_id)
+		local has_hidden = false
+		local has_muted = RealGloabalChat.Api:HasMutedUser(user_message.connect_id)
 
-		if ConVar:GetBool('cl_rgc_filter') and user_message.message_filtred then
+		if not has_muted and ConVar:GetBool('cl_rgc_filter') and user_message.message_filtred then
 			if ConVar:GetBool('cl_rgc_filter_strict') then
-				result_message = Language:Get('chat_filtered')
-				result_color_message = _color_message_filtred
 				has_filtred = true
 			else
 				result_message = user_message.message_filtred
 			end
+		end
+
+		if has_muted or has_filtred then
+			result_message = has_muted and ' <Muted>' or Language:Get('chat_filtered')
+			result_color_message = _color_message_filtred
+			has_hidden = true
 		end
 
 		local builder = RealGloabalChat:GetChatMessageBuilder()
@@ -95,7 +100,7 @@ function _RenderMessages(response)
 		builder:Add((user_message.verified and user_message.verified == 1) and _color_username_verified or _color_username)
 		builder:Add(' ' .. user_message.username)
 
-		if not has_muted and not has_filtred then
+		if not has_hidden then
 			local text_nickname, text_message, has_ping_by_nickname
 
 			if string.StartsWith(result_message, self_nickname) then
@@ -115,7 +120,7 @@ function _RenderMessages(response)
 				result_message = ', ' .. result_message
 			end
 
-			if not has_muted and user_message.message_type == 0 then
+			if user_message.message_type == 0 then
 				local check_result_message = result_message:gsub('[%p%c%s%d]', '')
 
 				if #check_result_message > 3 and ConVar:GetBool('cl_rgc_translator') then
@@ -137,13 +142,8 @@ function _RenderMessages(response)
 			end
 		end
 
-		if has_muted then
-			builder:Add(_color_message_filtred)
-			builder:Add(', <Muted>')
-		else
-			builder:Add(result_color_message, 'color_message')
-			builder:Add(result_message, 'message')
-		end
+		builder:Add(result_color_message, 'color_message')
+		builder:Add(result_message, 'message')
 
 		if translate_result_message then
 			builder:Add(_color_message_google)
@@ -152,7 +152,7 @@ function _RenderMessages(response)
 			builder:Add(translate_result_message)
 		end
 
-		if not has_muted and user_message.message_type == 1 then
+		if not has_hidden and user_message.message_type == 1 then
 			local system_message = util.JSONToTable(user_message.message)
 
 			if system_message and _chat_commands[system_message.command] then
@@ -174,13 +174,15 @@ function _RenderMessages(response)
 end
 
 function _Handler()
-	local code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
+	if RealGloabalChat.Api:PlayerChatIsActive() then
+		local code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
 
-	if code and code == 200 and response and response.success and response.success == 1 then
-		if not _last_message_id then
-			_SetLastMessageId(response)
-		else
-			_RenderMessages(response)
+		if code and code == 200 and response and response.success and response.success == 1 then
+			if not _last_message_id then
+				_SetLastMessageId(response)
+			else
+				_RenderMessages(response)
+			end
 		end
 	end
 

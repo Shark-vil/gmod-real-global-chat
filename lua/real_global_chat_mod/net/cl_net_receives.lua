@@ -99,5 +99,5 @@ net.Receive('RealGlobalChatMuteUser', function()
 		return
 	end
 
-	RealGloabalChat:MuteUser(tonumber(connect_id))
+	RealGloabalChat.Api:MuteUser(tonumber(connect_id))
 end)

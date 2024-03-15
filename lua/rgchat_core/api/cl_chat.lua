@@ -12,7 +12,15 @@ function RealGloabalChat.Api:GetChatRoom()
 	return 'developer'
 end
 
-function RealGloabalChat:HasMutedUser(connect_id)
+function RealGloabalChat.Api:PlayerChatIsActive(ply)
+	if CLIENT then return RealGloabalChat.ConVar:GetBool('cl_rgc_status') end
+	if not IsValid(ply) then return false end
+	local active = RealGloabalChat:GetFromStorage('ModActive', ply)
+	if not active then return false end
+	return true
+end
+
+function RealGloabalChat.Api:HasMutedUser(connect_id)
 	if not connect_id then return false end
 	connect_id = tonumber(connect_id)
 	if not connect_id then return false end
@@ -37,7 +45,7 @@ function RealGloabalChat:HasMutedUser(connect_id)
 	return false
 end
 
-function RealGloabalChat:MuteUser(connect_id)
+function RealGloabalChat.Api:MuteUser(connect_id)
 	local muted_users = {}
 
 	if file.Exists('rgchat_data/muted_users.json', 'DATA') then

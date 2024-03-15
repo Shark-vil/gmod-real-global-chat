@@ -587,7 +587,7 @@ function RealGloabalChat:UserHasMute(connect_id)
 	return false
 end
 
-function RealGloabalChat:MuteUser(connect_id)
+function RealGloabalChat.Api:MuteUser(connect_id)
 	local muted_users = {}
 
 	if file.Exists('rgchat_data/muted_users.json', 'DATA') then

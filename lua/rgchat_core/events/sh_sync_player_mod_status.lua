@@ -9,4 +9,11 @@ else
 		net.WriteBool(RealGloabalChat.ConVar:GetBool('cl_rgc_status'))
 		net.SendToServer()
 	end)
+
+	cvars.AddChangeCallback('cl_rgc_status', function(_, _, new_value)
+		local is_active = tostring(new_value) == '1'
+		net.Start('RGChat_SendPlayerChatRoomActivity')
+		net.WriteBool(is_active)
+		net.SendToServer()
+	end, 'sync_player_mod_status')
 end
