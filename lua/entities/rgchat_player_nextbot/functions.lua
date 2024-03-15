@@ -388,3 +388,87 @@ end
 function ENT:GetGravity()
 	return cvar_gravity:GetFloat()
 end
+
+function ENT:StripWeapon()
+	self:DeEquipWeapon()
+end
+
+function ENT:SetActiveWeapon(weapon)
+	if weapon ~= NULL and weapon ~= nil then
+		self:SelectWeapon(weapon.ClassName)
+	else
+		self:StripWeapon()
+	end
+end
+
+function ENT:SelectWeapon(className)
+	self:DeEquipWeapon()
+	if self._WeaponClass == className then return end
+	if not RealGloabalChat.AllRegistredWeapons[className] then return end
+	local weapon_data = RealGloabalChat.AllRegistredWeapons[className]
+
+	if weapon_data.WorldModel and weapon_data.WorldModel ~= '' then
+		local fake_weapon = self:GetWeaponENT()
+		fake_weapon:SetModel(weapon_data.WorldModel)
+		fake_weapon:SetLocalPos(Vector(0, 0, 0))
+		fake_weapon:SetLocalAngles(Angle(0, 0, 0))
+
+		if istable(weapon_data.WorldModelOffset) then
+			if isvector(weapon_data.WorldModelOffset.Pos) then
+				fake_weapon:SetLocalPos(weapon_data.WorldModelOffset.Pos)
+			end
+
+			if isangle(weapon_data.WorldModelOffset.Ang) then
+				fake_weapon:SetLocalAngles(weapon_data.WorldModelOffset.Ang)
+			end
+		end
+
+		if className == 'weapon_physgun' then
+			fake_weapon:SetSkin(1)
+
+			for k, v in ipairs(fake_weapon:GetMaterials()) do
+				if string.EndsWith(v, 'w_physics_sheet') then
+					fake_weapon:SetSubMaterial(k, 'models/weapons/zetaphysgun/w_physics_sheet2')
+				end
+			end
+		else
+			fake_weapon:SetSkin(0)
+
+			for k, v in ipairs(fake_weapon:GetMaterials()) do
+				fake_weapon:SetSubMaterial(k, 'nil')
+			end
+		end
+
+		fake_weapon:SetNoDraw(false)
+	end
+
+	self._WeaponClass = className
+end
+
+function ENT:EquipWeapon(weapon_num)
+	self:DeEquipWeapon()
+	if not weapon_num then return end
+	local index = 0
+
+	for weaponClass, _ in pairs(RealGloabalChat.AllRegistredWeapons) do
+		index = index + 1
+
+		if index == weapon_num then
+			self:SelectWeapon(weaponClass)
+			break
+		end
+	end
+end
+
+function ENT:DeEquipWeapon()
+	if self._WeaponClass then
+		self._WeaponClass = nil
+	end
+
+	if not IsValid(self.WeaponENT) then return end
+	self.WeaponENT:SetNoDraw(true)
+end
+
+function ENT:GetActiveWeaponClassName()
+	return self._WeaponClass
+end

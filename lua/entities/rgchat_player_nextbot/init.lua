@@ -1,37 +1,20 @@
 AddCSLuaFile('shared.lua')
 AddCSLuaFile('cl_init.lua')
-AddCSLuaFile('states.lua')
-AddCSLuaFile('playermeta.lua')
 AddCSLuaFile('functions.lua')
 include('shared.lua')
-include('states.lua')
-include('playermeta.lua')
 include('functions.lua')
--- local Path = Path
+
 local IsValid = IsValid
 local CurTime = CurTime
--- local tostring = tostring
--- local timer_Remove = timer.Remove
--- local timer_Create = timer.Create
--- local math_ApproachAngle = math.ApproachAngle
 local coroutine_wait = coroutine.wait
--- local coroutine_yield = coroutine.yield
--- local util_IsValidModel = util.IsValidModel
 local table_Copy = table.Copy
--- local cvar_dev = GetConVar('developer')
 
--- local ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
--- local ACT_HL2MP_WALK = ACT_HL2MP_WALK
--- local type = type
 function ENT:RunBehaviour()
 	self.loco:SetJumpHeight(50)
 	self.loco:SetStepHeight(18)
 	self.loco:SetAvoidAllowed(true)
 	self.loco:SetDeathDropHeight(200)
 	self.loco:SetGravity(self:GetGravity())
-	-- self.loco:SetDesiredSpeed(200)
-	-- self.loco:SetAcceleration(600)
-	-- self.loco:SetAcceleration(2000)
 	self.loco:SetJumpGapsAllowed(true)
 
 	self._navmesh_is_loaded = navmesh.IsLoaded()

@@ -110,6 +110,7 @@ load('data/sh_color.lua')
 load('data/sh_models.lua')
 load('data/sh_acts.lua')
 load('data/sh_nextbots_weapons.lua')
+load('data/sh_nextbots_states.lua')
 
 -- load('sh_lang.lua')
 -- load('sh_cvars.lua')

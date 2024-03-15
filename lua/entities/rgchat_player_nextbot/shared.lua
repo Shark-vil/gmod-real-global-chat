@@ -1,7 +1,5 @@
 local string_lower = string.lower
--- local IsValid = IsValid
 local CurTime = CurTime
--- local FrameTime = FrameTime
 
 ENT.Base = 'base_nextbot'
 ENT.Spawnable = false
@@ -79,10 +77,6 @@ function ENT:UpdateVars()
 	self.BotData.Skin = data.skin
 	self.BotData.Bodygroups = data.bodygroups
 end
-
--- function ENT:UpdateActions(actions)
--- 	self.BotData.Actions = actions
--- end
 
 function ENT:CustomStartActivity(activity)
 	local current_activity = self:GetActivity()
