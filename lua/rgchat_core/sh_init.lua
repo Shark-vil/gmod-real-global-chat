@@ -6,4 +6,5 @@ RealGloabalChat.Validator = RealGloabalChat.Validator or {}
 RealGloabalChat.Api = RealGloabalChat.Api or {}
 RealGloabalChat.WebApi = RealGloabalChat.WebApi or {}
 RealGloabalChat.ConVar = RealGloabalChat.ConVar or {}
+RealGloabalChat.Color = RealGloabalChat.Color or {}
 -- RealGloabalChat.Storage = RealGloabalChat.Storage or {}

@@ -66,6 +66,7 @@ end
 
 
 load('sh_init.lua')
+load('data/sh_color.lua')
 load('network/sv_register_net_messages.lua')
 load('validators/sh_client_server.lua')
 load('language/sh_lang.lua')
@@ -78,6 +79,7 @@ load('functions/sh_worker.lua')
 load('functions/sh_storage.lua')
 load('functions/cl_message_builder.lua')
 load('functions/sh_developer.lua')
+load('functions/sh_chat_print.lua')
 load('commands/cl_cmd_rgchat_switch.lua')
 load('api/cl_chat.lua')
 load('http/sh_http.lua')

@@ -1,19 +1,10 @@
--- Variables
-local _color_rgchat_tag, _color_message
--- Set Variables
-_color_rgchat_tag = Color(237, 204, 73)
-_color_message = Color(255, 255, 255)
-
 function RealGloabalChat.WebApi:HttpError(message)
-	RealGloabalChat:LogError('[RGChat HTTP Error] ' .. message)
+	RealGloabalChat:LogError('[WEB] ' .. message)
 end
 
 function RealGloabalChat.WebApi:HttpWarning(message)
-	if CLIENT then
-		chat.AddText(_color_rgchat_tag, '[RGChat Warning] ', _color_message, ': ' .. tostring(message))
-	end
-
-	RealGloabalChat:LogWarning('[RGChat HTTP Warning] ' .. message)
+	RealGloabalChat:PrintWarning(message)
+	RealGloabalChat:LogWarning('[WEB] ' .. message)
 end
 
 function RealGloabalChat.WebApi:GetApiUrl(url_path)
