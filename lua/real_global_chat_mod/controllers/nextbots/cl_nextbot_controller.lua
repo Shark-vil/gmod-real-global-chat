@@ -78,24 +78,6 @@ timer.Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 
 		MsgN('[RGChat] Try download model - ' .. wsid .. ' : ' .. tostring(model) .. ' from ' .. tostring(bot))
 
-		--[[
-		local has_next = false
-		for _, v in ipairs(engine_GetAddons()) do
-			if v.wsid == wsid_number and not v.mounted then
-				local ok, _ = game_MountGMA(v.file)
-
-				if ok and util_IsValidModel(model) then
-					bot:SetModel(model)
-					has_next = true
-				end
-
-				break
-			end
-		end
-
-		if has_next then continue end
-		--]]
-
 		notification.AddProgress('rgchatworkshop.' .. wsid, '[RGChat] Preparing download - ' .. wsid .. ' : ' .. model)
 		local timer_name = 'rgchatworkshop.' .. wsid .. '.timeout'
 
@@ -203,34 +185,3 @@ cvars.AddChangeCallback('cl_rgc_download_model_size_limit', function(_, _, new_v
 		end
 	end
 end, 'on_change_cl_real_global_chat_download_model_size_limit')
---[[
-concommand.Add('rgchat_gma_test', function()
-	local wsid = '3170979277'
-	steamworks_DownloadUGC(wsid, function(gma_path, gma_file)
-		if not gma_path then
-			notification.AddLegacy('[RGChat] Failed to download the model - "' .. wsid .. ' : ' .. result.title .. '"', NOTIFY_ERROR, 5)
-			return
-		end
-
-		if not file.Exists('rgchat_data/cache', 'DATA') then
-			file.CreateDir('rgchat_data/cache')
-		end
-
-		local gma_save_path = 'rgchat_data/cache/' .. wsid .. '_' .. os.time() .. '.gma.dat'
-		local meta = RealGloabalChat
-		local ok, gma_meta
-		ok, gma_meta = xpcall(meta.ReadGma, debug.traceback, meta, gma_file)
-		if ok and gma_meta then
-			local new_gma_file = file.Open(gma_save_path, 'wb', 'DATA')
-			ok = xpcall(meta.BuildGma, debug.traceback, meta, wsid, new_gma_file, gma_meta)
-			new_gma_file:Close()
-			if ok then
-				game_MountGMA('data/' .. gma_save_path)
-			end
-		end
-		if file.Exists(gma_save_path) then
-			file.Delete(gma_save_path)
-		end
-	end)
-end)
---]]
