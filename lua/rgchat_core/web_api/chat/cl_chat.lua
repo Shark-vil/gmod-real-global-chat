@@ -9,7 +9,7 @@ function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 	local content = util.TableToJSON({
 		steamid64 = ply:SteamID64(),
 		username = ply:Nick(),
-		message = messageText,
+		message = message_text,
 		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
 		verified_token = verified_token,
 	})
@@ -20,7 +20,8 @@ function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 		content = content,
 		content_type = 'json',
 	}, {
-		finally = callback
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		failed = function(err) callback(nil, err) end,
 	})
 end
 
@@ -37,7 +38,7 @@ function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		finally = callback
+		failed = function(err) callback(nil, err) end,
 	})
 end
 
@@ -54,7 +55,8 @@ function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
 		content = content,
 		content_type = 'json',
 	}, {
-		finally = callback
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		failed = function(err) callback(nil, err) end,
 	})
 end
 
@@ -66,7 +68,7 @@ function RealGloabalChat.WebApi.Chat:GetOnline(callback)
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetOnline' .. paramsBuilder:GetResult()),
 		request_type = 'GET',
 	}, {
-		success = callback,
-		finally = callback
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		failed = function(err) callback(nil, err) end,
 	})
 end

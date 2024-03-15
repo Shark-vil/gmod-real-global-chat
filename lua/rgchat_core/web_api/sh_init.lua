@@ -1,20 +1,19 @@
-local http_Error, http_Warn
+-- Variables
+local _color_rgchat_tag, _color_message
+-- Set Variables
+_color_rgchat_tag = Color(237, 204, 73)
+_color_message = Color(255, 255, 255)
 
-do
-	local color_rgchat_tag = Color(237, 204, 73)
-	local color_message = Color(255, 255, 255)
+function RealGloabalChat.WebApi:HttpError(message)
+	RealGloabalChat:LogError('[RGChat HTTP Error] ' .. message)
+end
 
-	function http_Error(message)
-		print('[RGChat Error] ' .. message)
+function RealGloabalChat.WebApi:HttpWarning(message)
+	if CLIENT then
+		chat.AddText(_color_rgchat_tag, '[RGChat Warning] ', _color_message, ': ' .. tostring(message))
 	end
 
-	function http_Warn(message)
-		if CLIENT then
-			chat.AddText(color_rgchat_tag, '[RGChat Warn] ', color_message, ': ' .. tostring(message))
-		end
-
-		print('[RGChat Warn] ' .. message)
-	end
+	RealGloabalChat:LogWarning('[RGChat HTTP Warning] ' .. message)
 end
 
 function RealGloabalChat.WebApi:GetApiUrl(url_path)
@@ -26,10 +25,12 @@ function RealGloabalChat.WebApi:GetUrlValuesBuilder()
 	local result_params = ''
 
 	function builder:AddValue(key, value)
+		if not isstring(key) or value == nil then return end
+
 		if result_params == '' then
-			result_params = '?' .. key .. '=' .. value
+			result_params = '?' .. key .. '=' .. tostring(value)
 		else
-			result_params = '%' .. key .. '=' .. value
+			result_params = result_params .. '&' .. key .. '=' .. tostring(value)
 		end
 	end
 
@@ -43,19 +44,21 @@ end
 function RealGloabalChat.WebApi:ResponseHandler(callback)
 	return function(code, body)
 		local response = util.JSONToTable(body)
+
 		if response and response.success then
 			if response.success == 0 then
 				if response.message then
-					http_Warn(response.message)
+					RealGloabalChat.WebApi:HttpWarning(response.message)
 				elseif response.error then
-					http_Error(response.error)
+					RealGloabalChat.WebApi:HttpWarning(response.error)
 				end
 			end
 		else
-			http_Error(body)
+			RealGloabalChat.WebApi:HttpError(body)
 		end
+
 		if isfunction(callback) then
-			callback(response, code, body)
+			callback(code, response or body)
 		end
 	end
 end

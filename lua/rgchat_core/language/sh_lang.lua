@@ -1,13 +1,28 @@
 local _registred_languages = {}
+local _cvar_cl_language = GetConVar('cl_language')
 
 function RealGloabalChat.Language:Register(lang_code, lang_data)
 	_registred_languages[lang_code] = lang_data
 end
 
-function RealGloabalChat.Language:GetLanguage(lang_code, data_key)
-	local lang_data = _registred_languages['english']
-	if _registred_languages[lang_code] then
-		lang_data = _registred_languages[lang_code]
+function RealGloabalChat.Language:Get(data_key, lang_code)
+	if not lang_code and _cvar_cl_language then
+		lang_code = _cvar_cl_language:GetString()
 	end
-	return lang_data[data_key]
+
+	local lang_data = _registred_languages['english']
+
+	if data_key then
+		if _registred_languages[lang_code] and _registred_languages[lang_code][data_key] then
+			return _registred_languages[lang_code][data_key]
+		else
+			return lang_data[data_key]
+		end
+	end
+
+	if _registred_languages[lang_code] then
+		return _registred_languages[lang_code]
+	else
+		return lang_data
+	end
 end

@@ -1,7 +1,7 @@
 if SERVER then
 	net.Receive('RGChat_SendPlayerChatRoomActivity', function(_, ply)
 		local active = net.ReadBool()
-		RealGloabalChat.Storage.ModActive[ply] = active
+		RealGloabalChat:AddToStorage('ModActive', ply, active)
 	end)
 else
 	hook.Add('RGchat.FirstStart', 'SendPlayerChatRoomActivity', function()

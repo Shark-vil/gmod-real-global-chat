@@ -11,6 +11,10 @@ function RealGloabalChat.ConVar:Get(name)
 	if RealGloabalChat.ConVar.AllRegistered[name] then
 		return RealGloabalChat.ConVar.AllRegistered[name]
 	end
+	local convar = GetConVar(name)
+	if not convar then return end
+	RealGloabalChat.ConVar.AllRegistered[name] = convar
+	return convar
 end
 
 function RealGloabalChat.ConVar:GetInt(name)
