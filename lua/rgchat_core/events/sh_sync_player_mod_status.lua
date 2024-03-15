@@ -15,8 +15,5 @@ else
 		net.Start('RGChat_SendPlayerChatRoomActivity')
 		net.WriteBool(is_active)
 		net.SendToServer()
-
-		local Language = RealGloabalChat.Language
-		RealGloabalChat:Print(is_active and Language:Get('rgchat_on') or Language:Get('rgchat_off'))
 	end, 'sync_player_mod_status')
 end

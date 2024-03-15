@@ -63,10 +63,10 @@ function RealGloabalChat.Api:MuteUser(connect_id)
 
 	if exists_connect_id then
 		table.remove(muted_users, exists_connect_id)
-		LocalPlayer():ChatPrint('You have removed the mute from user ID: ' .. connect_id)
+		RealGloabalChat:Print('You have removed the mute from user ID: ' .. connect_id)
 	else
 		table.insert(muted_users, connect_id)
-		LocalPlayer():ChatPrint('User ID: ' .. connect_id .. ' was given a mute')
+		RealGloabalChat:Print('User ID: ' .. connect_id .. ' was given a mute')
 	end
 
 	file.Write('rgchat_data/muted_users.json', util.TableToJSON(muted_users))

@@ -19,13 +19,6 @@ for _, v in ipairs(registred_cvars) do
 	end
 end
 
--- function RealGloabalChat:GetCvar(name)
--- 	if not RealGloabalChat.Values.Cvars[name] then
--- 		RealGloabalChat.Values.Cvars[name] = GetConVar(name)
--- 	end
--- 	return RealGloabalChat.Values.Cvars[name]
--- end
-
 if CLIENT then
 	concommand.Add('rgchat_switch', function()
 		local lang = RealGloabalChat.Values.Language
