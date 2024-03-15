@@ -4,44 +4,48 @@ _sync_tickrate = .35
 
 function _Handler()
 	while true do
-		if not _next_sync_time then
-			_next_sync_time = CurTime() + _sync_delay
-		end
-
-		local can_sync = _next_sync_time < CurTime()
-
-		for _, ply in ipairs(player.GetHumans()) do
-			if RealGloabalChat.Api:PlayerChatIsActive(ply) then
-				if can_sync then
-					if ply.RgChatSyncGameInfoActions then
-						RealGloabalChat.WebApi.GameInfo:UpdateGameInfoWait(ply, ply.RgChatSyncGameInfoActions)
-						ply.RgChatSyncGameInfoActions = {}
-						coroutine.wait(.1)
-					end
-				elseif not ply.RgChatLastSyncGameInfo or ply.RgChatLastSyncGameInfo < CurTime() then
-					ply.RgChatSyncGameInfoActions = ply.RgChatSyncGameInfoActions or {}
-					table.insert(ply.RgChatSyncGameInfoActions, RealGloabalChat.Api:GetPlayerAction(ply))
-					ply.RgChatLastSyncGameInfo = CurTime() + _sync_tickrate
-				end
-			else
-				if ply.RgChatSyncGameInfoActions then
-					ply.RgChatSyncGameInfoActions = nil
-				end
-
-				if ply.RgChatLastSyncGameInfo then
-					ply.RgChatLastSyncGameInfo = nil
-				end
+		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_players') then
+			coroutine.wait(1)
+		else
+			if not _next_sync_time then
+				_next_sync_time = CurTime() + _sync_delay
 			end
 
-			coroutine.yield()
-		end
+			local can_sync = _next_sync_time < CurTime()
 
-		if can_sync then
+			for _, ply in ipairs(player.GetHumans()) do
+				if RealGloabalChat.Api:PlayerChatIsActive(ply) then
+					if can_sync then
+						if ply.RgChatSyncGameInfoActions then
+							RealGloabalChat.WebApi.GameInfo:UpdateGameInfoWait(ply, ply.RgChatSyncGameInfoActions)
+							ply.RgChatSyncGameInfoActions = {}
+							coroutine.wait(.1)
+						end
+					elseif not ply.RgChatLastSyncGameInfo or ply.RgChatLastSyncGameInfo < CurTime() then
+						ply.RgChatSyncGameInfoActions = ply.RgChatSyncGameInfoActions or {}
+						table.insert(ply.RgChatSyncGameInfoActions, RealGloabalChat.Api:GetPlayerAction(ply))
+						ply.RgChatLastSyncGameInfo = CurTime() + _sync_tickrate
+					end
+				else
+					if ply.RgChatSyncGameInfoActions then
+						ply.RgChatSyncGameInfoActions = nil
+					end
+
+					if ply.RgChatLastSyncGameInfo then
+						ply.RgChatLastSyncGameInfo = nil
+					end
+				end
+
+				coroutine.yield()
+			end
+
+			if can_sync then
+				coroutine.wait(.1)
+				_next_sync_time = CurTime() + _sync_delay
+			end
+
 			coroutine.wait(.1)
-			_next_sync_time = CurTime() + _sync_delay
 		end
-
-		coroutine.wait(.1)
 	end
 end
 
