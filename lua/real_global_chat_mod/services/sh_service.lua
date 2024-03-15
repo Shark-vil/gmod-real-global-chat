@@ -503,7 +503,7 @@ function RealGloabalChat:GetPlayerAction(ply)
 		if ply.RgChatActiveGesture then
 			ply_gesture = ply.RgChatActiveGesture
 		else
-			for gesture_id, _ in pairs(RealGloabalChat.Values.Enum.ActGmodTaunt) do
+			for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
 				if ply:IsPlayingGesture(gesture_id) then
 					ply_gesture = gesture_id
 					break

@@ -7,4 +7,5 @@ RealGloabalChat.Api = RealGloabalChat.Api or {}
 RealGloabalChat.WebApi = RealGloabalChat.WebApi or {}
 RealGloabalChat.ConVar = RealGloabalChat.ConVar or {}
 RealGloabalChat.Color = RealGloabalChat.Color or {}
+RealGloabalChat.Enum = RealGloabalChat.Enum or {}
 -- RealGloabalChat.Storage = RealGloabalChat.Storage or {}

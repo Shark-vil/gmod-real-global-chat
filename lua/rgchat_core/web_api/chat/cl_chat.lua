@@ -28,10 +28,7 @@ end
 function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 	local paramsBuilder = RealGloabalChat.WebApi:GetUrlValuesBuilder()
 	paramsBuilder:AddValue('chatRoomName', RealGloabalChat.Api:GetChatRoom())
-
-	if isnumber(start_message_id) then
-		paramsBuilder:AddValue('startMessageId', start_message_id)
-	end
+	paramsBuilder:AddValue('startMessageId', start_message_id)
 
 	RealGloabalChat.Http:Request({
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetChatMessages' .. paramsBuilder:GetResult()),

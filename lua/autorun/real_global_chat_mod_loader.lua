@@ -23,7 +23,7 @@ end
 -- -- Stores a reference to the entity of all existing nexbots on the map
 -- RealGloabalChat.Values.Nextbots = {}
 -- -- Stores registered enumerations
--- RealGloabalChat.Values.Enum  = {}
+-- RealGloabalChat.Enum  = {}
 -- RealGloabalChat.AllRegistredWeapons = {}
 -- RealGloabalChat.Module = {}
 -- -- RealGloabalChat.Values.Cvars = {}
@@ -66,7 +66,7 @@ end
 
 
 load('sh_init.lua')
-load('data/sh_color.lua')
+load('modules/sh_json.lua')
 load('network/sv_register_net_messages.lua')
 load('validators/sh_client_server.lua')
 load('language/sh_lang.lua')
@@ -82,20 +82,30 @@ load('functions/sh_storage.lua')
 load('functions/cl_message_builder.lua')
 load('functions/sh_developer.lua')
 load('functions/sh_chat_print.lua')
+load('functions/sh_model_parser.lua')
+load('functions/sh_helpers.lua')
 load('commands/cl_cmd_rgchat_switch.lua')
-load('api/cl_chat.lua')
+load('api/chat/cl_chat.lua')
+load('api/chat/sh_chat.lua')
+load('api/sv_game_info.lua')
 load('http/sh_http.lua')
 load('web_api/sh_init.lua')
 load('web_api/chat/cl_chat.lua')
 load('web_api/chat/cl_chat_wait.lua')
 load('web_api/translate/sh_translate.lua')
 load('web_api/translate/sh_translate_wait.lua')
+load('web_api/game_info/sh_game_info.lua')
+load('web_api/game_info/sh_game_info_wait.lua')
 load('events/sh_mod_run.lua')
 load('events/sh_sync_player_mod_status.lua')
 load('events/sh_chat_player_say.lua')
 load('services/cl_chat.lua')
+load('services/sv_game_info.lua')
 load('gui/cl_menu.lua')
 load('gui/cl_context.lua')
+load('data/sh_color.lua')
+load('data/sh_models.lua')
+load('data/sh_acts.lua')
 
 -- load('sh_lang.lua')
 -- load('sh_cvars.lua')
