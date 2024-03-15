@@ -22,6 +22,8 @@ local istable = istable
 local isstring = isstring
 local update_delay = 0
 local cleanup_map_locked = false
+local timer_Simple = timer.Simple
+local timer_Create = timer.Create
 
 local function isActiveEntsSync()
 	if update_delay > CurTime() then return false end
@@ -400,7 +402,7 @@ end)
 
 local function spawnedEntityInitParams(ply, data, model)
 	if cvar_break_prop_replacer and cvar_break_prop_replacer:GetBool() then
-		timer.Simple(.1, function()
+		timer_Simple(.1, function()
 			local ent = data.ent
 
 			if not IsValid(ent) and model then
@@ -428,15 +430,24 @@ local function spawnedEntityInitParams(ply, data, model)
 end
 
 hook.Add('PlayerSpawnedProp', 'RGChat.EntSyncPlayerSpawnedProp', function(ply, model, ent)
-	spawnedEntityInitParams(ply, { ent = ent, pos = ent:GetPos() }, model)
+	timer_Simple(0, function()
+		if not IsValid(ply) or not IsValid(ent) then return end
+		spawnedEntityInitParams(ply, { ent = ent, pos = ent:GetPos() }, model)
+	end)
 end)
 
 hook.Add('PlayerSpawnedSENT', 'RGChat.EntSyncPlayerSpawnedSENT', function(ply, model, ent)
-	spawnedEntityInitParams(ply, { ent = ent, pos = ent:GetPos() })
+	timer_Simple(0, function()
+		if not IsValid(ply) or not IsValid(ent) then return end
+		spawnedEntityInitParams(ply, { ent = ent, pos = ent:GetPos() })
+	end)
 end)
 
 hook.Add('PlayerSpawnedNPC', 'RGChat.EntSyncPlayerSpawnedNPC', function(ply, ent)
-	spawnedEntityInitParams(ply, { ent = ent, pos = ent:GetPos() })
+	timer_Simple(0, function()
+		if not IsValid(ply) or not IsValid(ent) then return end
+		spawnedEntityInitParams(ply, { ent = ent, pos = ent:GetPos() })
+	end)
 end)
 
 hook.Add('PreCleanupMap', 'RgChat.EntSyncPreCleanupMap', function()
@@ -444,12 +455,17 @@ hook.Add('PreCleanupMap', 'RgChat.EntSyncPreCleanupMap', function()
 end)
 
 hook.Add('PostCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
+	local delay = 0
 	for _, ply in ipairs(player_GetAll()) do
-		ply.RgChatSpawnedEntities = {}
-		ply.RgChatRemovedEntities = {}
-		RealGloabalChat:CleanupEntities(ply)
+		timer_Create('RgChatSyncEntsPostCleanupMap.' .. ply:SteamID64(), delay, 1, function()
+			if not IsValid(ply) then return end
+			ply.RgChatSpawnedEntities = {}
+			ply.RgChatRemovedEntities = {}
+			RealGloabalChat:CleanupEntities(ply)
+		end)
+		delay = delay + .1
 	end
-	update_delay = CurTime() + 1
+	update_delay = CurTime() + 1 + delay
 	cleanup_map_locked = false
 end)
 
