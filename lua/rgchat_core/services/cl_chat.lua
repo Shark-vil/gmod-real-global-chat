@@ -117,7 +117,7 @@ function _RenderMessages(response)
 		end
 
 		if user_message.message_type == 0 then
-			local check_result_message = result_message:gsub('[%p%c%s]', '')
+			local check_result_message = result_message:gsub('[%p%c%s%d]', '')
 
 			if #check_result_message > 3 and ConVar:GetBool('cl_rgc_translator') then
 				local code, new_result_message = RealGloabalChat.WebApi.Translate:TranslateWait(RealGloabalChat.Api:GetLanguage(), result_message)
@@ -130,7 +130,7 @@ function _RenderMessages(response)
 						translate_result_message = string.sub(translate_result_message, 2)
 					end
 
-					if translate_result_message:gsub('[%p%c%s]', ''):lower() == result_message:gsub('[%p%c%s]', ''):lower() then
+					if translate_result_message:gsub('[%p%c%s%d]', ''):lower() == result_message:gsub('[%p%c%s%d]', ''):lower() then
 						translate_result_message = nil
 					end
 				end

@@ -1,7 +1,7 @@
 -- Global variables
 RealGloabalChat.WebApi.Translate = RealGloabalChat.WebApi.Translate or {}
 -- Variables
-local _translate_validate, _country_language_codes, _matching_country_and_lang_list
+local _translate_validate, _country_language_codes, _matching_country_and_lang_list, _english_chars, _russain_chars
 -- Set variables
 _translate_validate = {
 	['en'] = true, -- английский
@@ -147,6 +147,9 @@ _matching_country_and_lang_list = {
 	['by'] = 'ru', -- Belarus
 }
 
+_english_chars = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'
+_russain_chars = 'ёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
+
 function RealGloabalChat.WebApi.Translate:Translate(lang, text, callback)
 	if not lang then
 		lang = 'en'
@@ -164,6 +167,11 @@ function RealGloabalChat.WebApi.Translate:Translate(lang, text, callback)
 				lang = 'en'
 			end
 		end
+	end
+
+	if (lang == 'en' and text:match('[' .. _english_chars .. ']')) or (lang == 'ru' and text:match('[' .. _russain_chars .. ']')) then
+		callback()
+		return
 	end
 
 	local content = util.TableToJSON({
