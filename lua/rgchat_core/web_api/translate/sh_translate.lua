@@ -151,6 +151,11 @@ _english_chars = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'
 _russain_chars = 'ёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
 
 function RealGloabalChat.WebApi.Translate:Translate(lang, text, callback)
+	if not text then
+		callback()
+		return
+	end
+
 	if not lang then
 		lang = 'en'
 	else
