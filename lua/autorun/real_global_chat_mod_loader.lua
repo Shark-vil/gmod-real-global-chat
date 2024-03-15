@@ -23,7 +23,7 @@ end
 -- -- Stores a reference to the entity of all existing nexbots on the map
 -- RealGloabalChat.Values.Nextbots = {}
 -- -- Stores registered enumerations
--- RealGloabalChat.Enum  = {}
+-- RealGloabalChat.Enum = {}
 -- RealGloabalChat.AllRegistredWeapons = {}
 -- RealGloabalChat.Module = {}
 -- -- RealGloabalChat.Values.Cvars = {}
@@ -101,11 +101,13 @@ load('events/sh_sync_player_mod_status.lua')
 load('events/sh_chat_player_say.lua')
 load('services/cl_chat.lua')
 load('services/sv_game_info.lua')
+load('services/sv_nextbots.lua')
 load('gui/cl_menu.lua')
 load('gui/cl_context.lua')
 load('data/sh_color.lua')
 load('data/sh_models.lua')
 load('data/sh_acts.lua')
+load('data/sh_nextbots_weapons.lua')
 
 -- load('sh_lang.lua')
 -- load('sh_cvars.lua')

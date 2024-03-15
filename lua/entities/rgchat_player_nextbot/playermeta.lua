@@ -2,72 +2,6 @@ local math_Rand = math.Rand
 local vector_0_0_0 = Vector(0, 0, 0)
 local angle_0_0_0 = Angle(0, 0, 0)
 local util_TraceLine = util.TraceLine
--- local weapons_IsBasedOn = weapons.IsBasedOn
--- local weapons_Get = weapons.Get
-
--- local weapon_hold_types = {
--- 	['models/weapons/w_irifle.mdl'] = 'ar2',
--- 	['models/weapons/w_bugbait.mdl'] = 'grenade',
--- 	['models/weapons/w_crossbow.mdl'] = 'crossbow',
--- 	['models/weapons/w_crowbar.mdl'] = 'melee',
--- 	['models/weapons/w_grenade.mdl'] = 'grenade',
--- 	['models/weapons/w_Physics.mdl'] = 'physgun',
--- 	['models/weapons/w_pistol.mdl'] = 'pistol',
--- 	['models/weapons/w_rocket_launcher.mdl'] = 'rpg',
--- 	['models/weapons/w_shotgun.mdl'] = 'shotgun',
--- 	['models/weapons/w_slam.mdl'] = 'slam',
--- 	['models/weapons/w_smg1.mdl'] = 'smg',
--- 	['models/weapons/w_stunbaton.mdl'] = 'melee',
--- 	['models/weapons/w_medkit.mdl'] = 'pistol',
--- 	['models/weapons/w_toolgun.mdl'] = 'revolver',
--- 	['models/weapons/w_pist_glock18.mdl'] = 'pistol',
--- 	['models/weapons/w_pist_p228.mdl'] = 'pistol',
--- 	['models/weapons/w_pist_deagle.mdl'] = 'revolver',
--- 	['models/weapons/w_pist_usp_silencer.mdl'] = 'pistol',
--- 	['models/weapons/w_pist_elite.mdl'] = 'duel',
--- 	['models/weapons/w_pist_fiveseven.mdl'] = 'pistol',
--- 	['models/weapons/w_shot_m3super90.mdl'] = 'shotgun',
--- 	['models/weapons/w_shot_xm1014.mdl'] = 'shotgun',
--- 	['models/weapons/w_smg_p90.mdl'] = 'smg',
--- 	['models/weapons/w_smg_mp5.mdl'] = 'smg',
--- 	['models/weapons/w_smg_mac10.mdl'] = 'pistol',
--- 	['models/weapons/w_smg_ump45.mdl'] = 'smg',
--- 	['models/weapons/w_mach_m249para.mdl'] = 'crossow',
--- 	['models/weapons/w_rif_galil.mdl'] = 'ar2',
--- 	['models/weapons/w_rif_ak47.mdl'] = 'ar2',
--- 	['models/weapons/w_rif_m4a1.mdl'] = 'ar2',
--- 	['models/weapons/w_rif_m4a1_silencer.mdl'] = 'ar2',
--- 	['models/weapons/w_rif_sg552.mdl'] = 'ar2',
--- 	['models/weapons/w_snip_awp.mdl'] = 'ar2',
--- 	['models/weapons/w_snip_scout.mdl'] = 'ar2',
--- 	['models/weapons/w_snip_g3sg1.mdl'] = 'ar2',
--- 	['models/weapons/w_snip_sg550.mdl'] = 'ar2',
--- 	['models/weapons/w_rif_famas.mdl'] = 'ar2',
--- 	['models/weapons/w_rif_aug.mdl'] = 'ar2'
--- }
--- local weapons_world_models = {
--- 	['weapon_ar2'] = 'models/weapons/w_irifle.mdl',
--- 	['weapon_bugbait'] = 'models/weapons/w_bugbait.mdl',
--- 	['weapon_crossbow'] = 'models/weapons/w_crossbow.mdl',
--- 	['weapon_crowbar'] = 'models/weapons/w_crowbar.mdl',
--- 	['weapon_frag'] = 'models/weapons/w_grenade.mdl',
--- 	['weapon_physcannon'] = 'models/weapons/w_Physics.mdl',
--- 	['weapon_physgun'] = 'models/weapons/w_Physics.mdl',
--- 	['weapon_pistol'] = 'models/weapons/w_pistol.mdl',
--- 	['weapon_rpg'] = 'models/weapons/w_rocket_launcher.mdl',
--- 	['weapon_shotgun'] = 'models/weapons/w_shotgun.mdl',
--- 	['weapon_slam'] = 'models/weapons/w_slam.mdl',
--- 	['weapon_smg1'] = 'models/weapons/w_smg1.mdl',
--- 	['weapon_stunstick'] = 'models/weapons/w_stunbaton.mdl',
--- 	['weapon_medkit'] = 'models/weapons/w_medkit.mdl',
--- 	['gmod_tool'] = 'models/weapons/w_toolgun.mdl',
--- }
-
--- local function GetHoldType(worldmodel)
--- 	if weapon_hold_types[worldmodel] then return weapon_hold_types[worldmodel] end
-
--- 	return 'normal'
--- end
 
 function ENT:GetShootPos()
 	return self:GetPos() + self:GetHeadHeightVector() + self:GetForward()
@@ -281,34 +215,6 @@ function ENT:SetActiveWeapon(weapon)
 	end
 end
 
--- function ENT:GetAttachmentPoint(pointtype)
--- 	if pointtype == 'hand' then
--- 		local lookup = self:LookupAttachment('anim_attachment_RH')
--- 		if lookup == 0 then
--- 			local bone = self:LookupBone('ValveBiped.Bip01_R_Hand')
--- 			if not bone then
--- 				return {
--- 					Pos = self:GetPos() + self:OBBCenter(),
--- 					Ang = self:GetForward():Angle()
--- 				}
--- 			else
--- 				return self:GetBonePosAngs(bone)
--- 			end
--- 		else
--- 			return self:GetAttachment(lookup)
--- 		end
--- 	elseif pointtype == 'eyes' then
--- 		local lookup = self:LookupAttachment('eyes')
--- 		if lookup == 0 then
--- 			return {
--- 				Pos = self:GetPos() + self:OBBCenter() + Vector(0, 0, 5),
--- 				Ang = self:GetForward():Angle() + Angle(-20, 0, 0)
--- 			}
--- 		else
--- 			return self:GetAttachment(lookup)
--- 		end
--- 	end
--- end
 function ENT:SelectWeapon(className)
 	self:DeEquipWeapon()
 	if self._WeaponClass == className then return end
@@ -380,25 +286,6 @@ function ENT:DeEquipWeapon()
 	if not IsValid(self.WeaponENT) then return end
 	self.WeaponENT:SetNoDraw(true)
 end
-
--- function ENT:CollectAllWeapons()
--- 	local weapon_list = {}
-
--- 	for _, wep in ipairs(weapons.GetList()) do
--- 		weapon_list[wep.ClassName] = {
--- 			WorldModel = wep.WorldModel,
--- 			WorldModelOffset = wep.WorldModelOffset
--- 		}
--- 	end
-
--- 	for className, worldModel in pairs(weapons_world_models) do
--- 		weapon_list[className] = {
--- 			WorldModel = worldModel
--- 		}
--- 	end
-
--- 	RealGloabalChat.AllRegistredWeapons = weapon_list
--- end
 
 function ENT:Say(texttosay)
 end

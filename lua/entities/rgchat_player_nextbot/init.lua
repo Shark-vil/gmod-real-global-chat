@@ -79,11 +79,11 @@ function ENT:RunBehaviour()
 				-- self.loco:FaceTowards(look_at_pos)
 			end
 
-			if RealGloabalChat.Enum .ActJump[data.State] then
+			if RealGloabalChat.Enum.ActJump[data.State] then
 				data.JumpReset = CurTime() + .5
 			end
 
-			data.CanSit = RealGloabalChat.Enum .ActSit[data.State]
+			data.CanSit = RealGloabalChat.Enum.ActSit[data.State]
 
 			local is_noclip_move_type = self:IsNoclipMoveType()
 			if is_noclip_move_type and not self:IsNoclip() then
@@ -98,7 +98,7 @@ function ENT:RunBehaviour()
 				self:SetState('gesture')
 			elseif data.IsTyping then
 				self:SetState('typing')
-			elseif RealGloabalChat.Enum .ActIdle[data.State] then
+			elseif RealGloabalChat.Enum.ActIdle[data.State] then
 				self:SetState('idle')
 			else
 				self:SetState('move_to_pos')

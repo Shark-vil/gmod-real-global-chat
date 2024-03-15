@@ -89,6 +89,16 @@ _chat_commands = {
 
 if SERVER then
 	hook.Add('PlayerSay', 'RGChatPlayerSayToChat', function(ply, text)
+		local is_real_player = false
+		for _, real_player in ipairs(player.GetHumans()) do
+			if real_player == ply then
+				is_real_player = true
+				break
+			end
+		end
+
+		if not is_real_player then return end
+
 		text = string.Trim(text)
 		if #text == 0 then return end
 		local has_valid_command = false

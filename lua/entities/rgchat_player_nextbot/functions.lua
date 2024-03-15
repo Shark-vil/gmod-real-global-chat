@@ -98,7 +98,7 @@ function ENT:UpdateMovement()
 	-- if move_pos:DistToSqr(self:GetPos()) <= 2500 then return end
 	local data = self:GetData()
 	local activity_id = data.State
-	local activity = RealGloabalChat.Enum .ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
+	local activity = RealGloabalChat.Enum.ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
 	local speed = data.MoveSpeed or 400
 	local devmode = cvar_dev:GetBool()
 	local state_name = self:GetActiveStateName()
@@ -219,7 +219,7 @@ end
 
 function ENT:IsNoclipMoveType()
 	local mt = self.BotData.MoveType
-	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Enum .ActSit[self.BotData.State] then return true end
+	if mt and (mt == 4 or mt == 5 or mt == 8 or mt == 10) and not RealGloabalChat.Enum.ActSit[self.BotData.State] then return true end
 
 	return false
 end
