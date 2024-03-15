@@ -17,7 +17,7 @@ function RealGloabalChat.WebApi:HttpWarning(message)
 end
 
 function RealGloabalChat.WebApi:GetApiUrl(url_path)
-	return 'https://rgcgmod.vincy.ru/Api/' .. url_path
+	return RealGloabalChat.WEB_API_URL .. url_path
 end
 
 function RealGloabalChat.WebApi:GetUrlValuesBuilder()
