@@ -13,7 +13,7 @@ function RealGloabalChat:AddBackgroundWorker(name, handler)
 		local ok, err = coroutine.resume(task)
 		if not ok then
 			task = coroutine.create(workerFunction)
-			ErrorNoHalt(err)
+			ErrorNoHalt(name, err)
 		end
 	end)
 end
