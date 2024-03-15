@@ -35,13 +35,20 @@ local coroutine_wait = coroutine.wait
 local coroutine_yield = coroutine.yield
 local coroutine_create = coroutine.create
 local coroutine_resume = coroutine.resume
-local co, translate_load_delay
+local has_first_load = true
 
 local function update_message_action(response)
 	if not response or response.success == 0 then return end
 
-	if not translate_load_delay then
-		translate_load_delay = CurTime() + 1
+	if has_first_load then
+		has_first_load = false
+		for _, user_msg in ipairs(response.messages) do
+			if isnumber(last_max_message_id) and last_max_message_id >= user_msg.random_id then continue end
+			if not isnumber(last_max_message_id) or last_max_message_id < user_msg.random_id then
+				last_max_message_id = user_msg.random_id
+			end
+		end
+		return
 	end
 
 	local target_translate = cvar_cl_real_global_chat_target_translate:GetString()
@@ -167,7 +174,7 @@ local function update_message_action(response)
 		local check_result_message = result_message:gsub('[%p%c%s]', '')
 		local translate_result_message
 
-		if not has_muted and #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() and translate_load_delay < CurTime() then
+		if not has_muted and #check_result_message > 3 and cvar_cl_real_global_chat_translator:GetBool() then
 			local on_translate = false
 			RealGloabalChat:Translate(target_translate, result_message, function(new_result_message, code)
 				if code == 200 and new_result_message ~= result_message then
@@ -208,8 +215,6 @@ local function update_message_action(response)
 				surface.PlaySound(sound_ping_sfx)
 			end
 		end
-
-		-- table_insert(skip_ids_table, user_msg.random_id)
 	end
 end
 
@@ -280,6 +285,7 @@ hook.Add('RGchat.FirstStart', 'RealGlobalChat.LoadChatController', function()
 	-- 	last_max_message_id = tonumber(sql_response[1]['last_message_id'])
 	-- end
 
+	local co
 	hook.Add('Think', 'RealGlobalChat.UpdateClientMessage', function()
 		if not co or not coroutine_resume(co) then
 			co = coroutine_create(chat_messages_receiver)
@@ -293,7 +299,7 @@ end)
 
 cvars.AddChangeCallback('cl_rgc_status', function(_, _, new_value)
 	local is_active = tostring(new_value) == '1'
-	if not is_active then translate_load_delay = nil end
+	if not is_active then has_first_load = true end
 
 	net.Start('RealGlobalChatServerSycnActive')
 	net.WriteBool(is_active)

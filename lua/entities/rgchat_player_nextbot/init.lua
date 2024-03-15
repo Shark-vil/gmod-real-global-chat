@@ -120,32 +120,24 @@ function ENT:Use(activator)
 		return
 	end
 
-	local target_id = activator:GetNWString('RGC_SYNC_TARGET', '')
-	if target_id == '' then
-		target_id = self.BotData.SteamId64
-	else
-		target_id = ''
-	end
-
-	activator:SetNWString('RGC_SYNC_TARGET', target_id)
-
-	if target_id ~= '' then
-		activator:ChatPrint('[RGChat] Now your props are linked')
-	else
-		activator:ChatPrint('[RGChat] Your props are no longer linked')
-	end
-
-	hook.Run('RGChat.SetPlayerSyncTarget', activator, self.BotData.SteamId64, target_id ~= '')
-
 	self.EntHasUseDelay = CurTime() + .2
+
+	local target_id = activator:GetNWString('RGC_SYNC_TARGET', '')
+
+	if target_id == self.BotData.SteamId64 then
+		target_id = ''
+	else
+		target_id = self.BotData.SteamId64
+	end
+
+	RealGloabalChat:WatchToPlayer(activator, target_id)
 end
 
 function ENT:RgChatDisconnected()
 	for _, ply in ipairs(player.GetAll()) do
 		local target_entity_sync = ply:GetNWString('RGC_SYNC_TARGET', '')
-		if target_entity_sync ~= '' and self.BotData.SteamId64 and target_entity_sync == self.BotData.SteamId64 then
-			ply:SetNWString('RGC_SYNC_TARGET', '')
-			ply:ChatPrint('[RGChat] Your props are no longer linked')
+		if target_entity_sync ~= '' and target_entity_sync == self.BotData.SteamId64 then
+			RealGloabalChat:WatchToPlayer(ply, '')
 		end
 	end
 end
@@ -169,3 +161,7 @@ function ENT:OnKilled(dmginfo)
 
 	SafeRemoveEntity(self)
 end
+
+-- function ENT:OnRemove()
+-- 	self:RgChatDisconnected()
+-- end

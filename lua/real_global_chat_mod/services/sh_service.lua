@@ -57,6 +57,12 @@ local function http_Warn(message)
 	MsgN('[RGChat Warn] ' .. message)
 end
 
+local function getEntityMotionNumber(ent)
+	local phys = ent:GetPhysicsObject()
+	if not IsValid(phys) then return 0 end
+	return phys:IsMotionEnabled() and 1 or 0
+end
+
 local function http_success_function(code, body, callback)
 	local response = util_JSONToTable(body)
 	if response and response.success then
@@ -297,6 +303,8 @@ function RealGloabalChat:AddEntities(ply, entities, callback)
 				class_name = ent:GetClass(),
 				pos = ent_pos.x .. ',' .. ent_pos.y .. ',' .. ent_pos.z,
 				ang = ent_ang.x .. ',' .. ent_ang.y .. ',' .. ent_ang.z,
+				is_npc = (ent:IsNPC() or ent:IsNextBot()) and 1 or 0,
+				motion_enabled = getEntityMotionNumber(ent),
 			})
 		end
 	end
@@ -344,7 +352,8 @@ function RealGloabalChat:UpdateEntities(ply, entities, callback)
 				class_name = ent:GetClass(),
 				pos = ent_pos.x .. ',' .. ent_pos.y .. ',' .. ent_pos.z,
 				ang = ent_ang.x .. ',' .. ent_ang.y .. ',' .. ent_ang.z,
-				net_id = ent.RgChatNetId
+				net_id = ent.RgChatNetId,
+				motion_enabled = getEntityMotionNumber(ent),
 			})
 		end
 	end
@@ -441,6 +450,27 @@ function RealGloabalChat:UpdateGameInfo(ply, action_list, callback)
 	})
 end
 
+function RealGloabalChat:WatchToPlayer(ply, target_steamid64)
+	local current_target_id = ply:GetNWString('RGC_SYNC_TARGET', '')
+	if not target_steamid64 or target_steamid64 == '' then
+		ply:SetNWString('RGC_SYNC_TARGET', '')
+		if current_target_id ~= '' then
+			hook.Run('RGChat.StopWatchToPlayer', ply, current_target_id)
+			ply:ChatPrint('[RGChat] Your props are no longer linked - ' .. current_target_id)
+		else
+			ply:ChatPrint('[RGChat] You\'re not watching anyone at the moment.')
+		end
+	elseif target_steamid64 ~= current_target_id then
+		ply:SetNWString('RGC_SYNC_TARGET', target_steamid64)
+		if current_target_id ~= '' then
+			hook.Run('RGChat.StopWatchToPlayer', ply, current_target_id)
+			ply:ChatPrint('[RGChat] Your props are no longer linked - ' .. current_target_id)
+		end
+		hook.Run('RGChat.StartWatchToPlayer', ply, target_steamid64)
+		ply:ChatPrint('[RGChat] Now your props are linked - ' .. target_steamid64)
+	end
+end
+
 function RealGloabalChat:GetPlayerAction(ply)
 	local ply_alive = ply:Alive()
 	local ply_attacker = IsValid(ply.RGChatAttacker) and ply.RGChatAttacker:GetName() or nil
@@ -455,12 +485,14 @@ function RealGloabalChat:GetPlayerAction(ply)
 	local ply_color = ply_alive and ply:GetColor() or nil
 	local ply_move_type = ply_alive and ply:GetMoveType() or nil
 	local ply_activity, ply_gesture
-	local ply_skin = ply:GetSkin()
-	local ply_bodygroups = ''
+	local ply_skin = ply.rgchat_outfitter_skin or ply:GetSkin()
+	local ply_bodygroups = ply.rgchat_outfitter_bodygroups or ''
 
-	for _, v in ipairs(ply:GetBodyGroups()) do
-		local bodygroup = ply:GetBodygroup(v.id)
-		ply_bodygroups = ply_bodygroups .. bodygroup
+	if ply_bodygroups == '' then
+		for _, v in ipairs(ply:GetBodyGroups()) do
+			local bodygroup = ply:GetBodygroup(v.id)
+			ply_bodygroups = ply_bodygroups .. bodygroup
+		end
 	end
 
 	if ply_pos and ply:InVehicle() then

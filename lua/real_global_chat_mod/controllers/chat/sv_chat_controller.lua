@@ -123,6 +123,11 @@ hook.Add('PlayerSay', 'RealGlobalChat.PlayerSay', function(ply, text)
 		return ''
 	end
 
+	if command_text_lines[1] == '/rgchatleaveplayer' then
+		RealGloabalChat:WatchToPlayer(ply, '')
+		return ''
+	end
+
 	-- Ignore possible commands
 	if command_text_lines[1] ~= 'ping' and #text > 2 then
 		local first_char = string_sub(text, 1, 1)

@@ -264,6 +264,8 @@ Ping player:
 - /ping NICK or NICL, [any text]
 Nextboot switch:
 - /rgchatplayers
+Leave the world of the player:
+- /rgchatleaveplayer
 Set player model limit:
 - /rgchatwslimit NUMBER
 - Example: /rgchatwslimit 150
