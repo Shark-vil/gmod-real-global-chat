@@ -27,7 +27,7 @@ function RealGloabalChat:Print(message, ply)
 		_sendToClient(ply, message, 0)
 		return
 	end
-	chat.AddText(RealGloabalChat.Color.Log, '[RGChat]', message)
+	chat.AddText(RealGloabalChat.Color.Log, '[RGChat] ', message)
 end
 
 function RealGloabalChat:PrintWarning(message)
@@ -35,7 +35,7 @@ function RealGloabalChat:PrintWarning(message)
 		_sendToClient(ply, message, 1)
 		return
 	end
-	chat.AddText(RealGloabalChat.Color.Warning, '[RGChat Warning]', message)
+	chat.AddText(RealGloabalChat.Color.Warning, '[RGChat Warning] ', message)
 end
 
 function RealGloabalChat:PrintError(message)
@@ -43,5 +43,5 @@ function RealGloabalChat:PrintError(message)
 		_sendToClient(ply, message, 2)
 		return
 	end
-	chat.AddText(RealGloabalChat.Color.Error, '[RGChat Error]', message)
+	chat.AddText(RealGloabalChat.Color.Error, '[RGChat Error] ', message)
 end
