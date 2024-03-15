@@ -230,7 +230,7 @@ function RealGloabalChat.WebApi.Translate:Translate(lang, text, callback)
 				end
 			end
 
-			callback(code, body)
+			callback(code, nil)
 		end,
 		failed = function(err) callback(nil, err) end,
 	})
