@@ -81,7 +81,7 @@ else
 		local outfitter_skin = net.ReadInt(16)
 		local outfitter_bodygroups = net.ReadString()
 
-		if model_name == '' and download_info == 0 then
+		if model_name == '' or download_info == 0 then
 			ply.rgchat_outfitter_mdl = nil
 			ply.rgchat_outfitter_skin = nil
 			ply.rgchat_outfitter_bodygroups = nil
