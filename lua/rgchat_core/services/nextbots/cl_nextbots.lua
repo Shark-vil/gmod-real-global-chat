@@ -69,12 +69,17 @@ function _ReadAndMountCacheGma(wsid)
 	if _cache_workshop_files[wsid] then
 		local gma_path = _cache_workshop_files[wsid]
 
-		if isstring(gma_path) and file.Exists(gma_path, 'GAME') then
-			local gma_file = file.Open(gma_path, 'rb', 'GAME')
+		if isstring(gma_path) then
+			if file.Exists(gma_path, 'GAME') then
+				local gma_file = file.Open(gma_path, 'rb', 'GAME')
 
-			if gma_file then
-				result = _BuildAndMountGma(wsid, gma_path, gma_file)
-				gma_file:Close()
+				if gma_file then
+					result = _BuildAndMountGma(wsid, gma_path, gma_file)
+					gma_file:Close()
+				end
+			else
+				_cache_workshop_files[wsid] = nil
+				_UpdateCacheWorkshopFiles()
 			end
 		end
 	end
