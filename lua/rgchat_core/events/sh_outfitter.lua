@@ -6,6 +6,8 @@ if CLIENT then
 			net.Start('RGChat_OutfitterChangeModel')
 			net.WriteString('')
 			net.WriteUInt64(0)
+			net.WriteInt(0, 16)
+			net.WriteString('')
 			net.SendToServer()
 			ply.rgchat_outfitter = false
 
@@ -34,12 +36,13 @@ if CLIENT then
 			net.WriteInt(ply.rgchat_outfitter_skin, 16)
 			net.WriteString(ply.rgchat_outfitter_bodygroups)
 			net.SendToServer()
+			ply.rgchat_outfitter = true
 		end
 	end)
 
 	hook.Add('OutfitApply', 'RGChat.UpdateCache', function(ply, model_name, download_info)
 		if model_name and download_info and model_name ~= '' and download_info ~= '' then
-			RealGloabalChat:AddToStorage('AddonsModels', model_path, download_info)
+			RealGloabalChat:AddToStorage('AddonsModels', model_name, download_info)
 			ply.rgchat_outfitter = true
 			local ply_bodygroups = ''
 
@@ -82,11 +85,12 @@ else
 			ply.rgchat_outfitter_mdl = nil
 			ply.rgchat_outfitter_skin = nil
 			ply.rgchat_outfitter_bodygroups = nil
+			ply.rgchat_outfitter = false
 
 			return
 		end
 
-		RealGloabalChat:AddToStorage('AddonsModels', model_path, download_info)
+		RealGloabalChat:AddToStorage('AddonsModels', model_name, download_info)
 		ply.rgchat_outfitter_skin = outfitter_skin
 
 		if outfitter_bodygroups and outfitter_bodygroups ~= '' then
@@ -96,5 +100,6 @@ else
 		end
 
 		ply.rgchat_outfitter_mdl = model_name
+		ply.rgchat_outfitter = true
 	end)
 end
