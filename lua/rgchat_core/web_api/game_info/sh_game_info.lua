@@ -64,6 +64,7 @@ function RealGloabalChat.WebApi.GameInfo:AddEntities(ply, entities, callback)
 			ang = ent_ang.x .. ',' .. ent_ang.y .. ',' .. ent_ang.z,
 			is_npc = (ent:IsNPC() or ent:IsNextBot()) and 1 or 0,
 			motion_enabled = is_motion,
+			settings = ent.RgChatSettings and util.TableToJSON(ent.RgChatSettings) or nil
 		})
 	end
 

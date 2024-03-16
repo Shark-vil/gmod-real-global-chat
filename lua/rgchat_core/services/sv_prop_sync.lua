@@ -138,6 +138,7 @@ function _BackgroundActionsWorker()
 									ent:SetPos(pos)
 									ent:SetAngles(ang)
 									ent:Spawn()
+									ent:Activate()
 									ent.RgChatNetId = net_ent.net_id
 									ent.RgChatNetOwner = net_ent.world_owner_steamid64
 									ent.RgChatNetHost = net_ent.host_steamid64
@@ -145,6 +146,23 @@ function _BackgroundActionsWorker()
 
 									if IsValid(phys) and phys:IsMotionEnabled() then
 										phys:EnableMotion(false)
+									end
+
+									if StreamRadioLib and net_ent.class_name == 'sent_streamradio' then
+										timer.Simple(0, function()
+											if not IsValid(ent) then return end
+											local data = util.JSONToTable(net_ent.settings)
+											if not data then return end
+
+											if IsValid(phys) then
+												phys:EnableCollisions(not data.nocollide)
+											end
+
+											ent.Settings = data.settings
+											ent.nocollide = data.nocollide
+											StreamRadioLib.EditRadio(ent, data.settings)
+											ent:SetToolURL(data.url, true)
+										end)
 									end
 								end
 
@@ -250,6 +268,22 @@ end)
 
 hook.Add('PlayerSpawnedProp', 'RGChat.EntSyncPlayerSpawnedProp', function(ply, model, ent)
 	_PlayerSpawnEntity(ply, ent)
+end)
+
+hook.Add('OnEntityCreated', 'RGChat.SpecificOnEntityCreated', function(ent)
+	if IsValid(ent) and ent:GetClass() == 'sent_streamradio' then
+		timer.Simple(0, function()
+			if not IsValid(ent) or not IsValid(ent.Owner) then return end
+
+			ent.RgChatSettings = {
+				settings = ent.Settings,
+				nocollide = ent.nocollide,
+				url = ent:GetToolURL(),
+			}
+
+			_PlayerSpawnEntity(ent.Owner, ent)
+		end)
+	end
 end)
 
 hook.Add('PostCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
