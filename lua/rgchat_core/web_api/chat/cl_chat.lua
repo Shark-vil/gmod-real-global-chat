@@ -65,7 +65,7 @@ function RealGloabalChat.WebApi.Chat:GetOnline(callback)
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetOnline' .. paramsBuilder:GetResult()),
 		request_type = 'GET',
 	}, {
-		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		success = callback,
 		failed = function(err) callback(nil, err) end,
 	})
 end

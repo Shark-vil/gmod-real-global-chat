@@ -1,4 +1,4 @@
-if SERVER then
+if CLIENT then
 	timer.Create('RGChat.CheckOutfitter', 1, 0, function()
 		local ply = LocalPlayer()
 
