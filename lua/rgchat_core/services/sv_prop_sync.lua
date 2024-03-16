@@ -74,8 +74,12 @@ function _BackgroundActionsWorker()
 			for _, ply in ipairs(player.GetHumans()) do
 				local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
 
+				if rgc_sync_target == '' then
+					rgc_sync_target = ply:SteamID64()
+				end
+
 				if rgc_sync_target ~= '' then
-					local code, response = RealGloabalChat.WebApi.GameInfo:GetEntitiesWait(ply, rgc_sync_target)
+					local code, response = RealGloabalChat.WebApi.GameInfo:GetEntitiesWait(rgc_sync_target)
 
 					if code and code == 200 and response and response.success and response.success == 1 and response.entities then
 						for _, ent in ipairs(ents.GetAll()) do
@@ -100,27 +104,39 @@ function _BackgroundActionsWorker()
 								local value = _spawned_net_entities[net_ent.net_id]
 								local ent = value.ent
 
-								if ent and IsValid(ent) and not ent.RgChatHostEntity then
-									if ent:GetModel() ~= net_ent.model and util.IsValidModel(net_ent.model) then
-										ent:SetModel(net_ent.model)
+								if ent and IsValid(ent) then
+									ent.RgChatNetHost = net_ent.host_steamid64
+									local is_hosted_entity = false
+
+									for _, check_player in ipairs(player.GetHumans()) do
+										if check_player:SteamID64() == ent.RgChatNetHost then
+											is_hosted_entity = true
+											break
+										end
 									end
 
-									local speed = 100
-									local pos = RealGloabalChat:PosStringToVector(net_ent.pos)
-									local ang = RealGloabalChat:PosStringToAngle(net_ent.ang)
-									local phys = ent:GetPhysicsObject()
+									if not is_hosted_entity then
+										if ent:GetModel() ~= net_ent.model and util.IsValidModel(net_ent.model) then
+											ent:SetModel(net_ent.model)
+										end
 
-									if IsValid(phys) and phys:IsMotionEnabled() then
-										phys:EnableMotion(false)
-									end
+										local speed = 100
+										local pos = RealGloabalChat:PosStringToVector(net_ent.pos)
+										local ang = RealGloabalChat:PosStringToAngle(net_ent.ang)
+										local phys = ent:GetPhysicsObject()
 
-									while IsValid(ent) and ent:GetPos() ~= pos and ent:GetAngles() ~= ang do
-										local new_pos = RealGloabalChat:MoveTowards(ent:GetPos(), pos, FrameTime() * (speed * 2))
-										local new_ang = RealGloabalChat:MoveTowards(ent:GetAngles(), ang, FrameTime() * (speed * 2))
-										if not new_pos or not new_ang then break end
-										ent:SetPos(new_pos)
-										ent:SetAngles(new_ang)
-										coroutine.yield()
+										if IsValid(phys) and phys:IsMotionEnabled() then
+											phys:EnableMotion(false)
+										end
+
+										while IsValid(ent) and ent:GetPos() ~= pos and ent:GetAngles() ~= ang do
+											local new_pos = RealGloabalChat:MoveTowards(ent:GetPos(), pos, FrameTime() * (speed * 2))
+											local new_ang = RealGloabalChat:MoveTowards(ent:GetAngles(), ang, FrameTime() * (speed * 2))
+											if not new_pos or not new_ang then break end
+											ent:SetPos(new_pos)
+											ent:SetAngles(new_ang)
+											coroutine.yield()
+										end
 									end
 								end
 							else
@@ -259,11 +275,11 @@ function _PlayerSpawnEntity(ply, ent)
 end
 
 hook.Add('RGChat.StopWatchToPlayer', 'RGChatStopSyncProps', function(_, target_id)
-	for _, ply in ipairs(player_GetAll()) do
+	for _, ply in ipairs(player.GetAll()) do
 		if ply:SteamID64() == target_id then return end
 	end
 
-	for _, ent in ipairs(ents_GetAll()) do
+	for _, ent in ipairs(ents.GetAll()) do
 		if ent.RgChatNetId and ent.RgChatNetOwner == target_id then
 			SafeRemoveEntity(ent)
 		end
