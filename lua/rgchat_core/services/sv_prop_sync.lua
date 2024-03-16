@@ -101,6 +101,10 @@ function _BackgroundActionsWorker()
 								local ent = value.ent
 
 								if ent and IsValid(ent) and not ent.RgChatHostEntity then
+									if ent:GetModel() ~= net_ent.model and util.IsValidModel(net_ent.model) then
+										ent:SetModel(net_ent.model)
+									end
+
 									local speed = 100
 									local pos = RealGloabalChat:PosStringToVector(net_ent.pos)
 									local ang = RealGloabalChat:PosStringToAngle(net_ent.ang)
