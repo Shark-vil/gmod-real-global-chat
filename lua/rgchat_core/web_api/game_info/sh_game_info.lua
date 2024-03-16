@@ -186,6 +186,47 @@ function RealGloabalChat.WebApi.GameInfo:CleanupEntities(ply, entities, callback
 	})
 end
 
+function RealGloabalChat.WebApi.GameInfo:ClaimEntities(ply, entities, callback)
+	local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
+
+	if rgc_sync_target == '' then
+		rgc_sync_target = ply:SteamID64()
+	end
+
+	local valid_entities = {}
+
+	for _, ent in ipairs(entities) do
+		if isentity(ent) and IsValid(ent) then
+			table.insert(valid_entities, {
+				net_id = ent.RgChatNetId
+			})
+		elseif isnumber(ent) then
+			table.insert(valid_entities, {
+				net_id = ent
+			})
+		end
+	end
+
+	local content = RealGloabalChat:TableToJson({
+		steamid64 = ply:SteamID64(),
+		username = ply:Name(),
+		entities = valid_entities,
+		target_steamid64 = rgc_sync_target
+	})
+
+	RealGloabalChat.Http:Request({
+		url = RealGloabalChat.WebApi:GetApiUrl('GameInfo/ClaimEntities'),
+		request_type = 'POST',
+		content = content,
+		content_type = 'json',
+	}, {
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		failed = function(err)
+			callback(nil, err)
+		end,
+	})
+end
+
 function RealGloabalChat.WebApi.GameInfo:GetEntities(target_steamid64, callback)
 	local paramsBuilder = RealGloabalChat.WebApi:GetUrlValuesBuilder()
 	paramsBuilder:AddValue('steamId64', target_steamid64)
