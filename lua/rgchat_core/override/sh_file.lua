@@ -3,8 +3,8 @@ if file.Exists('autorun/outfitter.lua', 'LUA') and file.Exists('includes/modules
 end
 
 local File = FindMetaTable('File')
-local tmp = {}
-local table_concat = table.concat
+local _tmp = {}
+local _table_concat = table.concat
 
 function File.ReadString(f, n, ch)
 	n = n or 256
@@ -21,12 +21,12 @@ function File.ReadString(f, n, ch)
 
 		if pos then
 			f:Seek(startpos + offset + pos)
-			tmp[tmpn + 1] = str:sub(1, pos - 1)
+			_tmp[tmpn + 1] = str:sub(1, pos - 1)
 
-			return table_concat(tmp, '', 1, tmpn + 1)
+			return _table_concat(_tmp, '', 1, tmpn + 1)
 		else
 			tmpn = tmpn + 1
-			tmp[tmpn] = str
+			_tmp[tmpn] = str
 			offset = offset + n
 		end
 	end

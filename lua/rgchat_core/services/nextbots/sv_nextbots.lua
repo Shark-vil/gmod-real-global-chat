@@ -1,22 +1,23 @@
--- Variables
-local _last_update, _ents_FindByClass, _ipairs, _IsValid, _table_sort
--- Functions
-local _RemoveAllBots
---Set Variables
-_ents_FindByClass = ents.FindByClass
-_ipairs = ipairs
-_IsValid = IsValid
-_table_sort = table.sort
+local _Handler, _RemoveAllBots
+local _ents_FindByClass = ents.FindByClass
+local _ipairs = ipairs
+local _IsValid = IsValid
+local _table_sort = table.sort
+local _player_GetHumans = player.GetHumans
+local _coroutine_wait = coroutine.wait
+local _coroutine_yield = coroutine.yield
+local _SafeRemoveEntity = SafeRemoveEntity
+local _last_update
 
 function _RemoveAllBots()
 	for _, ent in _ipairs(_ents_FindByClass('rgchat_player_nextbot')) do
 		if _IsValid(ent) then
-			SafeRemoveEntity(ent)
+			_SafeRemoveEntity(ent)
 		end
 	end
 end
 
-local function _Handler()
+function _Handler()
 	while true do
 		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_players') then
 			_RemoveAllBots()
@@ -29,7 +30,7 @@ local function _Handler()
 				local valid_bots = {}
 				local all_players_disable = true
 
-				for _, ply in _ipairs(player.GetHumans()) do
+				for _, ply in _ipairs(_player_GetHumans()) do
 					if RealGloabalChat.Api:PlayerChatIsActive(ply) then
 						all_players_disable = false
 						break
@@ -43,7 +44,7 @@ local function _Handler()
 				end
 
 				if not RealGloabalChat.ConVar:GetBool('developer') then
-					for _, ply in _ipairs(player.GetHumans()) do
+					for _, ply in _ipairs(_player_GetHumans()) do
 						if _IsValid(ply) then
 							ignore_steamids[ply:SteamID64()] = true
 						end
@@ -67,6 +68,8 @@ local function _Handler()
 						valid_bots[ent.BotData.SteamId64] = ent
 					end
 				end
+
+				_coroutine_yield()
 
 				for _, v in _ipairs(data) do
 					if not v.username or not v.steamid64 or ignore_steamids[v.steamid64] or not v.actions or #v.actions == 0 then continue end
@@ -101,11 +104,13 @@ local function _Handler()
 					else
 						ent:UpdateData(v)
 					end
+
+					_coroutine_yield()
 				end
 			end
 		end
 
-		coroutine.wait(1)
+		_coroutine_wait(1)
 	end
 end
 

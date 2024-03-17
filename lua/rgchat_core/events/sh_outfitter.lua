@@ -1,6 +1,9 @@
 if CLIENT then
+	local _LocalPlayer = LocalPlayer
+	local _ipairs = ipairs
+
 	timer.Create('RGChat.CheckOutfitter', 1, 0, function()
-		local ply = LocalPlayer()
+		local ply = _LocalPlayer()
 
 		if not ply.outfitter_mdl and ply.rgchat_outfitter then
 			net.Start('RGChat_OutfitterChangeModel')
@@ -17,7 +20,7 @@ if CLIENT then
 		if not ply.outfitter_mdl then return end
 		local ply_bodygroups = ''
 
-		for _, v in ipairs(ply:GetBodyGroups()) do
+		for _, v in _ipairs(ply:GetBodyGroups()) do
 			local bodygroup = ply:GetBodygroup(v.id)
 
 			if ply.outfitter_bodygroups and ply.outfitter_bodygroups[v.name] then
@@ -46,7 +49,7 @@ if CLIENT then
 			ply.rgchat_outfitter = true
 			local ply_bodygroups = ''
 
-			for _, v in ipairs(ply:GetBodyGroups()) do
+			for _, v in _ipairs(ply:GetBodyGroups()) do
 				local bodygroup = ply:GetBodygroup(v.id)
 
 				if ply.outfitter_bodygroups and ply.outfitter_bodygroups[v.name] then

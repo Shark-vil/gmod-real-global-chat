@@ -1,15 +1,13 @@
-local _table_remove, _string_char, _util_TableToJSON, _util_JSONToTable, _pairs, _tostring, _table_insert, _string_GetExtensionFromFilename, _skip_ext
+local _table_remove = table.remove
+local _string_char = string.char
+local _util_TableToJSON = util.TableToJSON
+local _util_JSONToTable = util.JSONToTable
+local _pairs = pairs
+local _tostring = tostring
+local _table_insert = table.insert
+local _string_GetExtensionFromFilename = string.GetExtensionFromFilename
 
-_table_remove = table.remove
-_string_char = string.char
-_util_TableToJSON = util.TableToJSON
-_util_JSONToTable = util.JSONToTable
-_pairs = pairs
-_tostring = tostring
-_table_insert = table.insert
-_string_GetExtensionFromFilename = string.GetExtensionFromFilename
-
-_skip_ext = {
+local _skip_ext = {
 	['lua'] = true,
 	['wav'] = true,
 	['mp3'] = true,

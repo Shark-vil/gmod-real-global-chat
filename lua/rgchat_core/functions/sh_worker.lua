@@ -1,9 +1,8 @@
-local _registred_workers, _coroutine_resume, _coroutine_create, _isstring, _tostring
-_registred_workers = {}
-_coroutine_resume = coroutine.resume
-_coroutine_create = coroutine.create
-_isstring = isstring
-_tostring = tostring
+local _coroutine_resume = coroutine.resume
+local _coroutine_create = coroutine.create
+local _isstring = isstring
+local _tostring = tostring
+local _registred_workers = {}
 
 function RealGloabalChat:AddBackgroundWorker(name, handler)
 	local task

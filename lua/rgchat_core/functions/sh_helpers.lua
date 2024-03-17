@@ -1,11 +1,9 @@
-local _string_Split, _math_sqrt, _Vector, _Angle, _Color, _tonumber
-
-_string_Split = string.Split
-_Vector = Vector
-_math_sqrt = math.sqrt
-_Angle = Angle
-_Color = Color
-_tonumber = tonumber
+local _string_Split = string.Split
+local _Vector = Vector
+local _math_sqrt = math.sqrt
+local _Angle = Angle
+local _Color = Color
+local _tonumber = tonumber
 
 function RealGloabalChat:ColorStringToColor(col_string)
 	if not col_string then return _Color(255, 255, 255, 255) end

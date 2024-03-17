@@ -1,7 +1,11 @@
+local _IsValid = IsValid
+local _ipairs = ipairs
+local _pairs = pairs
+
 function RealGloabalChat.Api:GetPlayerAction(ply)
 	local ply_alive = ply:Alive()
-	local ply_attacker = IsValid(ply.RGChatAttacker) and ply.RGChatAttacker:GetName() or nil
-	local ply_inflictor = IsValid(ply.RGChatInflictor) and ply.RGChatInflictor:GetName() or nil
+	local ply_attacker = _IsValid(ply.RGChatAttacker) and ply.RGChatAttacker:GetName() or nil
+	local ply_inflictor = _IsValid(ply.RGChatInflictor) and ply.RGChatInflictor:GetName() or nil
 	local ply_sequence = ply_alive and ply:GetSequence() or nil
 	local ply_velocity = ply_alive and ply:GetVelocity() or nil
 	local ply_pos = ply_alive and ply:GetPos() or nil
@@ -16,7 +20,7 @@ function RealGloabalChat.Api:GetPlayerAction(ply)
 	local ply_bodygroups = ply.rgchat_outfitter_bodygroups or ''
 
 	if ply_bodygroups == '' then
-		for _, v in ipairs(ply:GetBodyGroups()) do
+		for _, v in _ipairs(ply:GetBodyGroups()) do
 			local bodygroup = ply:GetBodygroup(v.id)
 			ply_bodygroups = ply_bodygroups .. bodygroup
 		end
@@ -26,11 +30,11 @@ function RealGloabalChat.Api:GetPlayerAction(ply)
 		ply_pos = ply:GetVehicle():GetPos()
 	end
 
-	if IsValid(ply) and ply_alive then
+	if _IsValid(ply) and ply_alive then
 		if ply.RgChatActiveGesture then
 			ply_gesture = ply.RgChatActiveGesture
 		else
-			for gesture_id, _ in pairs(RealGloabalChat.Enum.ActGmodTaunt) do
+			for gesture_id, _ in _pairs(RealGloabalChat.Enum.ActGmodTaunt) do
 				if ply:IsPlayingGesture(gesture_id) then
 					ply_gesture = gesture_id
 					break
@@ -52,7 +56,7 @@ function RealGloabalChat.Api:GetPlayerAction(ply)
 		activity = ply_activity and ply_activity or nil,
 		sequence = ply_sequence and ply_sequence or nil,
 		gesture = ply_gesture and ply_gesture or nil,
-		weapon_class = IsValid(ply_weapon) and ply_weapon:GetClass() or nil,
+		weapon_class = _IsValid(ply_weapon) and ply_weapon:GetClass() or nil,
 		move_type = ply_move_type and ply_move_type or nil,
 		alive = ply_alive and 1 or 0,
 		attacker = ply_attacker and ply_attacker or nil,
