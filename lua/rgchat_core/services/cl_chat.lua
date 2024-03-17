@@ -166,7 +166,7 @@ function _RenderMessages(response)
 			end
 		end
 
-		_chat_AddText(builder:GetResult())
+		chat.AddText(builder:GetResult())
 
 		if has_ping then
 			_system_FlashWindow()
