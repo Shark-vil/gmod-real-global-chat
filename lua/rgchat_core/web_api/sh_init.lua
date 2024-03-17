@@ -1,3 +1,7 @@
+local _isfunction = isfunction
+local _tostring = tostring
+local _util_JSONToTable = util.JSONToTable
+
 function RealGloabalChat.WebApi:HttpError(message)
 	RealGloabalChat:LogError('[WEB] ' .. message)
 end
@@ -19,9 +23,9 @@ function RealGloabalChat.WebApi:GetUrlValuesBuilder()
 		if not isstring(key) or value == nil then return end
 
 		if result_params == '' then
-			result_params = '?' .. key .. '=' .. tostring(value)
+			result_params = '?' .. key .. '=' .. _tostring(value)
 		else
-			result_params = result_params .. '&' .. key .. '=' .. tostring(value)
+			result_params = result_params .. '&' .. key .. '=' .. _tostring(value)
 		end
 	end
 
@@ -34,7 +38,7 @@ end
 
 function RealGloabalChat.WebApi:ResponseHandler(callback)
 	return function(code, body)
-		local response = util.JSONToTable(body)
+		local response = _util_JSONToTable(body)
 
 		if response and response.success then
 			if response.success == 0 then
@@ -48,7 +52,7 @@ function RealGloabalChat.WebApi:ResponseHandler(callback)
 			RealGloabalChat.WebApi:HttpError(body)
 		end
 
-		if isfunction(callback) then
+		if _isfunction(callback) then
 			callback(code, response or body)
 		end
 	end

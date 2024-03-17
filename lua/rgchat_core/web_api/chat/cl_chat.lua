@@ -1,12 +1,18 @@
 RealGloabalChat.WebApi.Chat = RealGloabalChat.WebApi.Chat or {}
+--
+local _isfunction = isfunction
+local _file_Exists = file.Exists
+local _file_Read = file.Read
+local _util_TableToJSON = util.TableToJSON
 
 function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 	local verified_token
-	if file.Exists('rgchat_data/verified.txt', 'DATA') then
-		verified_token = file.Read('rgchat_data/verified.txt', 'DATA')
+
+	if _file_Exists('rgchat_data/verified.txt', 'DATA') then
+		verified_token = _file_Read('rgchat_data/verified.txt', 'DATA')
 	end
 
-	local content = util.TableToJSON({
+	local content = _util_TableToJSON({
 		steamid64 = ply:SteamID64(),
 		username = ply:Nick(),
 		message = message_text,
@@ -21,7 +27,11 @@ function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err) callback(nil, err) end,
+		failed = function(err)
+			if _isfunction(callback) then
+				callback(nil, err)
+			end
+		end,
 	})
 end
 
@@ -35,7 +45,9 @@ function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err) callback(nil, err) end,
+		failed = function(err)
+			callback(nil, err)
+		end,
 	})
 end
 
@@ -43,11 +55,17 @@ function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
 	RealGloabalChat.Http:Request({
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/UpdateOnline'),
 		request_type = 'POST',
-		content = { chatRoomName = RealGloabalChat.Api:GetChatRoom() },
+		content = {
+			chatRoomName = RealGloabalChat.Api:GetChatRoom()
+		},
 		content_type = 'form-data',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err) callback(nil, err) end,
+		failed = function(err)
+			if _isfunction(callback) then
+				callback(nil, err)
+			end
+		end,
 	})
 end
 
@@ -60,6 +78,8 @@ function RealGloabalChat.WebApi.Chat:GetOnline(callback)
 		request_type = 'GET',
 	}, {
 		success = callback,
-		failed = function(err) callback(nil, err) end,
+		failed = function(err)
+			callback(nil, err)
+		end,
 	})
 end
