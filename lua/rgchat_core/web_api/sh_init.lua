@@ -12,7 +12,13 @@ function RealGloabalChat.WebApi:HttpWarning(message)
 end
 
 function RealGloabalChat.WebApi:GetApiUrl(url_path)
-	return RealGloabalChat.WEB_API_URL .. url_path
+	local api_domain = RealGloabalChat.WEB_API_URL
+
+	if (CLIENT and RealGloabalChat.ConVar:GetBool('cl_rgc_use_proxy_domain')) or (SERVER and RealGloabalChat.ConVar:GetBool('sv_rgc_use_proxy_domain')) then
+		api_domain = RealGloabalChat.WEB_API_PROXY_URL
+	end
+
+	return api_domain .. url_path
 end
 
 function RealGloabalChat.WebApi:GetUrlValuesBuilder()

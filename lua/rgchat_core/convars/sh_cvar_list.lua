@@ -11,6 +11,8 @@ local cvar_list = {
 	{ 'sv_rgc_sync_players', '1', FCVAR_ARCHIVE + FCVAR_REPLICATED, '', 0, 1 },
 	{ 'sv_rgc_sync_entities', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, '', 0, 1 },
 	{ 'sv_rgc_http_debug', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, '', 0, 1 },
+	{ 'cl_rgc_use_proxy_domain', '0', FCVAR_ARCHIVE, '', 0, 1 },
+	{ 'sv_rgc_use_proxy_domain', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, '', 0, 1 },
 }
 
 for _, v in ipairs(cvar_list) do
