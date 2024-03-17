@@ -141,7 +141,7 @@ function _BackgroundActionsWorker()
 											phys:EnableMotion(false)
 										end
 
-										while _IsValid(ent) and ent:GetPos() ~= pos and ent:GetAngles() ~= ang do
+										while _IsValid(ent) and ent.RgChatNetHost == net_ent.host_steamid64 and ent:GetPos() ~= pos and ent:GetAngles() ~= ang do
 											local new_pos = RealGloabalChat:MoveTowards(ent:GetPos(), pos, FrameTime() * (speed * 2))
 											local new_ang = RealGloabalChat:MoveTowards(ent:GetAngles(), ang, FrameTime() * (speed * 2))
 											if not new_pos or not new_ang then break end
