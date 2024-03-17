@@ -40,17 +40,11 @@ function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 end
 
 function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
-	local content = util.TableToJSON({
-		steamid64 = ply:SteamID64(),
-		username = ply:Nick(),
-		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
-	})
-
 	RealGloabalChat.Http:Request({
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/UpdateOnline'),
 		request_type = 'POST',
-		content = content,
-		content_type = 'json',
+		content = { chatRoomName = RealGloabalChat.Api:GetChatRoom() },
+		content_type = 'form-data',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
 		failed = function(err) callback(nil, err) end,
