@@ -11,6 +11,7 @@ local _string_Trim = string.Trim
 local _chat_AddText = chat.AddText
 local _util_JSONToTable = util.JSONToTable
 local _coroutine_wait = coroutine.wait
+local _player_GetHumans = player.GetHumans
 local _color_rgchat_tag = Color(207, 237, 73)
 local _color_username = Color(255, 255, 104)
 local _color_username_verified = Color(182, 255, 104)
@@ -62,7 +63,7 @@ function _RenderMessages(response)
 	local self_nickname = LocalPlayer():Nick()
 	local skip_steamid64_list = {}
 
-	for _, ply in _ipairs(player.GetHumans()) do
+	for _, ply in _ipairs(_player_GetHumans()) do
 		if _IsValid(ply) and ply:SteamID64() then
 			skip_steamid64_list[ply:SteamID64()] = true
 		end
@@ -182,7 +183,7 @@ function _Handler()
 	while true do
 		if RealGloabalChat.Api:PlayerChatIsActive() then
 			local code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
-			if code and code == 200 and response and response.success and response.success == 1 then
+			if code and code == 200 and response and response.success and response.success == 1 and response.messages then
 				if not _isnumber(_last_message_id) then
 					_SetLastMessageId(response)
 				else
