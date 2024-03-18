@@ -17,8 +17,8 @@ local vector_0_0_5 = Vector(0, 0, 5)
 local cvar_dev = GetConVar('developer')
 local cvar_gravity = GetConVar('sv_gravity')
 local vector_0_0_0 = Vector(0, 0, 0)
-local vector_0_0_1 = Vector(0, 0, 1)
-local util_TraceLine = util.TraceLine
+-- local vector_0_0_1 = Vector(0, 0, 1)
+-- local util_TraceLine = util.TraceLine
 
 function ENT:ModelNetworkUpdate()
 	local data = self:GetData()
