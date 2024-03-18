@@ -1,6 +1,5 @@
 local string_lower = string.lower
 local CurTime = CurTime
-
 ENT.Base = 'base_nextbot'
 ENT.Spawnable = false
 ENT.BotData = {}
@@ -13,10 +12,12 @@ ENT.dt = ''
 function ENT:Initialize()
 	self:SetModel('models/player/kleiner.mdl')
 	self:AddFlags(FL_OBJECT + FL_NPC + FL_FAKECLIENT)
+	self:SetCollisionBounds(Vector(-10, -10, 0), Vector(10, 10, 72))
 	self:PhysicsInitShadow()
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:PhysWake()
 	self:SetHealth(100)
+
 	if SERVER then
 		self:SetLagCompensated(true)
 		self:SetSolidMask(MASK_PLAYERSOLID)
@@ -25,13 +26,24 @@ end
 
 function ENT:Update()
 	local data = self:GetData()
-	if self:OnStuck() then self:SetPos(data.MovePos) end
-	if data.Color then self:SetColor(data.Color) end
+
+	if self:OnStuck() then
+		self:SetPos(data.MovePos)
+	end
+
+	if data.Color then
+		self:SetColor(data.Color)
+	end
+
 	if RealGloabalChat.Enum.ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
 		self:CustomStartActivity(RealGloabalChat.Enum.ActJumpToRun[data.State])
 	end
 end
 
+-- function ENT:SetModelFix(model_name)
+-- 	self:SetModel(model_name)
+-- 	self:SetCollisionBounds(self:GetMode())
+-- end
 function ENT:SetData(data)
 	self:UpdateData(data)
 	self:SetNWString('UserName', '[RGChat] ' .. data.username)
@@ -49,7 +61,6 @@ function ENT:UpdateData(data)
 	self.BotData.ModelWsid = data.model_wsid
 	self.BotData.Model = data.model
 	self.BotData.Actions = data.actions
-
 	self:SetNWString('SteamId64', data.steamid64)
 	self:SetNWString('NickName', data.username)
 end
@@ -113,11 +124,18 @@ function ENT:SetState(state_name)
 	if old_state and old_state.name == state_name then return end
 	local bot_states = RealGloabalChat:GetFromStorage('NextBot', 'States', state_name)
 	local state = bot_states[state_name]
+
 	if state and old_state and old_state.func and old_state.func.stop then
 		old_state.func.stop(self)
 	end
-	self.BotData.CurrentState = { name = state_name, func = state }
+
+	self.BotData.CurrentState = {
+		name = state_name,
+		func = state
+	}
+
 	local current_state = self.BotData.CurrentState
+
 	if current_state and current_state.func and current_state.func.start then
 		current_state.func.start(self)
 	end
@@ -125,10 +143,12 @@ end
 
 function ENT:GetActiveState()
 	if not self.BotData.CurrentState then return end
+
 	return self.BotData.CurrentState.func
 end
 
 function ENT:GetActiveStateName()
 	if not self.BotData.CurrentState then return end
+
 	return self.BotData.CurrentState.name
 end
