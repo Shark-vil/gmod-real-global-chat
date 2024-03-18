@@ -51,7 +51,7 @@ function RealGloabalChat.WebApi:ResponseHandler(callback)
 				if response.message then
 					RealGloabalChat.WebApi:HttpWarning(response.message)
 				elseif response.error then
-					RealGloabalChat.WebApi:HttpWarning(response.error)
+					RealGloabalChat.WebApi:HttpError(response.error)
 				end
 			end
 		else
