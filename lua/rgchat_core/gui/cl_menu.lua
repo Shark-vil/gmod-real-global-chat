@@ -258,33 +258,46 @@ local function openSettingsMenu()
 	label_help:SetFont('CreditsText')
 	label_help:SetText([[Open menu:
 - /rgchat
+
 Mute or unmute player:
 - /rgchatmute ID
 - Example: /rgchatmute #23 or rgchatmute 23
+
 Ping player:
 - /ping NICK or NICL, [any text]
+
 Nextboot switch:
 - /rgchatplayers
+
 Leave the world of the player:
-- /rgchatleaveplayer
+- /rgcleaveworld
+
 Set player model limit:
 - /rgchatwslimit NUMBER
 - Example: /rgchatwslimit 150
 - Disable: /rgchatwslimit 0
+
 Country mode switch:
 - /rgchatmode
+
 Filter switch:
 - /rgchatfilter
+
 Strict filter switch:
 - /rgchatfilterstrict
+
 Player map visibility switch:
 - /rgchatmap
+
 Enable global chat mod:
 - /rgchaton
+
 Disable global chat mod:
 - /rgchatoff
+
 Ping SFX switch:
 - /rgchatpingsfx
+
 Set translation language
 - /rgchattranslateto LANGUAGE_CODE
 - Exanple: /rgchattranslateto en]])

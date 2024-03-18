@@ -4,6 +4,10 @@ local _math_sqrt = math.sqrt
 local _Angle = Angle
 local _Color = Color
 local _tonumber = tonumber
+local _ents_FindByClass = ents.FindByClass
+local _ipairs = ipairs
+local _IsValid = IsValid
+local _isstring = isstring
 
 function RealGloabalChat:ColorStringToColor(col_string)
 	if not col_string then return _Color(255, 255, 255, 255) end
@@ -43,4 +47,12 @@ function RealGloabalChat:MoveTowards(current_vector, target_vector, delta_time)
 	if magnitude <= delta_time or magnitude == 0 then return target_vector end
 
 	return current_vector + direction_vector / magnitude * delta_time
+end
+
+function RealGloabalChat:GetBotBySteamId64(steamid64)
+	for _, bot in _ipairs(_ents_FindByClass('rgchat_player_nextbot')) do
+		if _IsValid(bot) and bot.BotData and _isstring(bot.BotData.SteamId64) and bot.BotData.SteamId64 == steamid64 then
+			return bot
+		end
+	end
 end

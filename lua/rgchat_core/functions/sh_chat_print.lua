@@ -1,47 +1,63 @@
-local _sendToClient
+local _SendToClient
+local _util_TableToJSON = util.TableToJSON
+local _util_JSONToTable = util.JSONToTable
+local _unpack = unpack
 
 if SERVER then
-	function _sendToClient(ply, message, message_type)
+	function _SendToClient(ply, json_data_messages, message_type)
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 		net.Start('RGChat_PrintToChat')
 		net.WriteInt(message_type, 3)
-		net.WriteString(message)
+		net.WriteString(json_data_messages)
 		net.Send(ply)
 	end
 else
 	net.Receive('RGChat_PrintToChat', function()
 		local message_type = net.ReadInt(3)
-		local message = net.ReadString()
+		local json_data_messages = net.ReadString()
+		local messages_args = _util_JSONToTable(json_data_messages)
 		if message_type == 0 then
-			RealGloabalChat:Print(message)
+			RealGloabalChat:Print(_unpack(messages_args))
 		elseif message_type == 1 then
-			RealGloabalChat:PrintWarning(message)
+			RealGloabalChat:PrintWarning(_unpack(messages_args))
 		elseif message_type == 3 then
-			RealGloabalChat:PrintError(message)
+			RealGloabalChat:PrintError(_unpack(messages_args))
 		end
 	end)
 end
 
-function RealGloabalChat:Print(message, ply)
-	if SERVER then
-		_sendToClient(ply, message, 0)
-		return
-	end
-	chat.AddText(RealGloabalChat.Color.Log, '[RGChat] ', message)
+function RealGloabalChat:Print(...)
+	chat.AddText(RealGloabalChat.Color.Log, '[RGChat] ', ...)
 end
 
-function RealGloabalChat:PrintWarning(message)
-	if SERVER then
-		_sendToClient(ply, message, 1)
-		return
-	end
-	chat.AddText(RealGloabalChat.Color.Warning, '[RGChat Warning] ', message)
+function RealGloabalChat:PrintWarning(...)
+	chat.AddText(RealGloabalChat.Color.Warning, '[RGChat Warning] ', ...)
 end
 
-function RealGloabalChat:PrintError(message)
-	if SERVER then
-		_sendToClient(ply, message, 2)
+function RealGloabalChat:PrintError(...)
+	chat.AddText(RealGloabalChat.Color.Error, '[RGChat Error] ', ...)
+end
+
+function RealGloabalChat:PrintForPlayer(ply, ...)
+	if CLIENT then
+		RealGloabalChat:Print(...)
 		return
 	end
-	chat.AddText(RealGloabalChat.Color.Error, '[RGChat Error] ', message)
+	_SendToClient(ply, _util_TableToJSON({ ... }), 0)
+end
+
+function RealGloabalChat:PrintForPlayerWarning(ply, ...)
+	if CLIENT then
+		RealGloabalChat:PrintWarning(...)
+		return
+	end
+	_SendToClient(ply, _util_TableToJSON({ ... }), 1)
+end
+
+function RealGloabalChat:PrintForPlayerError(ply, ...)
+	if CLIENT then
+		RealGloabalChat:PrintError(...)
+		return
+	end
+	_SendToClient(ply, _util_TableToJSON({ ... }), 2)
 end

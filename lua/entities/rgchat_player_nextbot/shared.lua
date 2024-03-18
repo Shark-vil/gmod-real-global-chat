@@ -49,6 +49,9 @@ function ENT:UpdateData(data)
 	self.BotData.ModelWsid = data.model_wsid
 	self.BotData.Model = data.model
 	self.BotData.Actions = data.actions
+
+	self:SetNWString('SteamId64', data.steamid64)
+	self:SetNWString('NickName', data.username)
 end
 
 function ENT:UpdateVars()

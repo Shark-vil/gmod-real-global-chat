@@ -37,6 +37,7 @@ local _head_bone_name = 'ValveBiped.Bip01_Head'
 local _vector_0_0_5 = Vector(0, 0, 5)
 local _clr_1 = Color(255, 255, 255)
 local _clr_2 = Color(0, 0, 0)
+local _clr_host = Color(244, 167, 52)
 local _download_cached = {}
 local _size_limit_cached = {}
 local _has_start_loaded = false
@@ -120,6 +121,8 @@ hook.Add('PostDrawOpaqueRenderables', 'RGCHat_NextBot_UserName_Draw', function()
 	local_player_eye_angles:RotateAroundAxis(local_player_eye_angles:Forward(), 90)
 	local_player_eye_angles:RotateAroundAxis(local_player_eye_angles:Right(), 90)
 
+	local current_target_id = local_player:GetNWString('RGC_SYNC_TARGET', '')
+
 	for _, npc in _ipairs(bots) do
 		if not _isValid(npc) then continue end
 		local text_username = npc:GetNWString('UserName', nil)
@@ -128,6 +131,7 @@ hook.Add('PostDrawOpaqueRenderables', 'RGCHat_NextBot_UserName_Draw', function()
 		if npc_pos:DistToSqr(local_player_pos) > 250000 then continue end
 		local upper_vector_pos = _vector_0_0_5
 		local start_pos = npc:LookupBone(_head_bone_name)
+		local is_host = false
 
 		if start_pos then
 			start_pos = start_pos + npc:GetForward() + npc:GetUp() * upper_vector_pos.z
@@ -135,7 +139,14 @@ hook.Add('PostDrawOpaqueRenderables', 'RGCHat_NextBot_UserName_Draw', function()
 			start_pos = npc_pos + npc:GetForward() + npc:GetUp() * (npc:OBBMaxs().z + upper_vector_pos.z)
 		end
 
+		if current_target_id and current_target_id ~= '' and current_target_id == npc:GetNWString('SteamId64', '') then
+			is_host = true
+		end
+
 		_cam_Start3D2D(start_pos, local_player_eye_angles, 0.25)
+		if is_host then
+			_draw_SimpleTextOutlined('World Owner', text_font, 0, 0, _clr_host, text_align, text_align, 1, _clr_2)
+		end
 		_draw_SimpleTextOutlined(text_username, text_font, 0, -16, _clr_1, text_align, text_align, 1, _clr_2)
 		_cam_End3D2D()
 	end

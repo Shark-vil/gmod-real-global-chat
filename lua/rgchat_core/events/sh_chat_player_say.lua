@@ -9,9 +9,9 @@ _chat_commands = {
 		RunConsoleCommand('sv_rgc_sync_players', new_cvar)
 
 		if new_cvar == 1 then
-			RealGloabalChat:Print('ON - You will now see the other players', ply)
+			ply:RgcPrint('ON - You will now see the other players')
 		else
-			RealGloabalChat:Print('OFF - You will no longer see other players', ply)
+			ply:RgcPrint('OFF - You will no longer see other players')
 		end
 	end,
 	['rgchatwslimit'] = function(ply, text, value)
@@ -22,7 +22,7 @@ _chat_commands = {
 		end
 
 		ply:ConCommand('cl_rgc_download_model_size_limit ' .. new_size)
-		RealGloabalChat:Print('New workshop download limit: ' .. tostring(new_size) .. ' mb', ply)
+		ply:RgcPrint('New workshop download limit: ' .. tostring(new_size) .. ' mb')
 	end,
 	['rgchatmode'] = function(ply)
 		net.Start('RGChat_SwitchCvarFromClient')
@@ -74,10 +74,13 @@ _chat_commands = {
 		ply:ConCommand('cl_rgc_target_translate "' .. lang_code .. '"')
 
 		if lang_code and lang_code ~= '' then
-			RealGloabalChat:Print('New target translate: ' .. tostring(lang_code), ply)
+			ply:RgcPrint('New target translate: ' .. tostring(lang_code))
 		else
-			RealGloabalChat:Print('New target translate: default country', ply)
+			ply:RgcPrint('New target translate: default country')
 		end
+	end,
+	['rgcleaveworld'] = function(ply)
+		RealGloabalChat:WatchToPlayer(ply, nil)
 	end,
 	['ping'] = function(ply, text)
 		net.Start('RGChat_PlayerSay')
