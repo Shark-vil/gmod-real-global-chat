@@ -1,4 +1,4 @@
-local _PlayerSpawnEntity, _PlayerRemoveEntity, _BackgroundActionsWorker, _BackgroundUpdateWorker, _PickupEntity, _DroppedEntity
+local _PlayerSpawnEntity, _PlayerRemoveEntity, _BackgroundUpdateTransformWorker, _BackgroundActionsWorker, _BackgroundUpdateWorker, _PickupEntity, _DroppedEntity
 local _pairs = pairs
 local _ipairs = ipairs
 local _table_Empty = table.Empty
@@ -6,6 +6,7 @@ local _coroutine_yield = coroutine.yield
 local _coroutine_wait = coroutine.wait
 local _player_GetHumans = player.GetHumans
 local _ents_GetAll = ents.GetAll
+local _table_Copy = table.Copy
 local _SafeRemoveEntity = SafeRemoveEntity
 local _util_IsValidModel = util.IsValidModel
 local _util_JSONToTable = util.JSONToTable
@@ -13,6 +14,7 @@ local _table_remove = table.remove
 local _table_insert = table.insert
 local _ents_Create = ents.Create
 local _timer_Simple = timer.Simple
+local _FrameTime = FrameTime
 local _xpcall = xpcall
 local _IsValid = IsValid
 local _spawn_entity_queue = {}
@@ -127,12 +129,13 @@ function _BackgroundActionsWorker()
 										end
 									end
 
+									ent.RgChatHostEntity = is_hosted_entity
+
 									if not is_hosted_entity then
 										if ent:GetModel() ~= net_ent.model and _util_IsValidModel(net_ent.model) then
 											ent:SetModel(net_ent.model)
 										end
 
-										local speed = 100
 										local pos = RealGloabalChat:PosStringToVector(net_ent.pos)
 										local ang = RealGloabalChat:PosStringToAngle(net_ent.ang)
 										local phys = ent:GetPhysicsObject()
@@ -141,14 +144,8 @@ function _BackgroundActionsWorker()
 											phys:EnableMotion(false)
 										end
 
-										while _IsValid(ent) and ent.RgChatNetHost == net_ent.host_steamid64 and ent:GetPos() ~= pos and ent:GetAngles() ~= ang do
-											local new_pos = RealGloabalChat:MoveTowards(ent:GetPos(), pos, FrameTime() * (speed * 2))
-											local new_ang = RealGloabalChat:MoveTowards(ent:GetAngles(), ang, FrameTime() * (speed * 2))
-											if not new_pos or not new_ang then break end
-											ent:SetPos(new_pos)
-											ent:SetAngles(new_ang)
-											_coroutine_yield()
-										end
+										ent.RgChatNextPos = pos
+										ent.RgChatNextAng = ang
 									end
 								end
 							else
@@ -174,6 +171,7 @@ function _BackgroundActionsWorker()
 									ent.RgChatNetId = net_ent.net_id
 									ent.RgChatNetOwner = net_ent.world_owner_steamid64
 									ent.RgChatNetHost = net_ent.host_steamid64
+									ent.RgChatHostEntity = false
 									local phys = ent:GetPhysicsObject()
 
 									if _IsValid(phys) and phys:IsMotionEnabled() then
@@ -217,60 +215,109 @@ end
 
 RealGloabalChat:AddBackgroundWorker('props_sync', _BackgroundActionsWorker)
 
+function _BackgroundUpdateTransformWorker()
+	local speed = 100
+
+	while true do
+		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
+			_coroutine_wait(1)
+		else
+			local spawned_entities_list = _table_Copy(_spawned_net_entities)
+			_coroutine_yield()
+
+			for _, data in _pairs(spawned_entities_list) do
+				local ent = data.ent
+
+				if _IsValid(ent) and not ent.RgChatHostEntity then
+					local pos = ent.RgChatNextPos
+					local ang = ent.RgChatNextAng
+
+					if pos and pos ~= ent:GetPos() then
+						local new_pos = RealGloabalChat:MoveTowards(ent:GetPos(), pos, _FrameTime() * (speed * 2))
+
+						if new_pos then
+							ent:SetPos(new_pos)
+						end
+					end
+
+					if ang and ang ~= ent:GetAngles() then
+						local new_ang = RealGloabalChat:MoveTowards(ent:GetAngles(), ang, _FrameTime() * (speed * 2))
+
+						if new_ang then
+							ent:SetAngles(new_ang)
+						end
+					end
+
+					_coroutine_yield()
+				end
+			end
+
+			_coroutine_yield()
+		end
+	end
+end
+
+RealGloabalChat:AddBackgroundWorker('props_update_transform', _BackgroundUpdateTransformWorker)
+
 function _BackgroundUpdateWorker()
 	while true do
-		local valid_claimed_entities = {}
+		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
+			_coroutine_wait(1)
+		else
+			local valid_claimed_entities = {}
 
-		for i = #_claimed_entities, 1, -1 do
-			local data = _claimed_entities[i]
-			local ply = data.ply
-			local ent = data.ent
+			for i = #_claimed_entities, 1, -1 do
+				local data = _claimed_entities[i]
+				local ply = data.ply
+				local ent = data.ent
 
-			if _IsValid(ply) and _IsValid(ent) then
-				valid_claimed_entities[ply] = valid_claimed_entities[ply] or {}
-				_table_insert(valid_claimed_entities[ply], ent)
+				if _IsValid(ply) and _IsValid(ent) then
+					valid_claimed_entities[ply] = valid_claimed_entities[ply] or {}
+					_table_insert(valid_claimed_entities[ply], ent)
+				end
 			end
-		end
 
-		_coroutine_yield()
+			_coroutine_yield()
 
-		for ply, entities in _pairs(valid_claimed_entities) do
-			local code, response = RealGloabalChat.WebApi.GameInfo:ClaimEntitiesWait(ply, entities)
+			for ply, entities in _pairs(valid_claimed_entities) do
+				local code, response = RealGloabalChat.WebApi.GameInfo:ClaimEntitiesWait(ply, entities)
 
-			if code and code == 200 and response and response.success and response.success == 1 and response.entities then
-				for _, net_ent in _ipairs(response.entities) do
-					for _, ent in _ipairs(entities) do
-						if _IsValid(ent) and net_ent.ent_index == ent:EntIndex() then
-							ent.RgChatNetHost = ply:SteamID64()
-							break
+				if code and code == 200 and response and response.success and response.success == 1 and response.entities then
+					for _, net_ent in _ipairs(response.entities) do
+						for _, ent in _ipairs(entities) do
+							if _IsValid(ent) and net_ent.ent_index == ent:EntIndex() then
+								ent.RgChatNetHost = ply:SteamID64()
+								ent.RgChatHostEntity = true
+								break
+							end
 						end
+					end
+				end
+
+				_coroutine_yield()
+			end
+
+			local update_entities = {}
+
+			for net_id, data in _pairs(_spawned_net_entities) do
+				for _, ply in _ipairs(_player_GetHumans()) do
+					local ent = data.ent
+
+					if _IsValid(ent) and ent.RgChatNetHost == ply:SteamID64() then
+						update_entities[ply] = update_entities[ply] or {}
+						_table_insert(update_entities[ply], ent)
+						break
 					end
 				end
 			end
 
-			_coroutine_yield()
-		end
-
-		local update_entities = {}
-
-		for net_id, data in _pairs(_spawned_net_entities) do
-			for _, ply in _ipairs(_player_GetHumans()) do
-				local ent = data.ent
-
-				if _IsValid(ent) and ent.RgChatNetHost == ply:SteamID64() then
-					update_entities[ply] = update_entities[ply] or {}
-					_table_insert(update_entities[ply], ent)
-					break
-				end
+			for ply, entities in _pairs(update_entities) do
+				RealGloabalChat.WebApi.GameInfo:UpdateEntitiesWait(ply, entities)
+				_coroutine_yield()
 			end
-		end
 
-		for ply, entities in _pairs(update_entities) do
-			RealGloabalChat.WebApi.GameInfo:UpdateEntitiesWait(ply, entities)
-			_coroutine_yield()
+			_coroutine_wait(1)
 		end
-
-		_coroutine_wait(1)
 	end
 end
 
