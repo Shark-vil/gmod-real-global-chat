@@ -247,8 +247,6 @@ function _BackgroundUpdateTransformWorker()
 							ent:SetAngles(new_ang)
 						end
 					end
-
-					_coroutine_yield()
 				end
 			end
 

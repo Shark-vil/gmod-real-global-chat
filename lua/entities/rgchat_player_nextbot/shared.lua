@@ -12,7 +12,6 @@ ENT.dt = ''
 function ENT:Initialize()
 	self:SetModel('models/player/kleiner.mdl')
 	self:AddFlags(FL_OBJECT + FL_NPC + FL_FAKECLIENT)
-	self:SetCollisionBounds(Vector(-10, -10, 0), Vector(10, 10, 72))
 	self:PhysicsInitShadow()
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:PhysWake()
@@ -40,10 +39,6 @@ function ENT:Update()
 	end
 end
 
--- function ENT:SetModelFix(model_name)
--- 	self:SetModel(model_name)
--- 	self:SetCollisionBounds(self:GetMode())
--- end
 function ENT:SetData(data)
 	self:UpdateData(data)
 	self:SetNWString('UserName', '[RGChat] ' .. data.username)
