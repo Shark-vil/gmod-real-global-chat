@@ -15,6 +15,7 @@ local _table_insert = table.insert
 local _ents_Create = ents.Create
 local _timer_Simple = timer.Simple
 local _FrameTime = FrameTime
+local _CurTime = CurTime
 local _xpcall = xpcall
 local _IsValid = IsValid
 local _spawn_entity_queue = {}
@@ -118,7 +119,7 @@ function _BackgroundActionsWorker()
 								local value = _spawned_net_entities[net_ent.net_id]
 								local ent = value.ent
 
-								if ent and _IsValid(ent) then
+								if ent and _IsValid(ent) and ent.RgChatClaimDelay < _CurTime() then
 									ent.RgChatNetHost = net_ent.host_steamid64
 									local is_hosted_entity = false
 
@@ -172,6 +173,8 @@ function _BackgroundActionsWorker()
 									ent.RgChatNetOwner = net_ent.world_owner_steamid64
 									ent.RgChatNetHost = net_ent.host_steamid64
 									ent.RgChatHostEntity = false
+									ent.RgChatClaimDelay = 0
+
 									local phys = ent:GetPhysicsObject()
 
 									if _IsValid(phys) and phys:IsMotionEnabled() then
@@ -228,7 +231,7 @@ function _BackgroundUpdateTransformWorker()
 			for _, data in _pairs(spawned_entities_list) do
 				local ent = data.ent
 
-				if _IsValid(ent) and not ent.RgChatHostEntity then
+				if _IsValid(ent) and not ent.RgChatHostEntity and ent.RgChatClaimDelay < _CurTime() then
 					local pos = ent.RgChatNextPos
 					local ang = ent.RgChatNextAng
 
@@ -279,16 +282,21 @@ function _BackgroundUpdateWorker()
 
 			for ply, entities in _pairs(valid_claimed_entities) do
 				local code, response = RealGloabalChat.WebApi.GameInfo:ClaimEntitiesWait(ply, entities)
+				local is_valid_response = code and code == 200 and response and response.success and response.success == 1 and response.entities
 
-				if code and code == 200 and response and response.success and response.success == 1 and response.entities then
-					for _, net_ent in _ipairs(response.entities) do
-						for _, ent in _ipairs(entities) do
-							if _IsValid(ent) and net_ent.ent_index == ent:EntIndex() then
-								ent.RgChatNetHost = ply:SteamID64()
-								ent.RgChatHostEntity = true
-								break
+				for _, ent in _ipairs(entities) do
+					if _IsValid(ent) then
+						if is_valid_response then
+							for _, net_ent in _ipairs(response.entities) do
+								if net_ent.ent_index == ent:EntIndex() then
+									ent.RgChatNetHost = ply:SteamID64()
+									ent.RgChatHostEntity = true
+									break
+								end
 							end
 						end
+
+						ent.RgChatClaimDelay = 0
 					end
 				end
 
@@ -400,6 +408,7 @@ end)
 
 function _PickupEntity(ply, ent)
 	if not ent.RgChatNetId or ent.RgChatNetHost == ply:SteamID64() then return end
+	ent.RgChatClaimDelay = _CurTime() + 5
 
 	_table_insert(_claimed_entities, {
 		ply = ply,
@@ -413,6 +422,7 @@ function _DroppedEntity(ply, ent)
 		local target_ent = data.ent
 
 		if _IsValid(target_ent) and target_ent == ent then
+			ent.RgChatClaimDelay = 0
 			_table_remove(_claimed_entities, i)
 			break
 		end
