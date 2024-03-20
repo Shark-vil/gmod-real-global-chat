@@ -31,6 +31,11 @@ local _spawned_net_entities = {}
 local _cleanup_net_entities = {}
 local _claimed_entities = {}
 local _accept_settings_params = {
+	-- ['prop_physics'] = function(ent, data, is_first_spawn)
+	-- 	if not data then return end
+	-- 	ent:SetColor(data.color)
+	-- 	ent:SetMaterial(data.material)
+	-- end,
 	['sent_streamradio'] = function(ent, data, is_first_spawn)
 		if not data or not StreamRadioLib then return end
 		if ent.RgcLastStreamRadioUrl and ent.RgcLastStreamRadioUrl == data.url then return end
@@ -96,6 +101,12 @@ local _accept_settings_params = {
 	end
 }
 local _set_settings_params = {
+	-- ['prop_physics'] = function(ent)
+	-- 	ent.RgChatSettings = {
+	-- 		color = ent:GetColor(),
+	-- 		material = ent:GetMaterial(),
+	-- 	}
+	-- end,
 	['sent_streamradio'] = function(ent)
 		ent.RgChatSettings = {
 			settings = ent.Settings,
@@ -256,6 +267,15 @@ function _BackgroundActionsWorker()
 										local ang = RealGloabalChat:PosStringToAngle(net_ent.ang)
 										local phys = ent:GetPhysicsObject()
 
+										if net_ent.color then
+											local color = RealGloabalChat:ColorStringToColor(net_ent.color)
+											if color then ent:SetColor(color) end
+										end
+
+										if net_ent.material and net_ent.material ~= '' and ent:GetMaterial() ~= net_ent.material then
+											ent:SetMaterial(net_ent.material)
+										end
+
 										if _IsValid(phys) and phys:IsMotionEnabled() then
 											phys:EnableMotion(false)
 										end
@@ -288,6 +308,16 @@ function _BackgroundActionsWorker()
 									ent:SetAngles(ang)
 									ent:Spawn()
 									ent:Activate()
+
+									if net_ent.color then
+										local color = RealGloabalChat:ColorStringToColor(net_ent.color)
+										if color then ent:SetColor(color) end
+									end
+
+									if net_ent.material and net_ent.material ~= '' and ent:GetMaterial() ~= net_ent.material then
+										ent:SetMaterial(net_ent.material)
+									end
+
 									ent.RgChatNetId = net_ent.net_id
 									ent.RgChatNetOwner = net_ent.world_owner_steamid64
 									ent.RgChatNetHost = net_ent.host_steamid64

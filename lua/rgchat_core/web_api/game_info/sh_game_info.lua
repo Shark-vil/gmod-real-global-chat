@@ -59,6 +59,7 @@ function RealGloabalChat.WebApi.GameInfo:AddEntities(ply, entities, callback)
 		if not _IsValid(ent) then continue end
 		local ent_pos = ent:GetPos()
 		local ent_ang = ent:GetAngles()
+		local ent_clr = ent:GetColor()
 		local is_motion = 0
 		local phys = ent:GetPhysicsObject()
 
@@ -74,7 +75,9 @@ function RealGloabalChat.WebApi.GameInfo:AddEntities(ply, entities, callback)
 			ang = ent_ang.x .. ',' .. ent_ang.y .. ',' .. ent_ang.z,
 			is_npc = (ent:IsNPC() or ent:IsNextBot()) and 1 or 0,
 			motion_enabled = is_motion,
-			settings = ent.RgChatSettings and util.TableToJSON(ent.RgChatSettings) or nil
+			settings = ent.RgChatSettings and util.TableToJSON(ent.RgChatSettings) or nil,
+			color = ent_clr.r .. ',' .. ent_clr.g .. ',' .. ent_clr.b .. ',' .. ent_clr.a,
+			material = ent:GetMaterial(),
 		})
 	end
 
@@ -113,6 +116,7 @@ function RealGloabalChat.WebApi.GameInfo:UpdateEntities(ply, entities, callback)
 		if not _IsValid(ent) then continue end
 		local ent_pos = ent:GetPos()
 		local ent_ang = ent:GetAngles()
+		local ent_clr = ent:GetColor()
 		local is_motion = 0
 		local phys = ent:GetPhysicsObject()
 
@@ -129,7 +133,9 @@ function RealGloabalChat.WebApi.GameInfo:UpdateEntities(ply, entities, callback)
 			is_npc = (ent:IsNPC() or ent:IsNextBot()) and 1 or 0,
 			net_id = ent.RgChatNetId,
 			motion_enabled = is_motion,
-			settings = ent.RgChatSettings and util.TableToJSON(ent.RgChatSettings) or nil
+			settings = ent.RgChatSettings and util.TableToJSON(ent.RgChatSettings) or nil,
+			color = ent_clr.r .. ',' .. ent_clr.g .. ',' .. ent_clr.b .. ',' .. ent_clr.a,
+			material = ent:GetMaterial(),
 		})
 	end
 
