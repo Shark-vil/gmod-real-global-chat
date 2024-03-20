@@ -129,6 +129,7 @@ function RealGloabalChat.WebApi.GameInfo:UpdateEntities(ply, entities, callback)
 			is_npc = (ent:IsNPC() or ent:IsNextBot()) and 1 or 0,
 			net_id = ent.RgChatNetId,
 			motion_enabled = is_motion,
+			settings = ent.RgChatSettings and util.TableToJSON(ent.RgChatSettings) or nil
 		})
 	end
 

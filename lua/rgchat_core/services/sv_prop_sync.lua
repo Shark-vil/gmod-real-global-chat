@@ -10,19 +10,129 @@ local _table_Copy = table.Copy
 local _SafeRemoveEntity = SafeRemoveEntity
 local _util_IsValidModel = util.IsValidModel
 local _util_JSONToTable = util.JSONToTable
+local _util_TableToJSON = util.TableToJSON
 local _table_remove = table.remove
 local _table_insert = table.insert
 local _ents_Create = ents.Create
 local _timer_Simple = timer.Simple
 local _FrameTime = FrameTime
+local _RealTime = RealTime
+local _os_time = os.time
 local _CurTime = CurTime
+local _util_SHA256 = util.SHA256
 local _xpcall = xpcall
 local _IsValid = IsValid
+local _table_Merge = table.Merge
+local _math_Round = math.Round
+local _math_floor = math.floor
 local _spawn_entity_queue = {}
 local _remove_entity_queue = {}
 local _spawned_net_entities = {}
 local _cleanup_net_entities = {}
 local _claimed_entities = {}
+local _accept_settings_params = {
+	['sent_streamradio'] = function(ent, data, is_first_spawn)
+		if not data or not StreamRadioLib then return end
+		if ent.RgcLastStreamRadioUrl and ent.RgcLastStreamRadioUrl == data.url then return end
+
+		local phys = ent:GetPhysicsObject()
+		if _IsValid(phys) then
+			phys:EnableCollisions(not data.nocollide)
+		end
+
+		ent.Settings = data.settings
+		ent.nocollide = data.nocollide
+		StreamRadioLib.EditRadio(ent, data.settings)
+		ent:SetToolURL(data.url, true)
+		ent.RgcLastStreamRadioUrl = data.url
+	end,
+	['mediaplayer_tv'] = function(ent, data, is_first_spawn)
+		if not data then return end
+		if ent.RgcLastMediaPlayerHash and ent.RgcLastMediaPlayerHash == data.hash then return end
+
+		local mp = ent:GetMediaPlayer()
+
+		-- if is_first_spawn then
+		-- 	local first_player = player.GetAll()[1]
+		-- 	if not _IsValid(first_player) then return end
+		-- 	ent:SetCreator(first_player)
+		-- 	mp:SetOwner(first_player)
+		-- end
+
+		local function convertToMedia(data_media)
+			local media = MediaPlayer.GetMediaForUrl(data_media['url'])
+			media:SetMetadata(data_media['_metadata'], true)
+			_table_Merge(media, data_media)
+			if media['_StartTime'] then
+				media['_StartTime'] = _RealTime() - (_os_time() - media['_StartTimeWorld'])
+			end
+			if media['_metadata'] and media['_metadata']['queueTime'] then
+				media['_metadata']['queueTime'] = _RealTime() - (_os_time() - media['_metadata']['QueueTimeFix'])
+			end
+			return media
+		end
+
+		local current_media = mp:GetMedia()
+		local current_queue = mp._Queue
+		if data.media and (not _IsValid(current_media) or current_media['_id'] ~= data.media['_id']) then
+			mp:SetMedia(convertToMedia(data.media))
+		end
+		if data.queue then
+			for _, queue_media in _ipairs(data.queue) do
+				local is_exists = false
+				for _, current_queue_media in _ipairs(current_queue) do
+					if current_queue_media['_id'] == queue_media['_id'] then
+						is_exists = true
+						break
+					end
+				end
+				if not is_exists then
+					mp:AddMedia(convertToMedia(queue_media))
+				end
+			end
+		end
+
+		ent.RgcLastMediaPlayerHash = data.hash
+	end
+}
+local _set_settings_params = {
+	['sent_streamradio'] = function(ent)
+		ent.RgChatSettings = {
+			settings = ent.Settings,
+			nocollide = ent.nocollide,
+			url = ent:GetToolURL(),
+		}
+	end,
+	['mediaplayer_tv'] = function(ent)
+		local mp = ent:GetMediaPlayer()
+		local media = mp._Media and table.Copy(mp._Media) or nil
+		local queue = mp._Queue and table.Copy(mp._Queue) or nil
+
+		ent.RgChatSettings = {
+			media = media,
+			queue = queue,
+		}
+
+		local hash = _util_SHA256(_util_TableToJSON(ent.RgChatSettings))
+		ent.RgChatSettings.hash = hash
+
+		if media and media['_StartTime'] then
+			media['_Owner'] = nil
+			media['_StartTimeFix'] = _math_Round(_RealTime() - media['_StartTime'])
+			media['_StartTimeWorld'] = _math_floor(_os_time() - media['_StartTimeFix'])
+			media['_metadata']['QueueTimeFix'] = _math_Round(_RealTime() - media['_metadata']['queueTime'])
+			media['_metadata']['QueueTimeWorld'] = _math_floor(_os_time() - media['_metadata']['QueueTimeFix'])
+		end
+
+		if queue then
+			for _, queue_media in _ipairs(queue) do
+				queue_media['_Owner'] = nil
+				queue_media['_metadata']['QueueTimeFix'] = _math_Round(_RealTime() - queue_media['_metadata']['queueTime'])
+				queue_media['_metadata']['QueueTimeWorld'] = _math_floor(_os_time() - queue_media['_metadata']['QueueTimeFix'])
+			end
+		end
+	end
+}
 
 function _BackgroundActionsWorker()
 	while true do
@@ -83,6 +193,11 @@ function _BackgroundActionsWorker()
 
 					_table_Empty(entity_queue)
 					_coroutine_yield()
+
+					-- for _, net_id in _ipairs(entity_queue) do
+					-- 	_spawned_net_entities[net_id] = nil
+					-- end
+					-- _table_Empty(entity_queue)
 				end
 			end
 
@@ -119,7 +234,7 @@ function _BackgroundActionsWorker()
 								local value = _spawned_net_entities[net_ent.net_id]
 								local ent = value.ent
 
-								if ent and _IsValid(ent) and ent.RgChatClaimDelay < _CurTime() then
+								if ent and _IsValid(ent) and (not ent.RgChatClaimDelay or ent.RgChatClaimDelay < _CurTime()) then
 									ent.RgChatNetHost = net_ent.host_steamid64
 									local is_hosted_entity = false
 
@@ -147,6 +262,10 @@ function _BackgroundActionsWorker()
 
 										ent.RgChatNextPos = pos
 										ent.RgChatNextAng = ang
+
+										if net_ent.settings and _accept_settings_params[net_ent.class_name] then
+											_accept_settings_params[net_ent.class_name](ent, _util_JSONToTable(net_ent.settings), false)
+										end
 									end
 								end
 							else
@@ -181,20 +300,12 @@ function _BackgroundActionsWorker()
 										phys:EnableMotion(false)
 									end
 
-									if StreamRadioLib and net_ent.class_name == 'sent_streamradio' then
+									if net_ent.settings then
 										_timer_Simple(0, function()
 											if not _IsValid(ent) then return end
-											local data = _util_JSONToTable(net_ent.settings)
-											if not data then return end
-
-											if _IsValid(phys) then
-												phys:EnableCollisions(not data.nocollide)
+											if _accept_settings_params[net_ent.class_name] then
+												_accept_settings_params[net_ent.class_name](ent, _util_JSONToTable(net_ent.settings), true)
 											end
-
-											ent.Settings = data.settings
-											ent.nocollide = data.nocollide
-											StreamRadioLib.EditRadio(ent, data.settings)
-											ent:SetToolURL(data.url, true)
 										end)
 									end
 								end
@@ -311,6 +422,12 @@ function _BackgroundUpdateWorker()
 
 					if _IsValid(ent) and ent.RgChatNetHost == ply:SteamID64() then
 						update_entities[ply] = update_entities[ply] or {}
+						local class_name = ent:GetClass()
+
+						if _set_settings_params[class_name] then
+							_set_settings_params[class_name](ent)
+						end
+
 						_table_insert(update_entities[ply], ent)
 						break
 					end
@@ -356,19 +473,30 @@ hook.Add('PlayerSpawnedProp', 'RGChat.EntSyncPlayerSpawnedProp', function(ply, m
 end)
 
 hook.Add('OnEntityCreated', 'RGChat.SpecificOnEntityCreated', function(ent)
-	if _IsValid(ent) and ent:GetClass() == 'sent_streamradio' then
-		_timer_Simple(0, function()
-			if not _IsValid(ent) or not _IsValid(ent.Owner) then return end
+	_timer_Simple(0, function()
+		if not _IsValid(ent) then return end
+		local class_name = ent:GetClass()
+		local ent_owner
 
-			ent.RgChatSettings = {
-				settings = ent.Settings,
-				nocollide = ent.nocollide,
-				url = ent:GetToolURL(),
-			}
+		if class_name == 'sent_streamradio' then
+			if not _IsValid(ent.Owner) then return end
+			if _set_settings_params[class_name] then
+				_set_settings_params[class_name](ent)
+			end
 
-			_PlayerSpawnEntity(ent.Owner, ent)
-		end)
-	end
+			ent_owner = ent.Owner
+		elseif class_name == 'mediaplayer_tv' then
+			if _set_settings_params[class_name] then
+				_set_settings_params[class_name](ent)
+			end
+
+			local mp = ent:GetMediaPlayer()
+			ent_owner = mp._Owner
+		end
+
+		if not IsValid(ent_owner) then return end
+		_PlayerSpawnEntity(ent_owner, ent)
+	end)
 end)
 
 hook.Add('PostCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
