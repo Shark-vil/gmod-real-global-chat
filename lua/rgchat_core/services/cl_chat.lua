@@ -20,6 +20,8 @@ local _color_message_command = Color(247, 173, 246)
 local _color_message_filtred = Color(241, 137, 137)
 local _color_message_google = Color(153, 176, 254)
 local _sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
+local _table_insert = table.insert
+local _last_message_id = nil
 
 -- Commands
 local _chat_commands = {
@@ -97,14 +99,41 @@ function _RenderMessages(response)
 
 		local builder = RealGloabalChat:GetChatMessageBuilder()
 		local world_type = ConVar:GetBool('cl_rgc_country_mode') and Language:Get('chat_type_country') or Language:Get('chat_type_world')
-		builder:Add(_color_rgchat_tag)
-		builder:Add('[RGC|' .. world_type .. '|#' .. user_message.connect_id)
+		local is_show_rgx_prefix = ConVar:GetBool('cl_rgc_visible_rgc_prefix')
+		local is_show_chatname = ConVar:GetBool('cl_rgc_visible_chat_name')
+		local is_show_player_id = ConVar:GetBool('cl_rgc_visible_player_id')
+		local is_show_map_name = ConVar:GetBool('cl_rgc_visible_player_map_name')
 
-		if user_message.played_map and ConVar:GetBool('cl_rgc_visible_player_map_name') then
-			builder:Add('|' .. user_message.played_map)
+		if is_show_rgx_prefix or is_show_chatname or is_show_player_id or (is_show_map_name and user_message.played_map) then
+			builder:Add(_color_rgchat_tag)
+			builder:Add('[')
+
+			local prefix_text_list = {}
+
+			if is_show_rgx_prefix then
+				_table_insert(prefix_text_list, 'RGC')
+			end
+
+			if is_show_chatname then
+				_table_insert(prefix_text_list, world_type)
+			end
+
+			if is_show_player_id then
+				_table_insert(prefix_text_list, '#' .. user_message.connect_id)
+			end
+
+			if is_show_map_name and user_message.played_map then
+				_table_insert(prefix_text_list, user_message.played_map)
+			end
+
+			local count = #prefix_text_list
+			for i = 1, count do
+				builder:Add(prefix_text_list[i] .. (i == count and '' or '|'))
+			end
+
+			builder:Add(']')
 		end
 
-		builder:Add(']')
 		builder:Add((user_message.verified and user_message.verified == 1) and _color_username_verified or _color_username)
 		builder:Add(' ' .. user_message.username)
 
