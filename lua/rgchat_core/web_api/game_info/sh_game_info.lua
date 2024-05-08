@@ -176,15 +176,17 @@ function RealGloabalChat.WebApi.GameInfo:CleanupEntities(ply, entities, callback
 
 	local valid_entities = {}
 
-	for _, ent in _ipairs(entities) do
-		if _isentity(ent) and _IsValid(ent) then
-			_table_insert(valid_entities, {
-				net_id = ent.RgChatNetId
-			})
-		elseif _isnumber(ent) then
-			_table_insert(valid_entities, {
-				net_id = ent
-			})
+	if entities then
+		for _, ent in _ipairs(entities) do
+			if _isentity(ent) and _IsValid(ent) then
+				_table_insert(valid_entities, {
+					net_id = ent.RgChatNetId
+				})
+			elseif _isnumber(ent) then
+				_table_insert(valid_entities, {
+					net_id = ent
+				})
+			end
 		end
 	end
 
