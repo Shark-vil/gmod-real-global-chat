@@ -137,6 +137,45 @@ local function openSettingsMenu()
 	label_mapname:SetAutoStretchVertical(true)
 	base_setup_element(label_mapname)
 
+	local checkbox_rgctag = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_rgctag:SetConVar('cl_rgc_visible_rgc_prefix')
+	checkbox_rgctag:SetText(Language:Get('menu_rgc_visible_rgc_prefix'))
+	checkbox_rgctag:SetTooltip(Language:Get('menu_rgc_visible_rgc_prefix_desc'))
+	checkbox_rgctag:SetFont('Trebuchet24')
+	base_setup_element(checkbox_rgctag, { 15, 5, 15, 0 }, 'cl_rgc_visible_rgc_prefix')
+
+	local label_rgctag = scroll_panel:Add('DLabel')
+	label_rgctag:SetText(Language:Get('menu_rgc_visible_rgc_prefix_desc'))
+	label_rgctag:SetFont('CreditsText')
+	label_rgctag:SetAutoStretchVertical(true)
+	base_setup_element(label_rgctag)
+
+	local checkbox_chatname = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_chatname:SetConVar('cl_rgc_visible_chat_name')
+	checkbox_chatname:SetText(Language:Get('menu_rgc_visible_chat_name'))
+	checkbox_chatname:SetTooltip(Language:Get('menu_rgc_visible_chat_name_desc'))
+	checkbox_chatname:SetFont('Trebuchet24')
+	base_setup_element(checkbox_chatname, { 15, 5, 15, 0 }, 'cl_rgc_visible_chat_name')
+
+	local label_chatname = scroll_panel:Add('DLabel')
+	label_chatname:SetText(Language:Get('menu_rgc_visible_chat_name_desc'))
+	label_chatname:SetFont('CreditsText')
+	label_chatname:SetAutoStretchVertical(true)
+	base_setup_element(label_chatname)
+
+	local checkbox_playerid = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_playerid:SetConVar('cl_rgc_visible_player_id')
+	checkbox_playerid:SetText(Language:Get('menu_rgc_visible_player_id'))
+	checkbox_playerid:SetTooltip(Language:Get('menu_rgc_visible_player_id_desc'))
+	checkbox_playerid:SetFont('Trebuchet24')
+	base_setup_element(checkbox_playerid, { 15, 5, 15, 0 }, 'cl_rgc_visible_player_id')
+
+	local label_playerid = scroll_panel:Add('DLabel')
+	label_playerid:SetText(Language:Get('menu_rgc_visible_player_id_desc'))
+	label_playerid:SetFont('CreditsText')
+	label_playerid:SetAutoStretchVertical(true)
+	base_setup_element(label_playerid)
+
 	local checkbox_ping = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_ping:SetConVar('cl_rgc_ping_sound')
 	checkbox_ping:SetText(Language:Get('menu_rgc_ping_sound'))
@@ -202,6 +241,32 @@ local function openSettingsMenu()
 	label_syncprops:SetAutoStretchVertical(true)
 	base_setup_element(label_syncprops)
 
+	local checkbox_syncprops_view_other = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_syncprops_view_other:SetConVar('sv_rgc_sync_entities_view_other')
+	checkbox_syncprops_view_other:SetText(Language:Get('menu_rgc_sync_entities_view_other'))
+	checkbox_syncprops_view_other:SetTooltip(Language:Get('menu_rgc_sync_entities_view_other_desc'))
+	checkbox_syncprops_view_other:SetFont('Trebuchet24')
+	base_setup_element(checkbox_syncprops_view_other, { 15, 5, 15, 0 }, 'sv_rgc_sync_entities_view_other')
+
+	local label_syncprops_view_other = scroll_panel:Add('DLabel')
+	label_syncprops_view_other:SetText(Language:Get('menu_rgc_sync_entities_view_other_desc'))
+	label_syncprops_view_other:SetFont('CreditsText')
+	label_syncprops_view_other:SetAutoStretchVertical(true)
+	base_setup_element(label_syncprops_view_other)
+
+	local checkbox_syncprops_spawn_other = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_syncprops_spawn_other:SetConVar('sv_rgc_sync_entities_spawn_other')
+	checkbox_syncprops_spawn_other:SetText(Language:Get('menu_rgc_sync_entities_spawn_other'))
+	checkbox_syncprops_spawn_other:SetTooltip(Language:Get('menu_rgc_sync_entities_spawn_other_desc'))
+	checkbox_syncprops_spawn_other:SetFont('Trebuchet24')
+	base_setup_element(checkbox_syncprops_spawn_other, { 15, 5, 15, 0 }, 'sv_rgc_sync_entities_spawn_other')
+
+	local label_syncprops_spawn_other = scroll_panel:Add('DLabel')
+	label_syncprops_spawn_other:SetText(Language:Get('menu_rgc_sync_entities_spawn_other_desc'))
+	label_syncprops_spawn_other:SetFont('CreditsText')
+	label_syncprops_spawn_other:SetAutoStretchVertical(true)
+	base_setup_element(label_syncprops_spawn_other)
+
 	local title_pmmodelsize = scroll_panel:Add('DLabel')
 	title_pmmodelsize:SetText(Language:Get('menu_rgc_download_model_size_limit'))
 	title_pmmodelsize:SetFont('Trebuchet24')
@@ -264,7 +329,7 @@ Mute or unmute player:
 - Example: /rgchatmute #23 or rgchatmute 23
 
 Ping player:
-- /ping NICK or NICL, [any text]
+- /ping NICK or NICK, [any text]
 
 Nextboot switch:
 - /rgchatplayers
@@ -304,6 +369,7 @@ Set translation language
 	base_setup_element(label_help)
 
 	local image_boosty = scroll_panel:Add('DButton')
+	image_boosty:SetText('')
 	image_boosty:SetHeight(150)
 	function image_boosty:Paint(w, h)
 		surface.SetDrawColor(255, 255, 255, 255)
@@ -317,6 +383,7 @@ Set translation language
 	image_boosty:DockMargin(15, 15, 15, 15)
 
 	local image_discord = scroll_panel:Add('DButton')
+	image_discord:SetText('')
 	image_discord:SetHeight(150)
 	function image_discord:Paint(w, h)
 		surface.SetDrawColor(255, 255, 255, 255)
