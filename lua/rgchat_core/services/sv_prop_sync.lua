@@ -25,20 +25,26 @@ local _IsValid = IsValid
 local _table_Merge = table.Merge
 local _math_Round = math.Round
 local _math_floor = math.floor
+local _isbool = isbool
+local _timer_Create = timer.Create
 local _spawn_entity_queue = {}
 local _remove_entity_queue = {}
 local _spawned_net_entities = {}
-local _cleanup_net_entities = {}
+-- local _cleanup_net_entities = {}
 local _claimed_entities = {}
+local _cleanup_all = false
+local _skip_hosted_entities = {
+	['sent_streamradio'] = true,
+	['mediaplayer_tv'] = true,
+}
 local _accept_settings_params = {
-	-- ['prop_physics'] = function(ent, data, is_first_spawn)
-	-- 	if not data then return end
-	-- 	ent:SetColor(data.color)
-	-- 	ent:SetMaterial(data.material)
-	-- end,
 	['sent_streamradio'] = function(ent, data, is_first_spawn)
 		if not data or not StreamRadioLib then return end
 		if ent.RgcLastStreamRadioUrl and ent.RgcLastStreamRadioUrl == data.url then return end
+		if ent.RgChatNextSettingsSetup and ent.RgChatNextSettingsSetup < _CurTime() then
+			return
+		end
+		ent.RgChatNextSettingsSetup = _CurTime() + 1.5
 
 		local phys = ent:GetPhysicsObject()
 		if _IsValid(phys) then
@@ -54,6 +60,11 @@ local _accept_settings_params = {
 	['mediaplayer_tv'] = function(ent, data, is_first_spawn)
 		if not data then return end
 		if ent.RgcLastMediaPlayerHash and ent.RgcLastMediaPlayerHash == data.hash then return end
+		if ent.RgChatNextSettingsSetup and ent.RgChatNextSettingsSetup < _CurTime() then
+			return
+		end
+		ent.RgcLastMediaPlayerHash = data.hash
+		ent.RgChatNextSettingsSetup = _CurTime() + 3
 
 		local mp = ent:GetMediaPlayer()
 
@@ -79,16 +90,22 @@ local _accept_settings_params = {
 
 		local current_media = mp:GetMedia()
 		local current_queue = mp._Queue
-		if data.media and (not _IsValid(current_media) or current_media['_id'] ~= data.media['_id']) then
-			mp:SetMedia(convertToMedia(data.media))
+		if data.media and (not current_media or current_media['_id'] ~= data.media['_id']) then
+			local media = convertToMedia(data.media)
+			mp:SetMedia(media)
+			mp:SendMedia(media)
 		end
-		if data.queue then
+		if data.queue and #data.queue ~= 0 then
 			for _, queue_media in _ipairs(data.queue) do
 				local is_exists = false
-				for _, current_queue_media in _ipairs(current_queue) do
-					if current_queue_media['_id'] == queue_media['_id'] then
-						is_exists = true
-						break
+				if queue_media['_id'] == current_media['_id'] then
+					is_exists = true
+				else
+					for _, current_queue_media in _ipairs(current_queue) do
+						if current_queue_media['_id'] == queue_media['_id'] then
+							is_exists = true
+							break
+						end
 					end
 				end
 				if not is_exists then
@@ -97,35 +114,82 @@ local _accept_settings_params = {
 			end
 		end
 
-		ent.RgcLastMediaPlayerHash = data.hash
+		mp:QueueUpdated()
+		mp:BroadcastUpdate()
 	end
 }
 local _set_settings_params = {
-	-- ['prop_physics'] = function(ent)
-	-- 	ent.RgChatSettings = {
-	-- 		color = ent:GetColor(),
-	-- 		material = ent:GetMaterial(),
-	-- 	}
-	-- end,
 	['sent_streamradio'] = function(ent)
+		if ent.RgChatSettings and ent.RgChatSettings.url == ent:GetToolURL() then
+			return false
+		end
+
+		if ent.RgChatNextSettingsUpdate and ent.RgChatNextSettingsUpdate < _CurTime() then
+			return false
+		end
+
+		ent.RgChatNextSettingsUpdate = _CurTime() + 3
 		ent.RgChatSettings = {
 			settings = ent.Settings,
 			nocollide = ent.nocollide,
 			url = ent:GetToolURL(),
 		}
+
+		return true
 	end,
 	['mediaplayer_tv'] = function(ent)
 		local mp = ent:GetMediaPlayer()
-		local media = mp._Media and table.Copy(mp._Media) or nil
-		local queue = mp._Queue and table.Copy(mp._Queue) or nil
+		local media = mp._Media and _table_Copy(mp._Media) or nil
+		local queue = mp._Queue and _table_Copy(mp._Queue) or nil
+		local hash_table = {}
 
-		ent.RgChatSettings = {
-			media = media,
-			queue = queue,
-		}
+		if media and media['_id'] then
+			_table_insert(hash_table, media['_id'])
+		end
+		if queue and #queue ~= 0 then
+			for _, queue_media in _ipairs(queue) do
+				_table_insert(hash_table, queue_media['_id'])
+			end
+		end
 
-		local hash = _util_SHA256(_util_TableToJSON(ent.RgChatSettings))
-		ent.RgChatSettings.hash = hash
+		if ent.RgChatNextSettingsUpdate and ent.RgChatNextSettingsUpdate < _CurTime() then
+			return false
+		end
+
+		ent.RgChatNextSettingsUpdate = _CurTime() + 3
+
+		local playlist_hash = _util_SHA256(_util_TableToJSON(hash_table))
+		if ent.RgcLastMediaPlayerHash and ent.RgcLastMediaPlayerHash == playlist_hash then
+			return false
+		end
+
+		if ent.RgChatSettings then
+			local is_exists_media = false
+			local is_exists_queue = true
+			if media and ent.RgChatSettings.media and media['_id'] == ent.RgChatSettings.media['_id'] then
+				is_exists_media = true
+			end
+			if queue and ent.RgChatSettings.queue then
+				for _, queue_media in _ipairs(queue) do
+					-- if media and media['_id'] == queue_media['_id'] then
+					-- 	is_exists_media = true
+					-- 	break
+					-- end
+					local is_exists_current_queue = false
+					for _, cache_queue_media in _ipairs(ent.RgChatSettings.queue) do
+						if cache_queue_media['_id'] == queue_media['_id'] then
+							is_exists_current_queue = true
+							break
+						end
+					end
+					if not is_exists_current_queue then
+						is_exists_queue = false
+						break
+					end
+				end
+			end
+			if is_exists_media and is_exists_queue then return end
+		end
 
 		if media and media['_StartTime'] then
 			media['_Owner'] = nil
@@ -135,13 +199,22 @@ local _set_settings_params = {
 			media['_metadata']['QueueTimeWorld'] = _math_floor(_os_time() - media['_metadata']['QueueTimeFix'])
 		end
 
-		if queue then
+		if queue and #queue ~= 0 then
 			for _, queue_media in _ipairs(queue) do
 				queue_media['_Owner'] = nil
 				queue_media['_metadata']['QueueTimeFix'] = _math_Round(_RealTime() - queue_media['_metadata']['queueTime'])
 				queue_media['_metadata']['QueueTimeWorld'] = _math_floor(_os_time() - queue_media['_metadata']['QueueTimeFix'])
 			end
 		end
+
+		ent.RgcLastMediaPlayerHash = playlist_hash
+		ent.RgChatSettings = {
+			media = media,
+			queue = queue,
+			hash = playlist_hash
+		}
+
+		return true
 	end
 }
 
@@ -150,18 +223,25 @@ function _BackgroundActionsWorker()
 		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
 			_coroutine_wait(1)
 		else
-			for net_world_owner_steamid64, net_entities in _pairs(_cleanup_net_entities) do
-				if #net_entities ~= 0 then
-					for _, ply in _ipairs(_player_GetHumans()) do
-						if ply:SteamID64() == net_world_owner_steamid64 then
-							RealGloabalChat.WebApi.GameInfo:CleanupEntitiesWait(ply, net_entities)
-							break
-						end
-					end
-
-					_table_Empty(net_entities)
-					_coroutine_yield()
+			if _cleanup_all then
+				for _, ply in _ipairs(_player_GetHumans()) do
+					RealGloabalChat.WebApi.GameInfo:CleanupEntitiesWait(ply)
 				end
+				_cleanup_all = false
+			-- else
+			-- 	for net_world_owner_steamid64, net_entities in _pairs(_cleanup_net_entities) do
+			-- 		if #net_entities ~= 0 then
+			-- 			for _, ply in _ipairs(_player_GetHumans()) do
+			-- 				if ply:SteamID64() == net_world_owner_steamid64 then
+			-- 					RealGloabalChat.WebApi.GameInfo:CleanupEntitiesWait(ply, net_entities)
+			-- 					break
+			-- 				end
+			-- 			end
+
+			-- 			_table_Empty(net_entities)
+			-- 			_coroutine_yield()
+			-- 		end
+			-- 	end
 			end
 
 			for ply, entity_queue in _pairs(_spawn_entity_queue) do
@@ -282,13 +362,13 @@ function _BackgroundActionsWorker()
 
 										ent.RgChatNextPos = pos
 										ent.RgChatNextAng = ang
+									end
 
-										if net_ent.settings and _accept_settings_params[net_ent.class_name] then
-											_accept_settings_params[net_ent.class_name](ent, _util_JSONToTable(net_ent.settings), false)
-										end
+									if net_ent.settings and _accept_settings_params[net_ent.class_name] then
+										_accept_settings_params[net_ent.class_name](ent, _util_JSONToTable(net_ent.settings), false)
 									end
 								end
-							else
+							elseif RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities_view_other') or net_ent.owner_steamid64 == rgc_sync_target then
 								local ent
 
 								_xpcall(function()
@@ -298,7 +378,7 @@ function _BackgroundActionsWorker()
 										ent:SetModel(net_ent.model)
 									end
 								end, function(err)
-									print('ERROR: ', err)
+									RealGloabalChat:PrintError(err)
 								end)
 
 								if ent and ent ~= NULL then
@@ -363,7 +443,7 @@ function _BackgroundUpdateTransformWorker()
 	local speed = 100
 
 	while true do
-		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
+		if _cleanup_all or not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
 			_coroutine_wait(1)
 		else
 			local spawned_entities_list = _table_Copy(_spawned_net_entities)
@@ -403,7 +483,7 @@ RealGloabalChat:AddBackgroundWorker('props_update_transform', _BackgroundUpdateT
 
 function _BackgroundUpdateWorker()
 	while true do
-		if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
+		if _cleanup_all or not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
 			_coroutine_wait(1)
 		else
 			local valid_claimed_entities = {}
@@ -450,15 +530,26 @@ function _BackgroundUpdateWorker()
 				for _, ply in _ipairs(_player_GetHumans()) do
 					local ent = data.ent
 
-					if _IsValid(ent) and ent.RgChatNetHost == ply:SteamID64() then
+					if _IsValid(ent) and (ent.RgChatNetHost == ply:SteamID64() or _skip_hosted_entities[ent:GetClass()]) then
 						update_entities[ply] = update_entities[ply] or {}
 						local class_name = ent:GetClass()
+						local can_update = false
 
 						if _set_settings_params[class_name] then
-							_set_settings_params[class_name](ent)
+							local result = _set_settings_params[class_name](ent)
+							if _isbool(result) then
+								can_update = result == true
+							else
+								can_update = true
+							end
+						else
+							can_update = true
 						end
 
-						_table_insert(update_entities[ply], ent)
+						if can_update then
+							_table_insert(update_entities[ply], ent)
+						end
+
 						break
 					end
 				end
@@ -477,6 +568,10 @@ end
 RealGloabalChat:AddBackgroundWorker('props_sync_update', _BackgroundUpdateWorker)
 
 function _PlayerSpawnEntity(ply, ent)
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities_spawn_other') then
+		local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
+		if rgc_sync_target ~= '' then return end
+	end
 	_timer_Simple(0, function()
 		if not _IsValid(ply) or not _IsValid(ent) then return end
 		ent.RgChatOwner = ply
@@ -496,6 +591,11 @@ hook.Add('RGChat.StopWatchToPlayer', 'RGChatStopSyncProps', function(_, target_i
 			_SafeRemoveEntity(ent)
 		end
 	end
+
+	_spawned_net_entities = {}
+	_spawn_entity_queue = {}
+	_remove_entity_queue = {}
+	_claimed_entities = {}
 end)
 
 hook.Add('PlayerSpawnedProp', 'RGChat.EntSyncPlayerSpawnedProp', function(ply, model, ent)
@@ -529,23 +629,31 @@ hook.Add('OnEntityCreated', 'RGChat.SpecificOnEntityCreated', function(ent)
 	end)
 end)
 
+hook.Add('PreCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
+	_cleanup_all = true
+end)
+
 hook.Add('PostCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
-	if RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
-		for net_ent_id, value in _pairs(_spawned_net_entities) do
-			_cleanup_net_entities[value.world_owner_steamid64] = _cleanup_net_entities[value.world_owner_steamid64] or {}
-			_table_insert(_cleanup_net_entities[value.world_owner_steamid64], net_ent_id)
-		end
+	-- if RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then
+	-- 	for net_ent_id, value in _pairs(_spawned_net_entities) do
+	-- 		_cleanup_net_entities[value.world_owner_steamid64] = _cleanup_net_entities[value.world_owner_steamid64] or {}
+	-- 		_table_insert(_cleanup_net_entities[value.world_owner_steamid64], net_ent_id)
+	-- 	end
+	-- end
 
-		_spawned_net_entities = {}
-	end
-
+	_spawned_net_entities = {}
 	_spawn_entity_queue = {}
 	_remove_entity_queue = {}
 	_claimed_entities = {}
+
+	-- _timer_Create('RgChat.EntSyncPostCleanupMap', 1, 1, function()
+	-- 	_cleanup_all = false
+	-- end)
 end)
 
 hook.Add('EntityRemoved', 'RgChat.EntSyncEntityRemoved', function(ent)
-	if not ent.RgChatNetId then return end
+	if _cleanup_all or not ent.RgChatNetId then return end
 	local ply = ent.RgChatOwner
 	if not _IsValid(ply) then return end
 

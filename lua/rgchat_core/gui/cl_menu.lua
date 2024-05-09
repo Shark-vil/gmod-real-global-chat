@@ -3,6 +3,7 @@ local _material_boosty, _material_discord, _main_frame
 -- Set variables
 _material_boosty = Material('artist/shark_vil/boosty.png')
 _material_discord = Material('artist/shark_vil/discord.png')
+_material_verification = Material('rgchat/verification.png')
 
 local function openSettingsMenu()
 	local Language = RealGloabalChat.Language
@@ -84,6 +85,58 @@ local function openSettingsMenu()
 
 	local scroll_panel = vgui.Create('DScrollPanel', main_panel)
 	scroll_panel:Dock(FILL)
+
+	local verification_button = scroll_panel:Add('DButton')
+	verification_button:SetText('')
+	verification_button:SetHeight(50)
+	function verification_button:Paint(w, h)
+		surface.SetDrawColor(255, 255, 255, 255)
+		surface.SetMaterial(_material_verification)
+		surface.DrawTexturedRect(0, 0, w, h)
+	end
+	function verification_button:DoClick()
+		local function verification_task()
+			local code, response
+			local ply = LocalPlayer()
+			code, response = RealGloabalChat.WebApi.Verification:PreparationVerificationWait(ply)
+			if code ~= 200 or not response or not response.success or response.success == 0 or not response.message then
+				RealGloabalChat:PrintWarning('Something went wrong! Repeat the attempt later.')
+				return
+			end
+			local guid_address = response.message
+			gui.OpenURL('https://rgcgmod.vincy.ru/Verification/' .. ply:SteamID64())
+			while IsValid(_main_frame) do
+				code, response = RealGloabalChat.WebApi.Verification:CheckVerificationWait(ply, guid_address)
+				if code == 200 and response and response.success and response.success == 1 and response.message then
+					file.Write('rgchat_data/verified.txt', response.message)
+					RealGloabalChat:Print('Verification was successful!')
+					break
+				end
+				coroutine.yield()
+			end
+		end
+
+		local co = coroutine.create(verification_task)
+		hook.Add('Think', 'RGC_Start_Verification', function()
+			if not coroutine.resume(co) then
+				hook.Remove('Think', 'RGC_Start_Verification')
+			end
+		end)
+
+		-- RealGloabalChat.WebApi.Verification:PreparationVerification(LocalPlayer(), function(code, response)
+		-- 	print(code, response)
+		-- end)
+
+		-- gui.OpenURL('https://rgcgmod.vincy.ru/Chat/Verification/' + LocalPlayer():SteamID64())
+	end
+	verification_button:Dock(TOP)
+	verification_button:DockMargin(15, 15, 15, 15)
+
+	local label_verification = scroll_panel:Add('DLabel')
+	label_verification:SetText(Language:Get('menu_rgc_verification_desc'))
+	label_verification:SetFont('CreditsText')
+	label_verification:SetAutoStretchVertical(true)
+	base_setup_element(label_verification)
 
 	local checkbox_modstate = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_modstate:SetConVar('cl_rgc_status')

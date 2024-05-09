@@ -52,4 +52,5 @@ RealGloabalChat.Language:Register('english', {
 	['menu_rgc_visible_chat_name_desc'] = 'If enabled, the name of the chat room you are currently in will be shown before the nickname.',
 	['menu_rgc_visible_rgc_prefix'] = 'Show RGC prefix',
 	['menu_rgc_visible_rgc_prefix_desc'] = 'If enabled, there will be a prefix [RGC] in front of the nickname',
+	['menu_rgc_verification_desc'] = 'If you are verifying an account, your messages in the chat will be displayed with a checkmark sign. This will be a confirmation that the account belongs to you. Subsequently, the judged accounts also receive more settings and fewer restrictions',
 })
