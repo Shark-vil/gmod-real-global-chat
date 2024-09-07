@@ -6,6 +6,8 @@ local _IsValid = IsValid
 local _string_StartsWith = string.StartsWith
 local _system_FlashWindow = system.FlashWindow
 local _surface_PlaySound = surface.PlaySound
+local _file_Exists = file.Exists
+local _file_Read = file.Read
 local _string_sub = string.sub
 local _string_Trim = string.Trim
 local _chat_AddText = chat.AddText
@@ -21,6 +23,7 @@ local _color_message_filtred = Color(241, 137, 137)
 local _color_message_google = Color(153, 176, 254)
 local _sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
 local _table_insert = table.insert
+local _isstring = isstring
 local _last_message_id = nil
 
 -- Commands
@@ -60,14 +63,28 @@ function _SetLastMessageId(response)
 end
 
 function _RenderMessages(response)
+	local verified_token_exists = false
+	if _file_Exists('rgchat_data/verified.txt', 'DATA') then
+		local verified_token = _file_Read('rgchat_data/verified.txt', 'DATA')
+		verified_token_exists = #verified_token ~= 0
+	end
+
 	local ConVar = RealGloabalChat.ConVar
 	local Language = RealGloabalChat.Language
-	local self_nickname = LocalPlayer():Nick()
+	local local_player = LocalPlayer()
+	local local_steamid64 = local_player:SteamID64()
+	local self_nickname = local_player:Nick()
 	local skip_steamid64_list = {}
 
 	for _, ply in _ipairs(_player_GetHumans()) do
-		if _IsValid(ply) and ply:SteamID64() then
-			skip_steamid64_list[ply:SteamID64()] = true
+		if _IsValid(ply) then
+			local steamid64 = ply:SteamID64()
+			if _isstring(steamid64) and #steamid64 ~= 0 then
+				skip_steamid64_list[steamid64] = true
+				if not verified_token_exists and local_player == ply then
+					skip_steamid64_list['-' .. steamid64] = true
+				end
+			end
 		end
 	end
 
@@ -124,6 +141,10 @@ function _RenderMessages(response)
 
 			if is_show_map_name and user_message.played_map then
 				_table_insert(prefix_text_list, user_message.played_map)
+			end
+
+			if verified_token_exists and _string_sub(user_message.steamid64, 1, 1) == '-' and _string_sub(user_message.steamid64, 2) == local_steamid64 then
+				_table_insert(prefix_text_list, 'FAKE')
 			end
 
 			local count = #prefix_text_list
