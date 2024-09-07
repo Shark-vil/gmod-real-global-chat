@@ -18,7 +18,8 @@ function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 		message = message_text,
 		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
 		verified_token = verified_token,
-		random_id = os.time()
+		random_id = os.time(),
+		map = game.GetMap()
 	})
 
 	RealGloabalChat.Http:Request({
