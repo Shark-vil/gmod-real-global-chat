@@ -27,14 +27,17 @@ else
 end
 
 function RealGloabalChat:Print(...)
+	if SERVER then return end
 	chat.AddText(RealGloabalChat.Color.Log, '[RGChat] ', ...)
 end
 
 function RealGloabalChat:PrintWarning(...)
+	if SERVER then return end
 	chat.AddText(RealGloabalChat.Color.Warning, '[RGChat Warning] ', ...)
 end
 
 function RealGloabalChat:PrintError(...)
+	if SERVER then return end
 	chat.AddText(RealGloabalChat.Color.Error, '[RGChat Error] ', ...)
 end
 
