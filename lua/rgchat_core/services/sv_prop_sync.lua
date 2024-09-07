@@ -599,10 +599,12 @@ hook.Add('RGChat.StopWatchToPlayer', 'RGChatStopSyncProps', function(_, target_i
 end)
 
 hook.Add('PlayerSpawnedProp', 'RGChat.EntSyncPlayerSpawnedProp', function(ply, model, ent)
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
 	_PlayerSpawnEntity(ply, ent)
 end)
 
 hook.Add('OnEntityCreated', 'RGChat.SpecificOnEntityCreated', function(ent)
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
 	_timer_Simple(0, function()
 		if not _IsValid(ent) then return end
 		local class_name = ent:GetClass()
@@ -653,6 +655,7 @@ hook.Add('PostCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
 end)
 
 hook.Add('EntityRemoved', 'RgChat.EntSyncEntityRemoved', function(ent)
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
 	if _cleanup_all or not ent.RgChatNetId then return end
 	local ply = ent.RgChatOwner
 	if not _IsValid(ply) then return end
@@ -673,6 +676,7 @@ hook.Add('EntityRemoved', 'RgChat.EntSyncEntityRemoved', function(ent)
 end)
 
 function _PickupEntity(ply, ent)
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
 	if not ent.RgChatNetId or ent.RgChatNetHost == ply:SteamID64() then return end
 	ent.RgChatClaimDelay = _CurTime() + 5
 
@@ -683,6 +687,7 @@ function _PickupEntity(ply, ent)
 end
 
 function _DroppedEntity(ply, ent)
+	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
 	for i = #_claimed_entities, 1, -1 do
 		local data = _claimed_entities[i]
 		local target_ent = data.ent
