@@ -79,14 +79,25 @@ local function openSettingsMenu()
 	_main_frame:SetDraggable(true)
 	_main_frame:MakePopup()
 
-	local main_panel = vgui.Create('DPanel', _main_frame)
-	main_panel:Dock(FILL)
-	main_panel:SetBackgroundColor(Color(27, 27, 27))
+	local _tab_menu = vgui.Create('DPropertySheet', _main_frame)
+	_tab_menu:Dock(FILL)
 
-	local scroll_panel = vgui.Create('DScrollPanel', main_panel)
-	scroll_panel:Dock(FILL)
+	local _tab_settings = vgui.Create('DPanel', _tab_menu)
+	local _tab_verify_settings = vgui.Create('DPanel', _tab_menu)
+	local _tab_players_settings = vgui.Create('DPanel', _tab_menu)
 
-	local verification_button = scroll_panel:Add('DButton')
+	_tab_menu:AddSheet('Settings', _tab_settings, 'icon16/world_edit.png')
+	_tab_menu:AddSheet('Verefication', _tab_verify_settings, 'icon16/tick.png')
+	_tab_menu:AddSheet('Players', _tab_players_settings, 'icon16/user_suit.png')
+
+	local verify_panel = vgui.Create('DPanel', _tab_verify_settings)
+	verify_panel:Dock(FILL)
+	verify_panel:SetBackgroundColor(Color(27, 27, 27))
+
+	local verify_scroll_panel = vgui.Create('DScrollPanel', verify_panel)
+	verify_scroll_panel:Dock(FILL)
+
+	local verification_button = verify_scroll_panel:Add('DButton')
 	verification_button:SetText('')
 	verification_button:SetHeight(50)
 	function verification_button:Paint(w, h)
@@ -132,11 +143,18 @@ local function openSettingsMenu()
 	verification_button:Dock(TOP)
 	verification_button:DockMargin(15, 15, 15, 15)
 
-	local label_verification = scroll_panel:Add('DLabel')
+	local label_verification = verify_scroll_panel:Add('DLabel')
 	label_verification:SetText(Language:Get('menu_rgc_verification_desc'))
 	label_verification:SetFont('CreditsText')
 	label_verification:SetAutoStretchVertical(true)
 	base_setup_element(label_verification)
+
+	local main_panel = vgui.Create('DPanel', _tab_settings)
+	main_panel:Dock(FILL)
+	main_panel:SetBackgroundColor(Color(27, 27, 27))
+
+	local scroll_panel = vgui.Create('DScrollPanel', main_panel)
+	scroll_panel:Dock(FILL)
 
 	local checkbox_modstate = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_modstate:SetConVar('cl_rgc_status')
@@ -423,7 +441,7 @@ Set translation language
 
 	local image_boosty = scroll_panel:Add('DButton')
 	image_boosty:SetText('')
-	image_boosty:SetHeight(150)
+	image_boosty:SetHeight(135)
 	function image_boosty:Paint(w, h)
 		surface.SetDrawColor(255, 255, 255, 255)
 		surface.SetMaterial(_material_boosty)
@@ -437,7 +455,7 @@ Set translation language
 
 	local image_discord = scroll_panel:Add('DButton')
 	image_discord:SetText('')
-	image_discord:SetHeight(150)
+	image_discord:SetHeight(135)
 	function image_discord:Paint(w, h)
 		surface.SetDrawColor(255, 255, 255, 255)
 		surface.SetMaterial(_material_discord)
@@ -453,5 +471,47 @@ Set translation language
 	space_element:SetText('')
 	space_element:SetHeight(20)
 	base_setup_element(space_element)
+
+	local players_panel = vgui.Create('DPanel', _tab_players_settings)
+	players_panel:Dock(FILL)
+	players_panel:SetBackgroundColor(Color(27, 27, 27))
+
+	local label_players_scroll_panel_info = vgui.Create('DLabel', players_panel)
+	label_players_scroll_panel_info:SetText('DEV: This menu is in development!')
+	label_players_scroll_panel_info:SetFont('CreditsText')
+	label_players_scroll_panel_info:SetAutoStretchVertical(true)
+	base_setup_element(label_players_scroll_panel_info)
+	
+	local players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
+	players_scroll_panel:Dock(FILL)
+
+	local function update_players_scroll_panel(arguments)
+		if not IsValid(players_scroll_panel) or not IsValid(_main_frame) then
+			timer.Remove('rgchat_players_scroll_panel')
+			return
+		end
+
+		RealGloabalChat.WebApi.Chat:GetOnline(function(code, body)
+			if not IsValid(players_scroll_panel) then return end
+			if code ~= 200 or not body or body.players_on_world_count == 0 then return end
+
+			players_scroll_panel:Remove()
+
+			players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
+			players_scroll_panel:Dock(FILL)
+
+			for _, item in ipairs(body.players_on_world) do
+				local testBtn = players_scroll_panel:Add('DButton')
+				testBtn:SetHeight(40)
+				testBtn:SetText('Nick: ' .. item.username .. ' | ' .. 'Map: ' .. item.map)
+				testBtn:SetFont('CreditsText')
+				testBtn:Dock(TOP)
+			end
+		end)
+	end
+
+	update_players_scroll_panel()
+
+	timer.Create('rgchat_players_scroll_panel', 5, 0, update_players_scroll_panel)
 end
 concommand.Add('rgchat_menu', openSettingsMenu)
