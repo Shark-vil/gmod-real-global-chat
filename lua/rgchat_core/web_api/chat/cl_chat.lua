@@ -54,13 +54,20 @@ function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 end
 
 function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
+	local content = _util_TableToJSON({
+		steamid64 = ply:SteamID64(),
+		username = ply:Nick(),
+		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
+		map = game.GetMap(),
+		map_wsid = nil, -- На будущее
+		in_chat = RealGloabalChat.Api:PlayerChatIsActive() and 1 or 0
+	})
+
 	RealGloabalChat.Http:Request({
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/UpdateOnline'),
 		request_type = 'POST',
-		content = {
-			chatRoomName = RealGloabalChat.Api:GetChatRoom()
-		},
-		content_type = 'form-data',
+		content = content,
+		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
 		failed = function(err)
@@ -79,7 +86,7 @@ function RealGloabalChat.WebApi.Chat:GetOnline(callback)
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetOnline' .. paramsBuilder:GetResult()),
 		request_type = 'GET',
 	}, {
-		success = callback,
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
 		failed = function(err)
 			callback(nil, err)
 		end,
