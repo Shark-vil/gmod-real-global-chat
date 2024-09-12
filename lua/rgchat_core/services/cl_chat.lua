@@ -81,9 +81,6 @@ function _RenderMessages(response)
 			local steamid64 = ply:SteamID64()
 			if _isstring(steamid64) and #steamid64 ~= 0 then
 				skip_steamid64_list[steamid64] = true
-				if not verified_token_exists and local_player == ply then
-					skip_steamid64_list['-' .. steamid64] = true
-				end
 			end
 		end
 	end
@@ -143,7 +140,7 @@ function _RenderMessages(response)
 				_table_insert(prefix_text_list, user_message.played_map)
 			end
 
-			if verified_token_exists and _string_sub(user_message.steamid64, 1, 1) == '-' and _string_sub(user_message.steamid64, 2) == local_steamid64 then
+			if verified_token_exists and user_message.steamid64 == local_steamid64 and user_message.verified == 0 then
 				_table_insert(prefix_text_list, 'FAKE')
 			end
 
@@ -155,7 +152,7 @@ function _RenderMessages(response)
 			builder:Add(']')
 		end
 
-		builder:Add((user_message.verified and user_message.verified == 1) and _color_username_verified or _color_username)
+		builder:Add(user_message.verified == 1 and _color_username_verified or _color_username)
 		builder:Add(' ' .. user_message.username)
 
 		if not has_hidden and user_message.message_type == 0 then
