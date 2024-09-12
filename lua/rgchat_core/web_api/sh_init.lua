@@ -46,16 +46,26 @@ function RealGloabalChat.WebApi:ResponseHandler(callback)
 	return function(code, body)
 		local response = _util_JSONToTable(body)
 
-		if response and response.success then
-			if response.success == 0 then
-				if response.message then
-					RealGloabalChat.WebApi:HttpWarning(response.message)
-				elseif response.error then
-					RealGloabalChat.WebApi:HttpError(response.error)
-				end
+		-- if response and response.success then
+		-- 	if response.success == 0 then
+		-- 		if response.message then
+		-- 			RealGloabalChat.WebApi:HttpWarning(response.message)
+		-- 		elseif response.error then
+		-- 			RealGloabalChat.WebApi:HttpError(response.error)
+		-- 		end
+		-- 	end
+		-- else
+		-- 	RealGloabalChat.WebApi:HttpError(body)
+		-- end
+
+		if response and response.success and response.success == 0 then
+			if response.message then
+				RealGloabalChat.WebApi:HttpWarning(response.message)
+			elseif response.error then
+				RealGloabalChat.WebApi:HttpError(response.error)
 			end
-		else
-			RealGloabalChat.WebApi:HttpError(body)
+		elseif code ~= 200 then
+			RealGloabalChat.WebApi:HttpError(response or body)
 		end
 
 		if _isfunction(callback) then

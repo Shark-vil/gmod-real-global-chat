@@ -3,7 +3,7 @@ RealGloabalChat.WebApi.Chat = RealGloabalChat.WebApi.Chat or {}
 local _isfunction = isfunction
 local _file_Exists = file.Exists
 local _file_Read = file.Read
-local _util_TableToJSON = util.TableToJSON
+-- local _util_TableToJSON = util.TableToJSON
 
 function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 	local verified_token
@@ -12,7 +12,7 @@ function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 		verified_token = _file_Read('rgchat_data/verified.txt', 'DATA')
 	end
 
-	local content = _util_TableToJSON({
+	local content = RealGloabalChat:TableToJson({
 		steamid64 = ply:SteamID64(),
 		username = ply:Nick(),
 		message = message_text,
@@ -54,7 +54,7 @@ function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 end
 
 function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
-	local content = _util_TableToJSON({
+	local content = RealGloabalChat:TableToJson({
 		steamid64 = ply:SteamID64(),
 		username = ply:Nick(),
 		chat_room_name = RealGloabalChat.Api:GetChatRoom(),

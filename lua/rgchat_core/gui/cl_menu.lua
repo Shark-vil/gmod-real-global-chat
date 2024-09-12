@@ -1,4 +1,8 @@
 -- Variables
+local _game_GetMap = game.GetMap
+local _table_sort = table.sort
+local _file_Exists = file.Exists
+local _clr_current_map = Color(22, 255, 239)
 local _material_boosty, _material_discord, _main_frame, _check_maps_list
 -- Set variables
 _material_boosty = Material('artist/shark_vil/boosty.png')
@@ -75,8 +79,9 @@ local function openSettingsMenu()
 
 	_main_frame = vgui.Create('DFrame')
 	_main_frame:SetTitle('RGChat Menu')
-	_main_frame:SetSize(500, 450)
+	_main_frame:SetSize(700, 450)
 	_main_frame:Center()
+	_main_frame:SetSizable(true)
 	_main_frame:SetDraggable(true)
 	_main_frame:MakePopup()
 
@@ -502,31 +507,45 @@ Set translation language
 			players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
 			players_scroll_panel:Dock(FILL)
 
+			_table_sort(body.players_on_world, function(a, b)
+				return a.map == _game_GetMap()
+			end)
+
 			for _, item in ipairs(body.players_on_world) do
 				if item.map and not _check_maps_list[item.map] then
 					_check_maps_list[item.map] = {
-						can_connect = item.map_wsid ~= nil or file.Exists('maps/' .. item.map  .. '.bsp', "GAME")
+						can_connect = item.map_wsid ~= nil or _file_Exists('maps/' .. item.map  .. '.bsp', 'GAME'),
+						can_map_exists = _file_Exists('maps/' .. item.map  .. '.bsp', 'GAME')
 					}
 				end
 
 				local can_connect = item.map and _check_maps_list[item.map] and _check_maps_list[item.map].can_connect
+				local can_map_exists = item.map and _check_maps_list[item.map] and _check_maps_list[item.map].can_map_exists
 
 				local connect_button = players_scroll_panel:Add('DButton')
 				connect_button:SetHeight(40)
 				if can_connect then
-					connect_button:SetText('Connect or teleport to player | Nick: ' .. item.username .. ' | ' .. 'Map: ' .. item.map)
+					connect_button:SetText('TELEPORT | ' .. item.username .. ' | ' .. item.map)
 				else
-					connect_button:SetText('Nick: ' .. item.username .. ' | ' .. 'Map: ' .. item.map)
+					connect_button:SetText(item.username .. ' | ' .. item.map)
 				end
 				connect_button:SetFont('CreditsText')
 				connect_button:Dock(TOP)
+
+				if can_map_exists and _game_GetMap() == item.map then
+					connect_button:SetColor(_clr_current_map)
+				end
 
 				if can_connect then
 					function connect_button:DoClick()
 						if connect_process then return end
 						connect_process = true
 
-						if file.Exists('maps/' .. item.map  .. '.bsp', 'GAME') then
+						if can_map_exists then
+							if game.GetMap() ~= item.map then
+								RunConsoleCommand('changelevel', item.map)
+								return
+							end
 							net.Start('RGChat_TeleportToPlayer')
 							net.WriteString(item.steamid64)
 							net.SendToServer()
@@ -542,8 +561,8 @@ Set translation language
 									end
 									if not steamworks.IsSubscribed(item.map_wsid) then
 										connect_process = false
-									elseif file.Exists('maps/' .. item.map  .. '.bsp', 'GAME') then
-										RunConsoleCommand('changelevel ' .. item.map)
+									elseif _file_Exists('maps/' .. item.map  .. '.bsp', 'GAME') then
+										RunConsoleCommand('changelevel', item.map)
 									end
 								end)
 							end
