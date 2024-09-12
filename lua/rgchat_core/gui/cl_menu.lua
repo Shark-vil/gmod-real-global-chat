@@ -481,7 +481,7 @@ Set translation language
 	label_players_scroll_panel_info:SetFont('CreditsText')
 	label_players_scroll_panel_info:SetAutoStretchVertical(true)
 	base_setup_element(label_players_scroll_panel_info)
-	
+
 	local players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
 	players_scroll_panel:Dock(FILL)
 
