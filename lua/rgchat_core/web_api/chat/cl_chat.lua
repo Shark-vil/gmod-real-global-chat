@@ -59,7 +59,7 @@ function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
 		username = ply:Nick(),
 		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
 		map = game.GetMap(),
-		map_wsid = nil, -- На будущее
+		map_wsid = RealGloabalChat.ActiveMapWsid,
 		in_chat = RealGloabalChat.Api:PlayerChatIsActive() and 1 or 0
 	})
 

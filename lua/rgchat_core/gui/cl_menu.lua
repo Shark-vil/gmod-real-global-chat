@@ -1,9 +1,10 @@
 -- Variables
-local _material_boosty, _material_discord, _main_frame
+local _material_boosty, _material_discord, _main_frame, _check_maps_list
 -- Set variables
 _material_boosty = Material('artist/shark_vil/boosty.png')
 _material_discord = Material('artist/shark_vil/discord.png')
 _material_verification = Material('rgchat/verification.png')
+_check_maps_list = {}
 
 local function openSettingsMenu()
 	local Language = RealGloabalChat.Language
@@ -482,6 +483,7 @@ Set translation language
 	label_players_scroll_panel_info:SetAutoStretchVertical(true)
 	base_setup_element(label_players_scroll_panel_info)
 
+	local connect_process = false
 	local players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
 	players_scroll_panel:Dock(FILL)
 
@@ -501,11 +503,55 @@ Set translation language
 			players_scroll_panel:Dock(FILL)
 
 			for _, item in ipairs(body.players_on_world) do
-				local testBtn = players_scroll_panel:Add('DButton')
-				testBtn:SetHeight(40)
-				testBtn:SetText('Nick: ' .. item.username .. ' | ' .. 'Map: ' .. item.map)
-				testBtn:SetFont('CreditsText')
-				testBtn:Dock(TOP)
+				if item.map and not _check_maps_list[item.map] then
+					_check_maps_list[item.map] = {
+						can_connect = item.map_wsid ~= nil or file.Exists('maps/' .. item.map  .. '.bsp', "GAME")
+					}
+				end
+
+				local can_connect = item.map and _check_maps_list[item.map] and _check_maps_list[item.map].can_connect
+
+				local connect_button = players_scroll_panel:Add('DButton')
+				connect_button:SetHeight(40)
+				if can_connect then
+					connect_button:SetText('Connect or teleport to player | Nick: ' .. item.username .. ' | ' .. 'Map: ' .. item.map)
+				else
+					connect_button:SetText('Nick: ' .. item.username .. ' | ' .. 'Map: ' .. item.map)
+				end
+				connect_button:SetFont('CreditsText')
+				connect_button:Dock(TOP)
+
+				if can_connect then
+					function connect_button:DoClick()
+						if connect_process then return end
+						connect_process = true
+
+						if file.Exists('maps/' .. item.map  .. '.bsp', 'GAME') then
+							net.Start('RGChat_TeleportToPlayer')
+							net.WriteString(item.steamid64)
+							net.SendToServer()
+							connect_process = false
+						elseif item.map_wsid then
+							if not steamworks.IsSubscribed(item.map_wsid) then
+								steamworks.Subscribe(item.map_wsid)
+								steamworks.ApplyAddons()
+								timer.Create('RGChatTimer_CheckSubscribe', 1, 0, function()
+									if not IsValid(_main_frame) then
+										timer.Remove('RGChatTimer_CheckSubscribe')
+										return
+									end
+									if not steamworks.IsSubscribed(item.map_wsid) then
+										connect_process = false
+									elseif file.Exists('maps/' .. item.map  .. '.bsp', 'GAME') then
+										RunConsoleCommand('changelevel ' .. item.map)
+									end
+								end)
+							end
+						else
+							connect_process = false
+						end
+					end
+				end
 			end
 		end)
 	end
