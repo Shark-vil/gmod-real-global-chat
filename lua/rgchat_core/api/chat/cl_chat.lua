@@ -1,5 +1,6 @@
 local _tonumber = tonumber
 local _isstring = isstring
+local _isnumber = isnumber
 local _file_Exists = file.Exists
 local _util_JSONToTable = util.JSONToTable
 local _util_TableToJSON = util.TableToJSON
@@ -9,6 +10,7 @@ local _file_Time = file.Time
 local _file_Write = file.Write
 local _string_lower = string.lower
 local _string_Trim = string.Trim
+local _string_sub = string.sub
 local _system_GetCountry = system.GetCountry
 local _table_remove = table.remove
 local _table_insert = table.insert
@@ -31,7 +33,7 @@ function RealGloabalChat.Api:HasMutedUser(connect_id)
 
 	if not _muted_users and _file_Exists('rgchat_data/muted_users.json', 'DATA') then
 		-- Update database
-		if _file_Time('rgchat_data/muted_users.json', 'DATA') < 1709625732 then
+		if _file_Time('rgchat_data/muted_users.json', 'DATA') < 1725820212 then
 			_file_Delete('rgchat_data/muted_users.json')
 		else
 			_muted_users = _util_JSONToTable(_file_Read('rgchat_data/muted_users.json', 'DATA'))
@@ -50,6 +52,15 @@ function RealGloabalChat.Api:HasMutedUser(connect_id)
 end
 
 function RealGloabalChat.Api:MuteUser(connect_id)
+	if _isstring(connect_id) and _string_sub(connect_id, 1, 1) == '#' then
+		connect_id = _string_sub(connect_id, 2)
+	end
+
+	if not connect_id or not connect_id:match('^%d+$') then
+		RealGloabalChat:PrintError('Id must be a number!')
+		return
+	end
+
 	local muted_users = {}
 
 	if _file_Exists('rgchat_data/muted_users.json', 'DATA') then
