@@ -3,6 +3,8 @@ local _game_GetMap = game.GetMap
 local _table_sort = table.sort
 local _file_Exists = file.Exists
 local _clr_current_map = Color(22, 255, 239)
+local _clr_another_map = Color(255, 138, 29)
+local _clr_download_map = Color(240, 114, 234)
 local _material_boosty, _material_discord, _main_frame, _check_maps_list
 -- Set variables
 _material_boosty = Material('artist/shark_vil/boosty.png')
@@ -500,16 +502,20 @@ Set translation language
 
 		RealGloabalChat.WebApi.Chat:GetOnline(function(code, body)
 			if not IsValid(players_scroll_panel) then return end
-			if code ~= 200 or not body or body.players_on_world_count == 0 then return end
+			if code ~= 200 or not body or not istable(body.players_on_world) or body.players_on_world_count == 0 then return end
 
 			players_scroll_panel:Remove()
 
 			players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
 			players_scroll_panel:Dock(FILL)
 
-			_table_sort(body.players_on_world, function(a, b)
-				return a.map == _game_GetMap()
-			end)
+			if body.players_on_world_count > 1 then
+				local _isstring = isstring
+				local current_map = _game_GetMap()
+				_table_sort(body.players_on_world, function(a, b)
+					return (_isstring(a.map) and a.map == current_map) and not (_isstring(b.map) and b.map == current_map)
+				end)
+			end
 
 			for _, item in ipairs(body.players_on_world) do
 				if item.map and not _check_maps_list[item.map] then
@@ -532,8 +538,14 @@ Set translation language
 				connect_button:SetFont('CreditsText')
 				connect_button:Dock(TOP)
 
-				if can_map_exists and _game_GetMap() == item.map then
-					connect_button:SetColor(_clr_current_map)
+				if can_connect then
+					if can_map_exists and _game_GetMap() == item.map then
+						connect_button:SetColor(_clr_current_map)
+					elseif can_map_exists and _game_GetMap() ~= item.map then
+						connect_button:SetColor(_clr_another_map)
+					elseif not can_map_exists then
+						connect_button:SetColor(_clr_download_map)
+					end
 				end
 
 				if can_connect then
@@ -550,22 +562,26 @@ Set translation language
 							net.WriteString(item.steamid64)
 							net.SendToServer()
 							connect_process = false
-						elseif item.map_wsid then
-							if not steamworks.IsSubscribed(item.map_wsid) then
-								steamworks.Subscribe(item.map_wsid)
-								steamworks.ApplyAddons()
-								timer.Create('RGChatTimer_CheckSubscribe', 1, 0, function()
-									if not IsValid(_main_frame) then
-										timer.Remove('RGChatTimer_CheckSubscribe')
-										return
-									end
-									if not steamworks.IsSubscribed(item.map_wsid) then
-										connect_process = false
-									elseif _file_Exists('maps/' .. item.map  .. '.bsp', 'GAME') then
-										RunConsoleCommand('changelevel', item.map)
+						elseif item.map_wsid ~= nil then
+							steamworks.FileInfo(item.map_wsid, function(result)
+								if not result or result.banned or result.disabled then
+									return
+								end
+
+								steamworks.DownloadUGC(item.map_wsid, function(path)
+									if not path then return end
+
+									local ok, files = game.MountGMA(path)
+									if not ok then return end
+
+									for _, v in ipairs(files) do
+										if v == 'maps/' .. item.map  .. '.bsp' then
+											RunConsoleCommand('changelevel', item.map)
+											break
+										end
 									end
 								end)
-							end
+							end)
 						else
 							connect_process = false
 						end
