@@ -16,8 +16,6 @@ local cvar_list = {
 	{ 'sv_rgc_sync_entities_view_other', '1', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'If the option is enabled, you will see entities that spawn other players.', 0, 1 },
 	{ 'sv_rgc_sync_entities_spawn_other', '1', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'If enabled, you will spawn objects in the world of the player you connected to. IMPORTANT: YOUR ENTITIES WILL REMAIN IN THE OTHER PLAYER\'S WORLD.', 0, 1 },
 	{ 'sv_rgc_http_debug', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'Debugging in the console for HTTP requests.', 0, 1 },
-	{ 'cl_rgc_use_proxy_domain', '0', FCVAR_ARCHIVE, 'Enables client-side proxy. Useful if you have problems accessing the main server.', 0, 1 },
-	{ 'sv_rgc_use_proxy_domain', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'Enables server-side proxy. Useful if you have problems accessing the main server.', 0, 1 },
 }
 
 for _, v in ipairs(cvar_list) do

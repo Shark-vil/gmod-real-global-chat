@@ -1,6 +1,5 @@
 RealGloabalChat = RealGloabalChat or {}
-RealGloabalChat.WEB_API_URL = 'https://rgcgmod.vincy.ru/Api/'
-RealGloabalChat.WEB_API_PROXY_URL = 'https://rgcgmod.itpony.ru/Api/'
+RealGloabalChat.WEB_API_URL = 'https://gmodchat.com/Api/'
 RealGloabalChat.Language = RealGloabalChat.Language or {}
 RealGloabalChat.Http = RealGloabalChat.Http or {}
 RealGloabalChat.Validator = RealGloabalChat.Validator or {}
