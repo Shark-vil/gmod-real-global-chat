@@ -142,10 +142,33 @@ if SERVER then
 		net.Send(ply)
 	end)
 else
+	local _send_messages_queue = {}
+
+	function _Handler()
+		local local_player = LocalPlayer()
+		local attempts_max = 3
+		while true do
+			local data = _send_messages_queue[1]
+			if data then
+				local code, _ = RealGloabalChat.WebApi.Chat:SendToChatWait(local_player, data.message)
+				if code == 200 or data.attempts == attempts_max then
+					table.remove(_send_messages_queue, 1)
+				elseif data.attempts < attempts_max then
+					data.attempts = data.attempts + 1
+				end
+			end
+			coroutine.wait(.5)
+		end
+	end
+	RealGloabalChat:AddBackgroundWorker('send_message_queue', _Handler)
+
 	net.Receive('RGChat_PlayerSay', function()
 		local text_value = net.ReadString()
 		if not RealGloabalChat.ConVar:GetBool('cl_rgc_status') then return end
-		RealGloabalChat.WebApi.Chat:SendToChat(LocalPlayer(), text_value)
+		table.insert(_send_messages_queue, {
+			message = text_value,
+			attempts = 0
+		})
 	end)
 
 	net.Receive('RGChat_MutePlayer', function()

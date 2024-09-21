@@ -49,8 +49,8 @@ local _chat_commands = {
 }
 
 function _IsNewMessageId(user_message)
-	if _isnumber(_last_message_id) and _last_message_id >= user_message.random_id then return false end
-	if not _isnumber(_last_message_id) or _last_message_id < user_message.random_id then return true end
+	if _isnumber(_last_message_id) and _last_message_id >= user_message.id then return false end
+	if not _isnumber(_last_message_id) or _last_message_id < user_message.id then return true end
 
 	return false
 end
@@ -58,7 +58,7 @@ end
 function _SetLastMessageId(response)
 	for _, user_message in _ipairs(response.messages) do
 		if not _IsNewMessageId(user_message) then continue end
-		_last_message_id = user_message.random_id
+		_last_message_id = user_message.id
 	end
 end
 
@@ -87,7 +87,7 @@ function _RenderMessages(response)
 
 	for _, user_message in _ipairs(response.messages) do
 		if not _IsNewMessageId(user_message) then continue end
-		_last_message_id = user_message.random_id
+		_last_message_id = user_message.id
 		if skip_steamid64_list[user_message.steamid64] then continue end
 		local result_message = user_message.message
 		local result_color_message = _color_message
@@ -226,15 +226,63 @@ function _RenderMessages(response)
 	end
 end
 
+local function _OnGetMessages(code, response)
+	if code and code == 200 and response and response.success and response.success == 1 and response.messages then
+		if not _isnumber(_last_message_id) then
+			_SetLastMessageId(response)
+		else
+			_RenderMessages(response)
+		end
+	end
+end
+
 function _Handler()
+	local code, response, session_id, world_name
+
+	local function can_update_world_name()
+		if not world_name then
+			world_name = RealGloabalChat.Api:GetChatRoom()
+			return true
+		elseif world_name ~= RealGloabalChat.Api:GetChatRoom() then
+			session_id = nil
+			world_name = RealGloabalChat.Api:GetChatRoom()
+			return true
+		end
+		return false
+	end
+
 	while true do
-		if RealGloabalChat.Api:PlayerChatIsActive() then
-			local code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
-			if code and code == 200 and response and response.success and response.success == 1 and response.messages then
+		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service') then
+			can_update_world_name()
+			if not session_id then
+				code, session_id = RealGloabalChat.WebApi.Chat:MakeLongPollSessionWait()
+			else
 				if not _isnumber(_last_message_id) then
-					_SetLastMessageId(response)
-				else
-					_RenderMessages(response)
+					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
+					if code and code == 200 and response and response.success and response.success == 1 and response.messages then
+						_SetLastMessageId(response)
+					end
+				end
+				if _last_message_id then
+					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagessLongPollWait(session_id, _last_message_id, can_update_world_name)
+					if code then
+						if code == 403 then
+							session_id = nil
+						elseif code == 200 and response and response.success and response.success == 1 and response.messages then
+							_RenderMessages(response)
+						end
+					end
+				end
+			end
+		else
+			if RealGloabalChat.Api:PlayerChatIsActive() then
+				code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
+				if code and code == 200 and response and response.success and response.success == 1 and response.messages then
+					if not _isnumber(_last_message_id) then
+						_SetLastMessageId(response)
+					else
+						_RenderMessages(response)
+					end
 				end
 			end
 		end

@@ -4,6 +4,7 @@ local _isfunction = isfunction
 local _string_lower = string.lower
 local _pairs = pairs
 local _tostring = tostring
+local _isnumber = isnumber
 
 RealGloabalChat.Http.ContentType = {
 	['html'] = 'text/html; charset=utf-8',
@@ -18,6 +19,8 @@ function RealGloabalChat.Http:Request(request_settings, callback_data)
 	local content = request_settings.content
 	local content_type = request_settings.content_type
 	local request_type = _string_lower(request_settings.request_type)
+	local timeout = request_settings.timeout
+	-- local ignore_code = request_settings.ignore_code
 	local success_func = callback_data.success
 	local failed_func = callback_data.failed
 	-- local finally_func = callback_data.finally
@@ -35,6 +38,10 @@ function RealGloabalChat.Http:Request(request_settings, callback_data)
 		http_data.headers = {
 			['Content-Type'] = RealGloabalChat.Http.ContentType[content_type]
 		}
+	end
+
+	if _isnumber(timeout) then
+		http_data.timeout = timeout
 	end
 
 	if _isstring(content) then

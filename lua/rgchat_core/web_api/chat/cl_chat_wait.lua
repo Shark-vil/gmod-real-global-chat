@@ -1,5 +1,31 @@
 RealGloabalChat.WebApi.Chat = RealGloabalChat.WebApi.Chat or {}
 
+function RealGloabalChat.WebApi.Chat:MakeLongPollSessionWait()
+	local wait = true
+	local result = {}
+	RealGloabalChat.WebApi.Chat:MakeLongPollSession(function(code, response)
+		if code and code == 200 then
+			result = { code, response }
+		end
+		wait = false
+	end)
+	while wait do coroutine.yield() end
+	return unpack(result)
+end
+
+function RealGloabalChat.WebApi.Chat:GetChatMessagessLongPollWait(sessionId, start_message_id, cancellation_token)
+	local wait = true
+	local result = {}
+	RealGloabalChat.WebApi.Chat:GetChatMessagessLongPoll(sessionId, start_message_id, function(code, response)
+		if code and code == 200 then
+			result = { code, response }
+		end
+		wait = false
+	end)
+	while wait and (not cancellation_token or not cancellation_token()) do coroutine.yield() end
+	return unpack(result)
+end
+
 function RealGloabalChat.WebApi.Chat:SendToChatWait(ply, message_text)
 	local wait = true
 	local result = {}

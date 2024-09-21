@@ -5,6 +5,45 @@ local _file_Exists = file.Exists
 local _file_Read = file.Read
 -- local _util_TableToJSON = util.TableToJSON
 
+function RealGloabalChat.WebApi.Chat:MakeLongPollSession(callback)
+	local content = RealGloabalChat:TableToJson({
+		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
+	})
+
+	RealGloabalChat.Http:Request({
+			url = RealGloabalChat.WebApi:GetApiUrl('Chat/MakeLongPollSession'),
+			request_type = 'POST',
+			content = content,
+			content_type = 'json',
+		}, {
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		failed = function(err)
+			if _isfunction(callback) then
+				callback(nil, err)
+			end
+		end,
+	})
+end
+
+function RealGloabalChat.WebApi.Chat:GetChatMessagessLongPoll(sessionId, start_message_id, callback)
+	local paramsBuilder = RealGloabalChat.WebApi:GetUrlValuesBuilder()
+	paramsBuilder:AddValue('sessionId', sessionId)
+	paramsBuilder:AddValue('chatRoomName', RealGloabalChat.Api:GetChatRoom())
+	paramsBuilder:AddValue('startMessageId', start_message_id)
+
+	RealGloabalChat.Http:Request({
+		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetChatMessagessLongPoll' .. paramsBuilder:GetResult()),
+		request_type = 'GET',
+		timeout = 120
+	}, {
+		success = RealGloabalChat.WebApi:ResponseHandler(callback),
+		failed = function(err)
+			callback(nil, err)
+		end,
+	})
+end
+
+
 function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 	local verified_token
 
