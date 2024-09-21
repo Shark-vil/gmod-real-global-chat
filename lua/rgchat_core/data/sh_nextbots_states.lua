@@ -1,4 +1,4 @@
-local states = RealGloabalChat.Values.NextBotStates
+local states = {}
 
 states['typing'] = {
 	start = function(self)
@@ -59,3 +59,5 @@ states['idle'] = {
 		end
 	end,
 }
+
+RealGloabalChat:AddToStorage('NextBot', 'States', states)

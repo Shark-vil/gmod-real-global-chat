@@ -1,0 +1,12 @@
+RealGloabalChat = RealGloabalChat or {}
+RealGloabalChat.WEB_API_URL = 'https://gmodchat.com/Api/'
+RealGloabalChat.Language = RealGloabalChat.Language or {}
+RealGloabalChat.Http = RealGloabalChat.Http or {}
+RealGloabalChat.Validator = RealGloabalChat.Validator or {}
+RealGloabalChat.Api = RealGloabalChat.Api or {}
+RealGloabalChat.WebApi = RealGloabalChat.WebApi or {}
+RealGloabalChat.ConVar = RealGloabalChat.ConVar or {}
+RealGloabalChat.Color = RealGloabalChat.Color or {}
+RealGloabalChat.Enum = RealGloabalChat.Enum or {}
+RealGloabalChat.ActiveMapWsid = nil
+-- RealGloabalChat.Storage = RealGloabalChat.Storage or {}

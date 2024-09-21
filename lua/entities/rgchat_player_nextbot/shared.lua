@@ -1,8 +1,5 @@
 local string_lower = string.lower
--- local IsValid = IsValid
 local CurTime = CurTime
--- local FrameTime = FrameTime
-
 ENT.Base = 'base_nextbot'
 ENT.Spawnable = false
 ENT.BotData = {}
@@ -19,6 +16,7 @@ function ENT:Initialize()
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	self:PhysWake()
 	self:SetHealth(100)
+
 	if SERVER then
 		self:SetLagCompensated(true)
 		self:SetSolidMask(MASK_PLAYERSOLID)
@@ -27,17 +25,23 @@ end
 
 function ENT:Update()
 	local data = self:GetData()
-	if self:OnStuck() then self:SetPos(data.MovePos) end
-	if data.Color then self:SetColor(data.Color) end
-	if RealGloabalChat.Values.Enum .ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
-		self:CustomStartActivity(RealGloabalChat.Values.Enum .ActJumpToRun[data.State])
+
+	if self:OnStuck() then
+		self:SetPos(data.MovePos)
+	end
+
+	if data.Color then
+		self:SetColor(data.Color)
+	end
+
+	if RealGloabalChat.Enum.ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
+		self:CustomStartActivity(RealGloabalChat.Enum.ActJumpToRun[data.State])
 	end
 end
 
 function ENT:SetData(data)
 	self:UpdateData(data)
 	self:SetNWString('UserName', '[RGChat] ' .. data.username)
-	RealGloabalChat.Values.Nextbots[data.steamid64] = self
 	self:SetName(self.BotData.NickName)
 end
 
@@ -52,6 +56,8 @@ function ENT:UpdateData(data)
 	self.BotData.ModelWsid = data.model_wsid
 	self.BotData.Model = data.model
 	self.BotData.Actions = data.actions
+	self:SetNWString('SteamId64', data.steamid64)
+	self:SetNWString('NickName', data.username)
 end
 
 function ENT:UpdateVars()
@@ -65,7 +71,7 @@ function ENT:UpdateVars()
 	self.BotData.EyePos = RealGloabalChat:PosStringToVector(data.eye_pos)
 	self.BotData.EyeAng = RealGloabalChat:PosStringToAngle(data.eye_ang)
 	self.BotData.State = data.activity or ACT_HL2MP_IDLE
-	self.BotData.MoveSpeed = RealGloabalChat.Values.Enum .ActRun[self.BotData.State] and data.run_speed or data.walk_speed
+	self.BotData.MoveSpeed = RealGloabalChat.Enum.ActRun[self.BotData.State] and data.run_speed or data.walk_speed
 	self.BotData.IsTyping = data.is_typing == 1
 	self.BotData.Sequence = data.sequence
 	self.BotData.Gesture = data.gesture
@@ -80,10 +86,6 @@ function ENT:UpdateVars()
 	self.BotData.Skin = data.skin
 	self.BotData.Bodygroups = data.bodygroups
 end
-
--- function ENT:UpdateActions(actions)
--- 	self.BotData.Actions = actions
--- end
 
 function ENT:CustomStartActivity(activity)
 	local current_activity = self:GetActivity()
@@ -115,12 +117,20 @@ function ENT:SetState(state_name)
 	state_name = string_lower(state_name)
 	local old_state = self.BotData.CurrentState
 	if old_state and old_state.name == state_name then return end
-	local state = RealGloabalChat.Values.NextBotStates[state_name]
+	local bot_states = RealGloabalChat:GetFromStorage('NextBot', 'States', state_name)
+	local state = bot_states[state_name]
+
 	if state and old_state and old_state.func and old_state.func.stop then
 		old_state.func.stop(self)
 	end
-	self.BotData.CurrentState = { name = state_name, func = state }
+
+	self.BotData.CurrentState = {
+		name = state_name,
+		func = state
+	}
+
 	local current_state = self.BotData.CurrentState
+
 	if current_state and current_state.func and current_state.func.start then
 		current_state.func.start(self)
 	end
@@ -128,10 +138,12 @@ end
 
 function ENT:GetActiveState()
 	if not self.BotData.CurrentState then return end
+
 	return self.BotData.CurrentState.func
 end
 
 function ENT:GetActiveStateName()
 	if not self.BotData.CurrentState then return end
+
 	return self.BotData.CurrentState.name
 end
