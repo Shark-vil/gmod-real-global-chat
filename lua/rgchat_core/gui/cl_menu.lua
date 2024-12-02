@@ -32,7 +32,7 @@ local function openSettingsMenu()
 					if cvar_object:GetBool() then
 						return Color(166, 255, 206)
 					else
-					return Color(255, 198, 198)
+						return Color(255, 198, 198)
 					end
 				end
 				element:SetTextColor(get_color())

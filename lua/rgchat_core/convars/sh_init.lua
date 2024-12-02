@@ -1,7 +1,11 @@
 RealGloabalChat.ConVar.AllRegistered = RealGloabalChat.ConVar.AllRegistered or {}
 
 function RealGloabalChat.ConVar:Register(name, value, flags, helpText, min, max)
-	if (CLIENT and string.StartsWith(name, 'cl')) or (SERVER and string.StartsWith(name, 'sv')) then
+	local is_client = CLIENT and string.StartsWith(name, 'cl')
+	local is_rpc = CLIENT and string.StartsWith(name, 'sv') and isnumber(flags) and bit.band(flags, FCVAR_REPLICATED) == FCVAR_REPLICATED
+	local is_server = SERVER and string.StartsWith(name, 'sv')
+
+	if is_client or is_rpc or is_server then
 		CreateConVar(name, value, flags, helpText, min, max)
 		RealGloabalChat.ConVar.AllRegistered[name] = GetConVar(name)
 	end

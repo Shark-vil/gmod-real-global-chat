@@ -59,7 +59,7 @@ function RealGloabalChat.WebApi:ResponseHandler(callback)
 				RealGloabalChat.WebApi:HttpError(response.error)
 			end
 		elseif code ~= 200 then
-			RealGloabalChat.WebApi:HttpError(response or body)
+			RealGloabalChat.WebApi:HttpError(istable(response) and table.ToString(response) or body)
 		end
 
 		if _isfunction(callback) then
