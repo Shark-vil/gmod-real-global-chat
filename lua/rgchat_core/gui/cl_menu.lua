@@ -598,9 +598,24 @@ Set translation language
 				local _isstring = isstring
 				local current_map = _game_GetMap()
 				_table_sort(body.players_on_world, function(a, b)
-					if a.map == 'web' then return false end
-					if b.map == 'web' then return true end
-					return (_isstring(a.map) and a.map == current_map) and not (_isstring(b.map) and b.map == current_map)
+					-- Текущая карта вверху списка
+					if a.map == current_map and b.map ~= current_map then return true end
+					if b.map == current_map and a.map ~= current_map then return false end
+
+					-- WEB пользователи в самом низу списка
+					local a_isweb = a.map and a.map == 'web'
+					local b_isweb = b.map and b.map == 'web'
+					if a_isweb then return false end
+					if b_isweb then return true end
+
+					-- Карты без скачивания внизу списка, но выше чем WEB
+					local a_invalid = not a.map_wsid or not a.map
+					local b_invalid = not b.map_wsid or not b.map
+					if a_invalid and not b_invalid then return false end
+					if b_invalid and not a_invalid then return true end
+
+					-- Сортировка по алфавиту
+					return a.map < b.map
 				end)
 			end
 
