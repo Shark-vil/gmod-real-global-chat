@@ -16,7 +16,7 @@ if SERVER then
 
     net.Receive('RGChat_DisableECH', function(_, ply)
         if not ply:IsAdmin() then return end
-        RunConsoleCommand('sv_disable_ech', 1)
+        RunConsoleCommand('sv_rgc_disable_ech', 1)
     end)
 else
     surface.CreateFont('RgChatRKN_CustomHeader', {
@@ -93,7 +93,7 @@ else
         yesButton.DoClick = function()
             questionFrame:Close()
             chat.AddText(Color(255, 100, 100), 'ECH от Cloudflare будет отключён для стабильной работы API.')
-            RunConsoleCommand('cl_disable_ech', 1)
+            RunConsoleCommand('cl_rgc_disable_ech', 1)
             if LocalPlayer():IsAdmin() then
                 net.Start('RGChat_DisableECH')
                 net.SendToServer()
@@ -117,7 +117,12 @@ else
         if GetConVar('cl_language'):GetString() ~= 'russian' then return end
         local data_path = 'rgchat_data/ru_ech_check.txt'
         if file.Exists(data_path, 'DATA') and file.Read(data_path, 'DATA') == '1' then
-            return
+            -- Change cvar name
+            if file.Time('rgchat_data/ru_ech_check.txt', 'DATA') < 1738485490 then
+                file.Delete('rgchat_data/ru_ech_check.txt')
+            else
+                return
+            end
         end
         RunConsoleCommand('rgchat_russian_warning_rkn')
         file.Write(data_path, '1')
