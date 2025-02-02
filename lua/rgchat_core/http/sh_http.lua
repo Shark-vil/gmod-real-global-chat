@@ -6,8 +6,8 @@ local _pairs = pairs
 local _tostring = tostring
 local _isnumber = isnumber
 local _ConVar = RealGloabalChat.ConVar
-local CLIENT = CLIENT
-local SERVER = SERVER
+-- local CLIENT = CLIENT
+-- local SERVER = SERVER
 
 RealGloabalChat.Http.ContentType = {
 	['html'] = 'text/html; charset=utf-8',
@@ -47,9 +47,9 @@ function RealGloabalChat.Http:Request(request_settings, callback_data)
 		http_data.headers = {}
 	end
 
-	if (CLIENT and _ConVar:GetBool('cl_disable_ech')) or (SERVER and _ConVar:GetBool('sv_disable_ech')) then
-		http_data.headers['TLS-Feature'] = 'no-ech'
-	end
+	-- if (CLIENT and _ConVar:GetBool('cl_rgc_disable_ech')) or (SERVER and _ConVar:GetBool('sv_rgc_disable_ech')) then
+	-- 	http_data.headers['TLS-Feature'] = 'no-ech'
+	-- end
 
 	if _isnumber(timeout) then
 		http_data.timeout = timeout
