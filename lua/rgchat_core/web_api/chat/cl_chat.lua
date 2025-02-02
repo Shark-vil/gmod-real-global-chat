@@ -34,7 +34,7 @@ function RealGloabalChat.WebApi.Chat:GetChatMessagessLongPoll(sessionId, start_m
 	RealGloabalChat.Http:Request({
 		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetChatMessagessLongPoll' .. paramsBuilder:GetResult()),
 		request_type = 'GET',
-		timeout = 120
+		timeout = 60
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
 		failed = function(err)

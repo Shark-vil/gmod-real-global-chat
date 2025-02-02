@@ -9,4 +9,5 @@ RealGloabalChat.ConVar = RealGloabalChat.ConVar or {}
 RealGloabalChat.Color = RealGloabalChat.Color or {}
 RealGloabalChat.Enum = RealGloabalChat.Enum or {}
 RealGloabalChat.ActiveMapWsid = nil
+RealGloabalChat.WebSocket = RealGloabalChat.WebSocket
 -- RealGloabalChat.Storage = RealGloabalChat.Storage or {}

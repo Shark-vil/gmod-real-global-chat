@@ -22,6 +22,7 @@ local _color_message_command = Color(247, 173, 246)
 local _color_message_filtred = Color(241, 137, 137)
 local _color_message_google = Color(153, 176, 254)
 local _sound_ping_sfx = Sound('real_global_chat_mod/ping_sfx.wav')
+local _sound_new_message_sfx = Sound('real_global_chat_mod/new_message_sfx.wav')
 local _table_insert = table.insert
 local _isstring = isstring
 local _last_message_id = nil
@@ -85,6 +86,8 @@ function _RenderMessages(response)
 		end
 	end
 
+	local has_loaded_new_messages = false
+
 	for _, user_message in _ipairs(response.messages) do
 		if not _IsNewMessageId(user_message) then continue end
 		_last_message_id = user_message.id
@@ -97,11 +100,15 @@ function _RenderMessages(response)
 		local has_hidden = false
 		local has_muted = RealGloabalChat.Api:HasMutedUser(user_message.connect_id)
 
-		if not has_muted and ConVar:GetBool('cl_rgc_filter') and user_message.message_filtred then
-			if ConVar:GetBool('cl_rgc_filter_strict') then
+		if not has_muted and ConVar:GetBool('cl_rgc_filter') then
+			if ConVar:GetBool('cl_rgc_filter_family') and user_message.is_suspicious == 1 then
 				has_filtred = true
-			else
-				result_message = user_message.message_filtred
+			elseif user_message.message_filtred then
+				if ConVar:GetBool('cl_rgc_filter_strict') then
+					has_filtred = true
+				else
+					result_message = user_message.message_filtred
+				end
 			end
 		end
 
@@ -198,19 +205,21 @@ function _RenderMessages(response)
 		builder:Add(result_color_message, 'color_message')
 		builder:Add(result_message, 'message')
 
-		if translate_result_message then
-			builder:Add(_color_message_google)
-			builder:Add('\n[Translation] ')
-			builder:Add(_color_message)
-			builder:Add(translate_result_message)
-		end
+		if not has_hidden then
+			if translate_result_message then
+				builder:Add(_color_message_google)
+				builder:Add('\n[Translation] ')
+				builder:Add(_color_message)
+				builder:Add(translate_result_message)
+			end
 
-		if not has_hidden and user_message.message_type == 1 then
-			local system_message = _util_JSONToTable(user_message.message)
+			if user_message.message_type == 1 then
+				local system_message = _util_JSONToTable(user_message.message)
 
-			if system_message and _chat_commands[system_message.command] then
-				local command_handler = _chat_commands[system_message.command]
-				command_handler(system_message.arguments, user_message, builder)
+				if system_message and _chat_commands[system_message.command] then
+					local command_handler = _chat_commands[system_message.command]
+					command_handler(system_message.arguments, user_message, builder)
+				end
 			end
 		end
 
@@ -220,9 +229,17 @@ function _RenderMessages(response)
 			_system_FlashWindow()
 
 			if ConVar:GetBool('cl_rgc_ping_sound') then
-				_surface_PlaySound(sound_ping_sfx)
+				_surface_PlaySound(_sound_ping_sfx)
 			end
 		end
+
+		if not has_loaded_new_messages and not has_hidden then
+			has_loaded_new_messages = true
+		end
+	end
+
+	if has_loaded_new_messages and ConVar:GetBool('cl_rgc_new_message_sound') then
+		_surface_PlaySound(_sound_new_message_sfx)
 	end
 end
 
@@ -238,6 +255,9 @@ end
 
 function _Handler()
 	local code, response, session_id, world_name
+	local longpoll_failed_count = 0
+	local longpoll_show_disable_message = false
+	local longpoll_can_first_request = false
 
 	local function can_update_world_name()
 		if not world_name then
@@ -252,10 +272,16 @@ function _Handler()
 	end
 
 	while true do
-		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service') then
+		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service') and longpoll_failed_count <= 3 then
 			can_update_world_name()
 			if not session_id then
 				code, session_id = RealGloabalChat.WebApi.Chat:MakeLongPollSessionWait()
+				if not session_id or code ~= 200 then
+					-- Штраф за ошибку создания сессии
+					longpoll_failed_count = longpoll_failed_count + 1
+				else
+					longpoll_can_first_request = true
+				end
 			else
 				if not _isnumber(_last_message_id) then
 					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
@@ -265,17 +291,31 @@ function _Handler()
 				end
 				if _last_message_id then
 					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagessLongPollWait(session_id, _last_message_id, can_update_world_name)
-					if code then
-						if code == 403 then
-							session_id = nil
-						elseif code == 200 and response and response.success and response.success == 1 and response.messages then
-							_RenderMessages(response)
+					if not code or not response or code ~= 200 then
+						-- Штраф за ошибку первой инициализации
+						if longpoll_can_first_request then
+							longpoll_failed_count = longpoll_failed_count + 1
 						end
+						session_id = nil
+					elseif response.success and response.success == 1 and response.messages then
+						-- Снятие штрафа если инициализация успешна
+						if longpoll_can_first_request and longpoll_failed_count > 0 then
+							longpoll_failed_count = longpoll_failed_count - 1
+						end
+						_RenderMessages(response)
 					end
+				end
+
+				if longpoll_can_first_request then
+					longpoll_can_first_request = false
 				end
 			end
 		else
 			if RealGloabalChat.Api:PlayerChatIsActive() then
+				if longpoll_failed_count ~= 0 and not longpoll_show_disable_message then
+					RealGloabalChat:PrintWarning('The LongPoll system is disable due to errors. Please report if this happens too often.')
+					longpoll_show_disable_message = true
+				end
 				code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
 				if code and code == 200 and response and response.success and response.success == 1 and response.messages then
 					if not _isnumber(_last_message_id) then
@@ -284,6 +324,7 @@ function _Handler()
 						_RenderMessages(response)
 					end
 				end
+				_coroutine_wait(.5)
 			end
 		end
 

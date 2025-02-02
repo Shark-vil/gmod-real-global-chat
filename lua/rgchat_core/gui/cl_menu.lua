@@ -17,11 +17,11 @@ local function openSettingsMenu()
 	local cvar_cl_swapskin_darkui_enabled = GetConVar('cl_swapskin_darkui_enabled')
 	local cvar_cl_rgc_download_model_size_limit = RealGloabalChat.ConVar:GetInt('cl_rgc_download_model_size_limit')
 
-	local function base_setup_element(element, dock_value, cvar_name)
-		if isfunction(element.SizeToContents) then
+	local function base_setup_element(element, dock_value, cvar_name, options)
+		if (not options or not options.nosize) and isfunction(element.SizeToContents) then
 			element:SizeToContents()
 		end
-		if isfunction(element.Dock) then
+		if (not options or not options.nodock) and isfunction(element.Dock) then
 			element:Dock(TOP)
 		end
 
@@ -177,6 +177,19 @@ local function openSettingsMenu()
 	label_modstate:SetAutoStretchVertical(true)
 	base_setup_element(label_modstate)
 
+	local checkbox_longpoll_service = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_longpoll_service:SetConVar('cl_rgc_longpoll_service')
+	checkbox_longpoll_service:SetText(Language:Get('menu_rgc_longpoll_service'))
+	checkbox_longpoll_service:SetTooltip(Language:Get('menu_rgc_longpoll_service_desc'))
+	checkbox_longpoll_service:SetFont('Trebuchet24')
+	base_setup_element(checkbox_longpoll_service, { 15, 15, 15, 0 }, 'cl_rgc_longpoll_service')
+
+	local label_longpoll_service = scroll_panel:Add('DLabel')
+	label_longpoll_service:SetText(Language:Get('menu_rgc_longpoll_service_desc'))
+	label_longpoll_service:SetFont('CreditsText')
+	label_longpoll_service:SetAutoStretchVertical(true)
+	base_setup_element(label_longpoll_service)
+
 	local checkbox_translator = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_translator:SetConVar('cl_rgc_translator')
 	checkbox_translator:SetText(Language:Get('menu_rgc_translator'))
@@ -255,6 +268,19 @@ local function openSettingsMenu()
 	label_playerid:SetAutoStretchVertical(true)
 	base_setup_element(label_playerid)
 
+	local checkbox_message_sfx = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_message_sfx:SetConVar('cl_rgc_new_message_sound')
+	checkbox_message_sfx:SetText(Language:Get('menu_rgc_message_sound'))
+	checkbox_message_sfx:SetTooltip(Language:Get('menu_rgc_message_sound_desc'))
+	checkbox_message_sfx:SetFont('Trebuchet24')
+	base_setup_element(checkbox_message_sfx, { 15, 5, 15, 0 }, 'cl_rgc_new_message_sound')
+
+	local label_message_sfx = scroll_panel:Add('DLabel')
+	label_message_sfx:SetText(Language:Get('menu_rgc_message_sound_desc'))
+	label_message_sfx:SetFont('CreditsText')
+	label_message_sfx:SetAutoStretchVertical(true)
+	base_setup_element(label_message_sfx)
+
 	local checkbox_ping = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_ping:SetConVar('cl_rgc_ping_sound')
 	checkbox_ping:SetText(Language:Get('menu_rgc_ping_sound'))
@@ -293,6 +319,19 @@ local function openSettingsMenu()
 	label_filter_strict:SetFont('CreditsText')
 	label_filter_strict:SetAutoStretchVertical(true)
 	base_setup_element(label_filter_strict)
+
+	local checkbox_filter_family = scroll_panel:Add('DCheckBoxLabel')
+	checkbox_filter_family:SetConVar('cl_rgc_filter_family')
+	checkbox_filter_family:SetText(Language:Get('menu_rgc_filter_family'))
+	checkbox_filter_family:SetTooltip(Language:Get('menu_rgc_filter_family_desc'))
+	checkbox_filter_family:SetFont('Trebuchet24')
+	base_setup_element(checkbox_filter_family, { 15, 5, 15, 0 }, 'cl_rgc_filter_family')
+
+	local label_filter_family = scroll_panel:Add('DLabel')
+	label_filter_family:SetText(Language:Get('menu_rgc_filter_family_desc'))
+	label_filter_family:SetFont('CreditsText')
+	label_filter_family:SetAutoStretchVertical(true)
+	base_setup_element(label_filter_family)
 
 	local checkbox_syncplayers = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_syncplayers:SetConVar('sv_rgc_sync_players')
@@ -403,6 +442,15 @@ local function openSettingsMenu()
 	label_help:SetText([[Open menu:
 - /rgchat
 
+Enable global chat mod:
+- /rgchaton
+
+Disable global chat mod:
+- /rgchatoff
+
+Change get messages mode:
+- /rgchatlongpoll
+
 Mute or unmute player:
 - /rgchatmute ID
 - Example: /rgchatmute #23 or rgchatmute 23
@@ -430,14 +478,11 @@ Filter switch:
 Strict filter switch:
 - /rgchatfilterstrict
 
+Family filter switch:
+- /rgchatfilterfamily
+
 Player map visibility switch:
 - /rgchatmap
-
-Enable global chat mod:
-- /rgchaton
-
-Disable global chat mod:
-- /rgchatoff
 
 Ping SFX switch:
 - /rgchatpingsfx
@@ -447,19 +492,19 @@ Set translation language
 - Exanple: /rgchattranslateto en]])
 	base_setup_element(label_help)
 
-	local image_boosty = scroll_panel:Add('DButton')
-	image_boosty:SetText('')
-	image_boosty:SetHeight(135)
-	function image_boosty:Paint(w, h)
-		surface.SetDrawColor(255, 255, 255, 255)
-		surface.SetMaterial(_material_boosty)
-		surface.DrawTexturedRect(0, 0, w, h)
-	end
-	function image_boosty:DoClick()
-		gui.OpenURL('https://boosty.to/shark_vil')
-	end
-	image_boosty:Dock(TOP)
-	image_boosty:DockMargin(15, 15, 15, 15)
+	-- local image_boosty = scroll_panel:Add('DButton')
+	-- image_boosty:SetText('')
+	-- image_boosty:SetHeight(135)
+	-- function image_boosty:Paint(w, h)
+	-- 	surface.SetDrawColor(255, 255, 255, 255)
+	-- 	surface.SetMaterial(_material_boosty)
+	-- 	surface.DrawTexturedRect(0, 0, w, h)
+	-- end
+	-- function image_boosty:DoClick()
+	-- 	gui.OpenURL('https://boosty.to/shark_vil')
+	-- end
+	-- image_boosty:Dock(TOP)
+	-- image_boosty:DockMargin(15, 15, 15, 15)
 
 	local image_discord = scroll_panel:Add('DButton')
 	image_discord:SetText('')
@@ -484,11 +529,48 @@ Set translation language
 	players_panel:Dock(FILL)
 	players_panel:SetBackgroundColor(Color(27, 27, 27))
 
-	local label_players_scroll_panel_info = vgui.Create('DLabel', players_panel)
-	label_players_scroll_panel_info:SetText('DEV: This menu is in development!')
-	label_players_scroll_panel_info:SetFont('CreditsText')
-	label_players_scroll_panel_info:SetAutoStretchVertical(true)
-	base_setup_element(label_players_scroll_panel_info)
+	-- local label_players_scroll_panel_info = vgui.Create('DLabel', players_panel)
+	-- label_players_scroll_panel_info:SetText('DEV: This menu is in development!')
+	-- label_players_scroll_panel_info:SetFont('CreditsText')
+	-- label_players_scroll_panel_info:SetAutoStretchVertical(true)
+	-- base_setup_element(label_players_scroll_panel_info)
+
+	local help_list_panel = vgui.Create('DIconLayout', players_panel)
+	help_list_panel:Dock(TOP)
+	help_list_panel:SetSpaceY(1)
+	help_list_panel:SetSpaceX(6)
+
+	do
+		local clr_alpha = Color(0, 0, 0, 0)
+		local clr_white = Color(255, 255, 255)
+
+		local function add_help_block(text, color)
+			local help_block_panel = help_list_panel:Add('DPanel')
+			help_block_panel:SetSize(150, 40)
+			help_block_panel.Paint = function(self, w, h)
+				draw.RoundedBox(0, 0, 0, w, h, clr_alpha)
+			end
+
+			local color_block = vgui.Create('DPanel', help_block_panel)
+			color_block:SetSize(20, 20)
+			color_block:SetPos(15, 10)
+			color_block.Paint = function(self, w, h)
+				draw.RoundedBox(4, 0, 0, w, h, color)
+			end
+
+			local label_block = vgui.Create('DLabel', help_block_panel)
+			label_block:SetText(text)
+			label_block:SetFont('CreditsText')
+			label_block:SetWrap(true)
+			label_block:Dock(FILL)
+			base_setup_element(label_block, { 40, 0, 0, 0}, nil, { nodock = true })
+		end
+
+		add_help_block('Current map', _clr_current_map)
+		add_help_block('Is already uploaded', _clr_another_map)
+		add_help_block('Will be downloaded', _clr_download_map)
+		add_help_block('Invalid map', clr_white)
+	end
 
 	local connect_process = false
 	local players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
@@ -504,15 +586,20 @@ Set translation language
 			if not IsValid(players_scroll_panel) then return end
 			if code ~= 200 or not body or not istable(body.players_on_world) or body.players_on_world_count == 0 then return end
 
+			local old_scroll_pos = players_scroll_panel:GetVBar():GetScroll()
+
 			players_scroll_panel:Remove()
 
 			players_scroll_panel = vgui.Create('DScrollPanel', players_panel)
+			players_scroll_panel:DockMargin(0, 10, 0, 0)
 			players_scroll_panel:Dock(FILL)
 
 			if body.players_on_world_count > 1 then
 				local _isstring = isstring
 				local current_map = _game_GetMap()
 				_table_sort(body.players_on_world, function(a, b)
+					if a.map == 'web' then return false end
+					if b.map == 'web' then return true end
 					return (_isstring(a.map) and a.map == current_map) and not (_isstring(b.map) and b.map == current_map)
 				end)
 			end
@@ -587,6 +674,14 @@ Set translation language
 						end
 					end
 				end
+			end
+
+			if old_scroll_pos then
+				timer.Simple(.01, function()
+					if IsValid(players_scroll_panel) then
+						players_scroll_panel:GetVBar():SetScroll(old_scroll_pos)
+					end
+				end)
 			end
 		end)
 	end

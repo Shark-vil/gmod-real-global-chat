@@ -39,6 +39,16 @@ _chat_commands = {
 		net.WriteString('cl_rgc_filter_strict')
 		net.Send(ply)
 	end,
+	['rgchatfilterfamily'] = function(ply)
+		net.Start('RGChat_SwitchCvarFromClient')
+		net.WriteString('cl_rgc_filter_family')
+		net.Send(ply)
+	end,
+	['rgchatlongpoll'] = function(ply)
+		net.Start('RGChat_SwitchCvarFromClient')
+		net.WriteString('cl_rgc_longpoll_service')
+		net.Send(ply)
+	end,
 	['rgchatmap'] = function(ply)
 		net.Start('RGChat_SwitchCvarFromClient')
 		net.WriteString('cl_rgc_visible_player_map_name')
@@ -150,14 +160,14 @@ else
 		while true do
 			local data = _send_messages_queue[1]
 			if data then
-				local code, _ = RealGloabalChat.WebApi.Chat:SendToChatWait(local_player, data.message)
-				if code == 200 or data.attempts == attempts_max then
+				local code, response = RealGloabalChat.WebApi.Chat:SendToChatWait(local_player, data.message)
+				if code == 200 or (code == 400 and response and response.success == 0) or data.attempts == attempts_max then
 					table.remove(_send_messages_queue, 1)
 				elseif data.attempts < attempts_max then
 					data.attempts = data.attempts + 1
 				end
 			end
-			coroutine.wait(.5)
+			coroutine.wait(1)
 		end
 	end
 	RealGloabalChat:AddBackgroundWorker('send_message_queue', _Handler)

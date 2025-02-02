@@ -32,9 +32,10 @@ function RealGloabalChat.Api:HasMutedUser(connect_id)
 	if not connect_id then return false end
 
 	if not _muted_users and _file_Exists('rgchat_data/muted_users.json', 'DATA') then
-		-- Update database
-		if _file_Time('rgchat_data/muted_users.json', 'DATA') < 1725820212 then
+		-- Change file data type
+		if _file_Time('rgchat_data/muted_users.json', 'DATA') < 1738485490 then
 			_file_Delete('rgchat_data/muted_users.json')
+			RealGloabalChat:PrintWarning('The mute list has been reset due to a data update.')
 		else
 			_muted_users = _util_JSONToTable(_file_Read('rgchat_data/muted_users.json', 'DATA'))
 		end
@@ -57,7 +58,13 @@ function RealGloabalChat.Api:MuteUser(connect_id)
 	end
 
 	if not connect_id or not connect_id:match('^%d+$') then
-		RealGloabalChat:PrintError('Id must be a number!')
+		RealGloabalChat:PrintError('ID must be a number!')
+		return
+	end
+
+	connect_id = tonumber(connect_id)
+	if not connect_id then
+		RealGloabalChat:PrintError('Failed to convert ID to number')
 		return
 	end
 
