@@ -255,9 +255,6 @@ end
 
 function _Handler()
 	local code, response, session_id, world_name
-	local longpoll_failed_count = 0
-	local longpoll_show_disable_message = false
-	local longpoll_can_first_request = false
 
 	local function can_update_world_name()
 		if not world_name then
@@ -272,16 +269,15 @@ function _Handler()
 	end
 
 	while true do
-		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service') and longpoll_failed_count <= 3 then
+		if not RealGloabalChat.Api:PlayerChatIsActive() then
+			_coroutine_wait(1)
+			continue
+		end
+
+		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service') then
 			can_update_world_name()
 			if not session_id then
 				code, session_id = RealGloabalChat.WebApi.Chat:MakeLongPollSessionWait()
-				if not session_id or code ~= 200 then
-					-- Штраф за ошибку создания сессии
-					longpoll_failed_count = longpoll_failed_count + 1
-				else
-					longpoll_can_first_request = true
-				end
 			else
 				if not _isnumber(_last_message_id) then
 					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
@@ -291,41 +287,25 @@ function _Handler()
 				end
 				if _last_message_id then
 					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagessLongPollWait(session_id, _last_message_id, can_update_world_name)
-					if not code or not response or code ~= 200 then
-						-- Штраф за ошибку первой инициализации
-						if longpoll_can_first_request then
-							longpoll_failed_count = longpoll_failed_count + 1
+					if RealGloabalChat.Api:PlayerChatIsActive() then
+						if not code or not response or code ~= 200 then
+							session_id = nil
+						elseif response.success and response.success == 1 and response.messages then
+							_RenderMessages(response)
 						end
-						session_id = nil
-					elseif response.success and response.success == 1 and response.messages then
-						-- Снятие штрафа если инициализация успешна
-						if longpoll_can_first_request and longpoll_failed_count > 0 then
-							longpoll_failed_count = longpoll_failed_count - 1
-						end
-						_RenderMessages(response)
 					end
-				end
-
-				if longpoll_can_first_request then
-					longpoll_can_first_request = false
 				end
 			end
 		else
-			if RealGloabalChat.Api:PlayerChatIsActive() then
-				if longpoll_failed_count ~= 0 and not longpoll_show_disable_message then
-					RealGloabalChat:PrintWarning('The LongPoll system is disable due to errors. Please report if this happens too often.')
-					longpoll_show_disable_message = true
+			code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
+			if code and code == 200 and response and response.success and response.success == 1 and response.messages then
+				if not _isnumber(_last_message_id) then
+					_SetLastMessageId(response)
+				else
+					_RenderMessages(response)
 				end
-				code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesWait(_last_message_id)
-				if code and code == 200 and response and response.success and response.success == 1 and response.messages then
-					if not _isnumber(_last_message_id) then
-						_SetLastMessageId(response)
-					else
-						_RenderMessages(response)
-					end
-				end
-				_coroutine_wait(.5)
 			end
+			_coroutine_wait(.5)
 		end
 
 		_coroutine_wait(1)
