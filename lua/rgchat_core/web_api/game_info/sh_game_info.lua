@@ -28,11 +28,7 @@ function RealGloabalChat.WebApi.GameInfo:UpdateGameInfo(ply, action_list, callba
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -46,9 +42,7 @@ function RealGloabalChat.WebApi.GameInfo:GetGameInfo(last_update, callback)
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			callback(nil, err)
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -101,11 +95,7 @@ function RealGloabalChat.WebApi.GameInfo:AddEntities(ply, entities, callback)
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -159,11 +149,7 @@ function RealGloabalChat.WebApi.GameInfo:UpdateEntities(ply, entities, callback)
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -204,11 +190,7 @@ function RealGloabalChat.WebApi.GameInfo:CleanupEntities(ply, entities, callback
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -247,11 +229,7 @@ function RealGloabalChat.WebApi.GameInfo:ClaimEntities(ply, entities, callback)
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -264,8 +242,6 @@ function RealGloabalChat.WebApi.GameInfo:GetEntities(target_steamid64, callback)
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			callback(nil, err)
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end

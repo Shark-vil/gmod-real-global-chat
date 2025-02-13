@@ -11,11 +11,7 @@ function RealGloabalChat.WebApi.Verification:PreparationVerification(ply, callba
 		request_type = 'POST',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -25,10 +21,6 @@ function RealGloabalChat.WebApi.Verification:CheckVerification(ply, guid_address
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end

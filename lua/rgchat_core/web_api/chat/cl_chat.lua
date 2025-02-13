@@ -17,11 +17,7 @@ function RealGloabalChat.WebApi.Chat:MakeLongPollSession(callback)
 			content_type = 'json',
 		}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -37,9 +33,7 @@ function RealGloabalChat.WebApi.Chat:GetChatMessagessLongPoll(sessionId, start_m
 		timeout = 60
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			callback(nil, err)
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -68,11 +62,7 @@ function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -86,9 +76,7 @@ function RealGloabalChat.WebApi.Chat:GetChatMessages(start_message_id, callback)
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			callback(nil, err)
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -109,11 +97,7 @@ function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
 		content_type = 'json',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			if _isfunction(callback) then
-				callback(nil, err)
-			end
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end
 
@@ -126,8 +110,6 @@ function RealGloabalChat.WebApi.Chat:GetOnline(callback)
 		request_type = 'GET',
 	}, {
 		success = RealGloabalChat.WebApi:ResponseHandler(callback),
-		failed = function(err)
-			callback(nil, err)
-		end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end

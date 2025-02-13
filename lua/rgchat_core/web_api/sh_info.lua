@@ -15,6 +15,6 @@ function RealGloabalChat.WebApi.Info:Get(callback)
 			end
 			callback(code, body)
 		end,
-		failed = function(err) callback(nil, err) end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end

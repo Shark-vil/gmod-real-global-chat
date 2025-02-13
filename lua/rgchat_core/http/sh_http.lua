@@ -37,14 +37,13 @@ function RealGloabalChat.Http:Request(request_settings, callback_data)
 		http_data.method = request_type
 	end
 
-	if _isstring(content_type) and RealGloabalChat.Http.ContentType[content_type] then
-		http_data.headers = {
-			['Content-Type'] = RealGloabalChat.Http.ContentType[content_type]
-		}
-	end
+	http_data.headers = {
+		['Accept'] = 'application/json,text/html,text/plain,*/*',
+		['Accept-Language'] = 'en-US,en;q=0.9'
+	}
 
-	if not http_data.headers then
-		http_data.headers = {}
+	if _isstring(content_type) and RealGloabalChat.Http.ContentType[content_type] then
+		http_data.headers['Content-Type'] = RealGloabalChat.Http.ContentType[content_type]
 	end
 
 	-- if (CLIENT and _ConVar:GetBool('cl_rgc_disable_ech')) or (SERVER and _ConVar:GetBool('sv_rgc_disable_ech')) then
@@ -70,7 +69,7 @@ function RealGloabalChat.Http:Request(request_settings, callback_data)
 	end
 
 	http_data.success = function(code, body, headers)
-		if _isfunction(success_func) then success_func(code, body) end
+		if _isfunction(success_func) then success_func(code, body, url) end
 		-- if _isfunction(finally_func) then finally_func() end
 		if RealGloabalChat:IsHttpDebug() then
 			RealGloabalChat:Log('[RGChat HTTP] SUCCESS: ' .. url .. ': ', code, body)
@@ -78,7 +77,7 @@ function RealGloabalChat.Http:Request(request_settings, callback_data)
 	end
 
 	http_data.failed = function(error_message)
-		if _isfunction(failed_func) then failed_func(error_message) end
+		if _isfunction(failed_func) then failed_func(error_message, url) end
 		-- if _isfunction(finally_func) then finally_func() end
 		if RealGloabalChat:IsHttpDebug() then
 			RealGloabalChat:LogError('[RGChat HTTP] ERROR: ' .. url .. ': ', error_message)

@@ -237,6 +237,6 @@ function RealGloabalChat.WebApi.Translate:Translate(lang, text, callback)
 
 			callback(code, nil)
 		end,
-		failed = function(err) callback(nil, err) end,
+		failed = RealGloabalChat.WebApi:ResponseHandler(callback)
 	})
 end

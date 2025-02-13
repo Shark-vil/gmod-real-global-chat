@@ -1,6 +1,9 @@
 local _isfunction = isfunction
 local _tostring = tostring
 local _util_JSONToTable = util.JSONToTable
+local _string_find = string.find
+local _string_match = string.match
+local _tonumber = tonumber
 
 function RealGloabalChat.WebApi:HttpError(message)
 	RealGloabalChat:LogError('[WEB] ' .. message)
@@ -37,29 +40,36 @@ function RealGloabalChat.WebApi:GetUrlValuesBuilder()
 end
 
 function RealGloabalChat.WebApi:ResponseHandler(callback)
-	return function(code, body)
-		local response = _util_JSONToTable(body)
+	return function(...)
+		local args = { ... }
+		local code, body, url
+		if #args == 2 then
+			code = _tonumber(_string_match(args[1], '%d+'))
+			body = args[1]
+			url = args[2]
+		else
+			code = args[1]
+			body = args[2]
+			url = args[3]
+		end
 
-		-- if response and response.success then
-		-- 	if response.success == 0 then
-		-- 		if response.message then
-		-- 			RealGloabalChat.WebApi:HttpWarning(response.message)
-		-- 		elseif response.error then
-		-- 			RealGloabalChat.WebApi:HttpError(response.error)
-		-- 		end
-		-- 	end
-		-- else
-		-- 	RealGloabalChat.WebApi:HttpError(body)
-		-- end
+		local is_not_error = false
+
+		-- LongPoll timeout
+		if code == 504 and _string_find(url, 'Chat/GetChatMessagessLongPoll') then
+			is_not_error = true
+		end
+
+		local response = _util_JSONToTable(body)
 
 		if response and response.success and response.success == 0 then
 			if response.message then
-				RealGloabalChat.WebApi:HttpWarning(response.message)
+				RealGloabalChat.WebApi:HttpWarning(url .. '\n' .. response.message)
 			elseif response.error then
-				RealGloabalChat.WebApi:HttpError(response.error)
+				RealGloabalChat.WebApi:HttpError(url .. '\n' .. response.error)
 			end
-		elseif code ~= 200 then
-			RealGloabalChat.WebApi:HttpError(istable(response) and table.ToString(response) or body)
+		elseif not is_not_error and (not code or code ~= 200) then
+			RealGloabalChat.WebApi:HttpError(url .. '\n' .. (istable(response) and table.ToString(response) or body))
 		end
 
 		if _isfunction(callback) then
