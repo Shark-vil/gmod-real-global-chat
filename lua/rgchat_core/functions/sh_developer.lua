@@ -2,7 +2,8 @@ local _unpack = unpack
 local _MsgC = MsgC
 
 function RealGloabalChat:IsDeveloperMode()
-	return RealGloabalChat.ConVar:GetBool('developer')
+	-- return RealGloabalChat.ConVar:GetBool('developer')
+	return RealGloabalChat.ConVar:GetBool('sv_rgc_devmode')
 end
 
 function RealGloabalChat:IsHttpDebug()
