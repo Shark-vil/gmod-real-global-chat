@@ -266,7 +266,7 @@ _timer_Create('RgChat.CheckNextbotNewPmModels', 1, 0, function()
 end)
 
 concommand.Add('cl_rgc_test_workshop_download', function(ply, cma, args)
-	if not _ConVar:GetBool('developer') then return end
+	if not RealGloabalChat:IsDeveloperMode() then return end
 	local wsid = _tonumber(args[1])
 
 	if not wsid then

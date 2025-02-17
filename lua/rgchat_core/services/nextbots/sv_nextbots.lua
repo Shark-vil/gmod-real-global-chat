@@ -43,7 +43,7 @@ function _Handler()
 					return
 				end
 
-				if not RealGloabalChat.ConVar:GetBool('developer') then
+				if not RealGloabalChat:IsDeveloperMode() then
 					for _, ply in _ipairs(_player_GetHumans()) do
 						if _IsValid(ply) then
 							ignore_steamids[ply:SteamID64()] = true

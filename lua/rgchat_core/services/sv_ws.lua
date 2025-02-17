@@ -168,8 +168,7 @@ end
 RealGloabalChat.WebSocket = public
 
 concommand.Add('sv_rgc_test_websocket', function(ply)
-    local ConVar = RealGloabalChat.ConVar
-    if not ConVar:GetBool('sv_rgc_devmode') then return end
+    if not RealGloabalChat:IsDeveloperMode() then return end
 
     RealGloabalChat.WebSocket:Connect(ply)
     RealGloabalChat.WebSocket:AddEvent('movement', function(data)
