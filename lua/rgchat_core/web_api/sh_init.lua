@@ -56,7 +56,7 @@ function RealGloabalChat.WebApi:ResponseHandler(callback)
 		local is_not_error = false
 
 		-- LongPoll timeout
-		if code == 504 and _string_find(url, 'Chat/GetChatMessagessLongPoll') then
+		if code == 504 and _string_find(url, 'Chat/GetChatMessagesLongPoll') then
 			is_not_error = true
 		end
 
