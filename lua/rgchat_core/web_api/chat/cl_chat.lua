@@ -1,9 +1,5 @@
 RealGloabalChat.WebApi.Chat = RealGloabalChat.WebApi.Chat or {}
 --
-local _isfunction = isfunction
-local _file_Exists = file.Exists
-local _file_Read = file.Read
--- local _util_TableToJSON = util.TableToJSON
 
 function RealGloabalChat.WebApi.Chat:MakeLongPollSession(callback)
 	local content = RealGloabalChat:TableToJson({
@@ -39,18 +35,12 @@ end
 
 
 function RealGloabalChat.WebApi.Chat:SendToChat(ply, message_text, callback)
-	local verified_token
-
-	if _file_Exists('rgchat_data/verified.txt', 'DATA') then
-		verified_token = _file_Read('rgchat_data/verified.txt', 'DATA')
-	end
-
 	local content = RealGloabalChat:TableToJson({
 		steamid64 = ply:SteamID64(),
 		username = ply:Nick(),
 		message = message_text,
 		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
-		verified_token = verified_token,
+		verified_token = RealGloabalChat:ReadLocalVerifiedToken(),
 		random_id = os.time(),
 		map = game.GetMap()
 	})
@@ -85,6 +75,7 @@ function RealGloabalChat.WebApi.Chat:UpdateOnline(ply, callback)
 		steamid64 = ply:SteamID64(),
 		username = ply:Nick(),
 		chat_room_name = RealGloabalChat.Api:GetChatRoom(),
+		verified_token = RealGloabalChat:ReadLocalVerifiedToken(),
 		map = game.GetMap(),
 		map_wsid = RealGloabalChat.ActiveMapWsid,
 		in_chat = RealGloabalChat.Api:PlayerChatIsActive() and 1 or 0
