@@ -5,9 +5,7 @@ function RealGloabalChat.WebApi.Verification:PreparationVerificationWait(ply)
 	local wait = true
 	local result = {}
 	RealGloabalChat.WebApi.Verification:PreparationVerification(ply, function(code, response)
-		if code and code == 200 then
-			result = { code, response }
-		end
+		result = { code, response }
 		wait = false
 	end)
 	while wait do coroutine.yield() end
@@ -18,9 +16,7 @@ function RealGloabalChat.WebApi.Verification:CheckVerificationWait(ply, guid_add
 	local wait = true
 	local result = {}
 	RealGloabalChat.WebApi.Verification:CheckVerification(ply, guid_address, function(code, response)
-		if code and code == 200 then
-			result = { code, response }
-		end
+		result = { code, response }
 		wait = false
 	end)
 	while wait do coroutine.yield() end

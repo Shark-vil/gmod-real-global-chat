@@ -5,9 +5,7 @@ function RealGloabalChat.WebApi.Translate:TranslateWait(lang, text)
 	local wait = true
 	local result = {}
 	RealGloabalChat.WebApi.Translate:Translate(lang, text, function(code, response)
-		if code and code == 200 then
-			result = { code, response }
-		end
+		result = { code, response }
 		wait = false
 	end)
 	while wait do coroutine.yield() end
