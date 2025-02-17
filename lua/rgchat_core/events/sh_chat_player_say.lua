@@ -65,17 +65,17 @@ _chat_commands = {
 		net.WriteString('cl_rgc_ping_sound')
 		net.Send(ply)
 	end,
-	['rgchatmute'] = function(ply, text, connect_id)
-		if not connect_id or not isstring(connect_id) then return end
+	['rgchatmute'] = function(ply, text, user_id)
+		if not user_id or not isstring(user_id) then return end
 
-		if connect_id and isstring(connect_id) and #connect_id ~= 0 and string.sub(connect_id, 1, 1) == '#' then
-			connect_id = string.sub(connect_id, 2)
+		if user_id and isstring(user_id) and #user_id ~= 0 and string.sub(user_id, 1, 1) == '#' then
+			user_id = string.sub(user_id, 2)
 		end
 
-		if not connect_id or not isstring(connect_id) or #connect_id == 0 then return end
+		if not user_id or not isstring(user_id) or #user_id == 0 then return end
 
 		net.Start('RGChat_MutePlayer')
-		net.WriteString(connect_id)
+		net.WriteString(user_id)
 		net.Send(ply)
 	end,
 	['rgchattranslateto'] = function(ply, text, lang_code)
@@ -187,7 +187,7 @@ else
 	end)
 
 	net.Receive('RGChat_MutePlayer', function()
-		local connect_id = net.ReadString()
-		RealGloabalChat.Api:MuteUser(connect_id)
+		local user_id = net.ReadString()
+		RealGloabalChat.Api:MuteUser(user_id)
 	end)
 end

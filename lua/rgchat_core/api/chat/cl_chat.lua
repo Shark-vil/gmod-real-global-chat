@@ -33,10 +33,10 @@ concommand.Add('cl_rgc_dev_set_chat_room_name', function(_, _, args)
 	print('[RGChat] New chat room name:', RealGloabalChat.Api:GetChatRoom())
 end)
 
-function RealGloabalChat.Api:HasMutedUser(connect_id)
-	if not connect_id then return false end
-	connect_id = _tonumber(connect_id)
-	if not connect_id then return false end
+function RealGloabalChat.Api:HasMutedUser(user_id)
+	if not user_id then return false end
+	user_id = _tonumber(user_id)
+	if not user_id then return false end
 
 	if not _muted_users and _file_Exists('rgchat_data/muted_users.json', 'DATA') then
 		-- Change file data type
@@ -53,24 +53,24 @@ function RealGloabalChat.Api:HasMutedUser(connect_id)
 	end
 
 	for i = 1, #_muted_users do
-		if _muted_users[i] == connect_id then return true end
+		if _muted_users[i] == user_id then return true end
 	end
 
 	return false
 end
 
-function RealGloabalChat.Api:MuteUser(connect_id)
-	if _isstring(connect_id) and _string_sub(connect_id, 1, 1) == '#' then
-		connect_id = _string_sub(connect_id, 2)
+function RealGloabalChat.Api:MuteUser(user_id)
+	if _isstring(user_id) and _string_sub(user_id, 1, 1) == '#' then
+		user_id = _string_sub(user_id, 2)
 	end
 
-	if not connect_id or not connect_id:match('^%d+$') then
+	if not user_id or not user_id:match('^%d+$') then
 		RealGloabalChat:PrintError('ID must be a number!')
 		return
 	end
 
-	connect_id = tonumber(connect_id)
-	if not connect_id then
+	user_id = tonumber(user_id)
+	if not user_id then
 		RealGloabalChat:PrintError('Failed to convert ID to number')
 		return
 	end
@@ -81,23 +81,23 @@ function RealGloabalChat.Api:MuteUser(connect_id)
 		muted_users = _util_JSONToTable(_file_Read('rgchat_data/muted_users.json', 'DATA'))
 	end
 
-	local exists_connect_id
+	local exists_user_id
 
 	for i = 1, #muted_users do
-		local user_connect_id = muted_users[i]
+		local user_user_id = muted_users[i]
 
-		if user_connect_id == connect_id then
-			exists_connect_id = i
+		if user_user_id == user_id then
+			exists_user_id = i
 			break
 		end
 	end
 
-	if exists_connect_id then
-		_table_remove(muted_users, exists_connect_id)
-		RealGloabalChat:Print('You have removed the mute from user ID: ' .. connect_id)
+	if exists_user_id then
+		_table_remove(muted_users, exists_user_id)
+		RealGloabalChat:Print('You have removed the mute from user ID: ' .. user_id)
 	else
-		_table_insert(muted_users, connect_id)
-		RealGloabalChat:Print('User ID: ' .. connect_id .. ' was given a mute')
+		_table_insert(muted_users, user_id)
+		RealGloabalChat:Print('User ID: ' .. user_id .. ' was given a mute')
 	end
 
 	_file_Write('rgchat_data/muted_users.json', _util_TableToJSON(muted_users))

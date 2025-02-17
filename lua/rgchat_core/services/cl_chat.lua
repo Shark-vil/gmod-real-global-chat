@@ -145,7 +145,7 @@ function _RenderMessages(response)
 		local translate_result_message
 		local has_filtred = false
 		local has_hidden = false
-		local has_muted = RealGloabalChat.Api:HasMutedUser(user_message.connect_id)
+		local has_muted = RealGloabalChat.Api:HasMutedUser(user_message.user_id)
 
 		if not has_muted and ConVar:GetBool('cl_rgc_filter') then
 			if ConVar:GetBool('cl_rgc_filter_family') and user_message.is_suspicious == 1 then
@@ -187,7 +187,7 @@ function _RenderMessages(response)
 			end
 
 			if is_show_player_id then
-				_table_insert(prefix_text_list, '#' .. user_message.connect_id)
+				_table_insert(prefix_text_list, '#' .. user_message.user_id)
 			end
 
 			if is_show_map_name and user_message.played_map then
