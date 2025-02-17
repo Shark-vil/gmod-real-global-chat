@@ -13,7 +13,7 @@ function RealGloabalChat.WebApi.Chat:MakeLongPollSessionWait()
 	return unpack(result)
 end
 
-function RealGloabalChat.WebApi.Chat:GetChatMessagessLongPollWait(sessionId, start_message_id, cancellation_token)
+function RealGloabalChat.WebApi.Chat:GetChatMessagesLongPollWait(sessionId, start_message_id, cancellation_token)
 	local wait = true
 	local result = {}
 	RealGloabalChat.WebApi.Chat:GetChatMessagessLongPoll(sessionId, start_message_id, function(code, response)

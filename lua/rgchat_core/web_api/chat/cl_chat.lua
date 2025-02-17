@@ -21,14 +21,14 @@ function RealGloabalChat.WebApi.Chat:MakeLongPollSession(callback)
 	})
 end
 
-function RealGloabalChat.WebApi.Chat:GetChatMessagessLongPoll(sessionId, start_message_id, callback)
+function RealGloabalChat.WebApi.Chat:GetChatMessagesLongPoll(sessionId, start_message_id, callback)
 	local paramsBuilder = RealGloabalChat.WebApi:GetUrlValuesBuilder()
 	paramsBuilder:AddValue('sessionId', sessionId)
 	paramsBuilder:AddValue('chatRoomName', RealGloabalChat.Api:GetChatRoom())
 	paramsBuilder:AddValue('startMessageId', start_message_id)
 
 	RealGloabalChat.Http:Request({
-		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetChatMessagessLongPoll' .. paramsBuilder:GetResult()),
+		url = RealGloabalChat.WebApi:GetApiUrl('Chat/GetChatMessagesLongPoll' .. paramsBuilder:GetResult()),
 		request_type = 'GET',
 		timeout = 60
 	}, {

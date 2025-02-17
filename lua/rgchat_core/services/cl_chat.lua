@@ -286,7 +286,7 @@ function _Handler()
 					end
 				end
 				if _last_message_id then
-					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagessLongPollWait(session_id, _last_message_id, can_update_world_name)
+					code, response = RealGloabalChat.WebApi.Chat:GetChatMessagesLongPollWait(session_id, _last_message_id, can_update_world_name)
 					if RealGloabalChat.Api:PlayerChatIsActive() then
 						if not code or not response or code ~= 200 then
 							session_id = nil
