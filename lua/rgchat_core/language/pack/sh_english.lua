@@ -42,6 +42,8 @@ RealGloabalChat.Language:Register('english', {
 	['menu_rgc_message_sound_desc'] = 'If enabled, a sound effect will be played when new messages are sent to the chat. Players who are muted or blocked by a strict filter will not be counted.',
 	['menu_rgc_ping_sound'] = 'Play the ping sound effect',
 	['menu_rgc_ping_sound_desc'] = 'If active, you will hear a ping sound every time someone mentions you.\nNOTE:\nTo mention a player, use the command:\n/ping NICK\nor write a message like this:\nNICK, text',
+	['menu_rgc_ping_by_coincidence'] = 'Partial mention (ping)',
+	['menu_rgc_ping_by_coincidence_desc'] = 'If enabled, you can be ping partially by entering your nickname. If you disable this, you can only be ping via the "/ping" command or via your full nickname/ID.',
 	['menu_rgc_filter'] = 'Message Filter (Censorship)',
 	['menu_rgc_filter_desc'] = 'If active, questionable words will be hidden with asterisks. Only words from the prepared list will be hidden.\nNOTE: if you want to mute/unmute a person, write the command:\n/rgchatmute ID\nID is the number you see in front of the nickname. For example: #23',
 	['menu_rgc_filter_strict'] = 'Strict Filter (Optional)',
