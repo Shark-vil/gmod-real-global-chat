@@ -178,11 +178,11 @@ local function openSettingsMenu()
 	base_setup_element(label_modstate)
 
 	local checkbox_longpoll_service = scroll_panel:Add('DCheckBoxLabel')
-	checkbox_longpoll_service:SetConVar('cl_rgc_longpoll_service')
+	checkbox_longpoll_service:SetConVar('cl_rgc_longpoll_service_beta')
 	checkbox_longpoll_service:SetText(Language:Get('menu_rgc_longpoll_service'))
 	checkbox_longpoll_service:SetTooltip(Language:Get('menu_rgc_longpoll_service_desc'))
 	checkbox_longpoll_service:SetFont('Trebuchet24')
-	base_setup_element(checkbox_longpoll_service, { 15, 15, 15, 0 }, 'cl_rgc_longpoll_service')
+	base_setup_element(checkbox_longpoll_service, { 15, 15, 15, 0 }, 'cl_rgc_longpoll_service_beta')
 
 	local label_longpoll_service = scroll_panel:Add('DLabel')
 	label_longpoll_service:SetText(Language:Get('menu_rgc_longpoll_service_desc'))

@@ -274,7 +274,7 @@ function _Handler()
 			continue
 		end
 
-		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service') then
+		if RealGloabalChat.ConVar:GetBool('cl_rgc_longpoll_service_beta') then
 			can_update_world_name()
 			if not session_id then
 				code, session_id = RealGloabalChat.WebApi.Chat:MakeLongPollSessionWait()

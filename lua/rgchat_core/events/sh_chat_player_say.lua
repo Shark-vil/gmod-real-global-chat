@@ -46,7 +46,7 @@ _chat_commands = {
 	end,
 	['rgchatlongpoll'] = function(ply)
 		net.Start('RGChat_SwitchCvarFromClient')
-		net.WriteString('cl_rgc_longpoll_service')
+		net.WriteString('cl_rgc_longpoll_service_beta')
 		net.Send(ply)
 	end,
 	['rgchatmap'] = function(ply)

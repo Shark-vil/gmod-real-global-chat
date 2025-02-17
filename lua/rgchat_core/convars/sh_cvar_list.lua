@@ -19,7 +19,7 @@ local cvar_list = {
 	{ 'sv_rgc_sync_entities_view_other', '1', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'If the option is enabled, you will see entities that spawn other players.', 0, 1 },
 	{ 'sv_rgc_sync_entities_spawn_other', '1', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'If enabled, you will spawn objects in the world of the player you connected to. IMPORTANT: YOUR ENTITIES WILL REMAIN IN THE OTHER PLAYER\'S WORLD.', 0, 1 },
 	{ 'sv_rgc_http_debug', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'Debugging in the console for HTTP requests.', 0, 1 },
-	{ 'cl_rgc_longpoll_service', '1', FCVAR_ARCHIVE, 'The option reduces the load on the server', 0, 1 },
+	{ 'cl_rgc_longpoll_service_beta', '0', FCVAR_ARCHIVE, 'The option reduces the load on the server', 0, 1 },
 	-- { 'cl_rgc_disable_ech', '0', FCVAR_ARCHIVE, 'Disable ECH (Encrypted Client Hello) from client', 0, 1 },
 	-- { 'sv_rgc_disable_ech', '0', FCVAR_ARCHIVE, 'Disable ECH (Encrypted Client Hello) from server', 0, 1 },
 	{ 'sv_rgc_devmode', '0', FCVAR_ARCHIVE + FCVAR_REPLICATED, 'Developer mode', 0, 1 },

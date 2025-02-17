@@ -30,7 +30,7 @@ RealGloabalChat.Language:Register('english', {
 	['outdated_version'] = 'You have an old version installed. Restart the game to update the addon.',
 	['menu_rgc_status'] = 'Global chat status',
 	['menu_rgc_status_desc'] = 'If the checkbox is active, you will see chat messages and other players on the map. They will also see you.',
-	['menu_rgc_longpoll_service'] = 'Long queries',
+	['menu_rgc_longpoll_service'] = '[BETA] Long queries',
 	['menu_rgc_longpoll_service_desc'] = 'If the checkbox is active, you will use the LongPoll messaging system to save Internet traffic. If the connection is impossible, the mode will change to classic (requests once per second) automatically.',
 	['menu_rgc_translator'] = 'Translator of text',
 	['menu_rgc_translator_desc'] = 'Allows real-time translation of text into your language. If the text does not translate, try setting your language via the chat command. Example:\n/rgchattranslateto en',
