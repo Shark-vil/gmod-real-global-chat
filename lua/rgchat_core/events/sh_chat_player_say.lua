@@ -162,6 +162,11 @@ else
 			if data then
 				local code, response = RealGloabalChat.WebApi.Chat:SendToChatWait(local_player, data.message)
 				if code == 200 or (code == 400 and response and response.success == 0) or data.attempts == attempts_max then
+					if code == 200 then
+						RealGloabalChat:Log('✓ Message "' .. data.message .. '" sent successfully.')
+					else
+						RealGloabalChat:LogWarning('x Message "' .. data.message .. '" not delivered!')
+					end
 					table.remove(_send_messages_queue, 1)
 				elseif data.attempts < attempts_max then
 					data.attempts = data.attempts + 1
