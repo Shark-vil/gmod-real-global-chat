@@ -1,4 +1,5 @@
 RealGloabalChat = RealGloabalChat or {}
+RealGloabalChat.USER = RealGloabalChat.USER or {}
 RealGloabalChat.WEB_API_URL = 'https://gmodchat.com/Api/'
 RealGloabalChat.Language = RealGloabalChat.Language or {}
 RealGloabalChat.Http = RealGloabalChat.Http or {}
