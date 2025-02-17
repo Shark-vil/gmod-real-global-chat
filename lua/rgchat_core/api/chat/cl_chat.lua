@@ -15,9 +15,10 @@ local _system_GetCountry = system.GetCountry
 local _table_remove = table.remove
 local _table_insert = table.insert
 local _muted_users
+local _default_chat_room_name = 'world'
 
 function RealGloabalChat.Api:GetChatRoom()
-	local chatRoomName = 'world'
+	local chatRoomName = _default_chat_room_name
 
 	if RealGloabalChat.ConVar:GetBool('cl_rgc_country_mode') then
 		chatRoomName = 'country.' .. _string_lower(_system_GetCountry())
@@ -26,6 +27,12 @@ function RealGloabalChat.Api:GetChatRoom()
 	return chatRoomName
 end
 
+concommand.Add('cl_rgc_dev_set_chat_room_name', function(_, _, args)
+	if not args[1] or string.Trim(args[1]) == '' then return end
+	_default_chat_room_name = args[1]
+	print('[RGChat] New chat room name:', RealGloabalChat.Api:GetChatRoom())
+end)
+
 function RealGloabalChat.Api:HasMutedUser(connect_id)
 	if not connect_id then return false end
 	connect_id = _tonumber(connect_id)
@@ -33,7 +40,7 @@ function RealGloabalChat.Api:HasMutedUser(connect_id)
 
 	if not _muted_users and _file_Exists('rgchat_data/muted_users.json', 'DATA') then
 		-- Change file data type
-		if _file_Time('rgchat_data/muted_users.json', 'DATA') < 1738485490 then
+		if _file_Time('rgchat_data/muted_users.json', 'DATA') < 1739756848 then
 			_file_Delete('rgchat_data/muted_users.json')
 			RealGloabalChat:PrintWarning('The mute list has been reset due to a data update.')
 		else
