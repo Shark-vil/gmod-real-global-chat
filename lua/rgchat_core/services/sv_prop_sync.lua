@@ -227,6 +227,7 @@ function _BackgroundActionsWorker()
 				for _, ply in _ipairs(_player_GetHumans()) do
 					RealGloabalChat.WebApi.GameInfo:CleanupEntitiesWait(ply)
 				end
+				_coroutine_wait(1)
 				_cleanup_all = false
 			-- else
 			-- 	for net_world_owner_steamid64, net_entities in _pairs(_cleanup_net_entities) do
