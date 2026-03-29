@@ -125,11 +125,13 @@ function _RenderMessages(response)
 
 	_has_ping = false
 
-	for _, ply in _ipairs(_player_GetHumans()) do
-		if _IsValid(ply) then
-			local steamid64 = ply:SteamID64()
-			if _isstring(steamid64) and #steamid64 ~= 0 then
-				skip_steamid64_list[steamid64] = true
+	if not RealGloabalChat:IsDeveloperMode() then
+		for _, ply in _ipairs(_player_GetHumans()) do
+			if _IsValid(ply) then
+				local steamid64 = ply:SteamID64()
+				if _isstring(steamid64) and #steamid64 ~= 0 then
+					skip_steamid64_list[steamid64] = true
+				end
 			end
 		end
 	end
