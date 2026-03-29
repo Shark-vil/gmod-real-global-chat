@@ -7,6 +7,7 @@ ENT.States = {}
 ENT.EntityWatchers = {}
 ENT.OpinionOnEnts = {}
 ENT.VJ_AddEntityToSNPCAttackList = true
+ENT.DelayRotateUpdateTime = 0
 ENT.dt = ''
 
 function ENT:Initialize()
@@ -36,6 +37,11 @@ function ENT:Update()
 
 	if RealGloabalChat.Enum.ActJump[data.State] and data.JumpReset and data.JumpReset < CurTime() then
 		self:CustomStartActivity(RealGloabalChat.Enum.ActJumpToRun[data.State])
+	end
+
+	if data.Ang then
+		local rot = RealGloabalChat:MoveTowards(self:GetAngles(), data.Ang, 20)
+		if rot ~= data.Ang then self:SetAngles(rot) end
 	end
 end
 

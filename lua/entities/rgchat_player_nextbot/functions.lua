@@ -14,7 +14,6 @@ local CurTime = CurTime
 local IsValid = IsValid
 local angle_m20_0_0 = Angle(-20, 0, 0)
 local vector_0_0_5 = Vector(0, 0, 5)
-local cvar_dev = GetConVar('developer')
 local cvar_gravity = GetConVar('sv_gravity')
 local vector_0_0_0 = Vector(0, 0, 0)
 -- local vector_0_0_1 = Vector(0, 0, 1)
@@ -93,16 +92,51 @@ end
 
 function ENT:UpdateMovement()
 	if self:IsNoclip() then return end
-	local move_pos = self:GetMovePos()
-	if not move_pos then return end
-	-- if move_pos:DistToSqr(self:GetPos()) <= 2500 then return end
-	local data = self:GetData()
-	local activity_id = data.State
-	local activity = RealGloabalChat.Enum.ActIdle[activity_id] and ACT_HL2MP_WALK or activity_id
-	local speed = data.MoveSpeed or 400
-	local devmode = cvar_dev:GetBool()
-	local state_name = self:GetActiveStateName()
-	self:CustomStartActivity(activity)
+	local data, move_pos, speed, state_name
+	local devmode = RealGloabalChat:IsDeveloperMode()
+
+	local function load_current_data()
+		local new_move_pos = self:GetMovePos()
+		if new_move_pos then move_pos = new_move_pos end
+		data = self:GetData()
+		speed = self:GetMoveSpeed()
+		state_name = self:GetActiveStateName()
+	end
+
+	local function run_final_path_pos()
+		if not move_pos or self:GetPos():DistToSqr(move_pos) <= 225 then
+			return
+		end
+		self:StartTimer('RgChatNextFinalPathMove', 0, 0, function(stop_timer)
+			-- local new_pos
+			-- local is_near = self:GetPos():DistToSqr(move_pos) <= 225
+			-- if move_pos and not is_near then
+			-- 	new_pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * 100)
+			-- 	self:SetPos(new_pos)
+			-- end
+			-- if not move_pos or not new_pos or is_near or self:GetPos() == move_pos then
+			-- 	self:StopTimer('RgChatNextFinalPathMove')
+			-- end
+
+			local new_pos
+			if move_pos then
+				new_pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * 100)
+				self:SetPos(new_pos)
+			end
+			if not move_pos or not new_pos or self:GetPos() == move_pos then
+				self:StopTimer('RgChatNextFinalPathMove')
+			end
+		end)
+	end
+
+	load_current_data()
+
+	if not move_pos or self:GetPos():DistToSqr(move_pos) <= 625 then
+		-- run_final_path_pos()
+		return
+	end
+
+	self:StopTimer('RgChatNextFinalPathMove')
 
 	if data.CanSit then
 		self.loco:SetGravity(0)
@@ -111,7 +145,7 @@ function ENT:UpdateMovement()
 			if not data.CanSit or state_name ~= self:GetActiveStateName() or self:IsNoclip() then
 				stop_timer()
 			else
-				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * (speed * 2))
+				local pos = RealGloabalChat:MoveTowards(self:GetPos(), move_pos, FrameTime() * 1000)
 
 				if pos then
 					self:SetPos(pos)
@@ -121,10 +155,9 @@ function ENT:UpdateMovement()
 		end)
 	else
 		local is_valid_path = self._navmesh_is_loaded
-		local path
+		local path = self._Path
 
 		if is_valid_path then
-			path = self._Path
 			path:MoveCursorToClosestPosition(move_pos, 2)
 			path:Compute(self, move_pos)
 			is_valid_path = path:IsValid()
@@ -156,47 +189,38 @@ function ENT:UpdateMovement()
 					end
 				end)
 			end
-
-			return
-		end
-
-		self:StopTimer('RgChatNextBotMove')
-
-		local reset_acceleration = true
-		local timeout = CurTime() + 5
-
-		while IsValid(self) and not self:IsNoclip() and not self:OnStuck() and self.loco:IsOnGround() and path:IsValid() do
-			if timeout < CurTime() then
-				self:SetPos(move_pos)
-				break
-			end
-
-			if path:GetAge() > 0.75 then
-				path:MoveCursorToClosestPosition(move_pos, 2)
-				path:Compute(self, move_pos)
-				reset_acceleration = true
-			end
-
-			if reset_acceleration then
-				self.loco:SetDesiredSpeed(speed)
-				self.loco:SetAcceleration(self:GetAcceleration(move_pos))
-				self.loco:SetDeceleration(1000000)
-				reset_acceleration = false
-			end
+		else
+			self:StopTimer('RgChatNextBotMove')
 
 			if not self:IsOnGround() or not self.loco:IsOnGround() then
 				self:DropToFloor()
 			end
 
-			path:Update(self)
-
-			if devmode then
-				path:Draw()
+			while IsValid(self) and path:IsValid() and not self:IsNoclip() and not self:OnStuck() and self:IsOnGround() and self.loco:IsOnGround() do
+				local actions_size = #self.ActiveActions
+				if actions_size == 0 then break end
+				if  path:GetAge() > 5 then
+					if move_pos then self:SetPos(move_pos) end
+					break
+				elseif self:GetPos():DistToSqr(move_pos) <= 2500 then
+					local action = self:GetNextAction()
+					if not action then break end
+					self:UpdateAction(action)
+					load_current_data()
+					path:ResetAge()
+					path:Compute(self, move_pos)
+				end
+				self.loco:SetDesiredSpeed(speed)
+				local accel_speed = self:GetAcceleration(move_pos)
+				self.loco:SetAcceleration(accel_speed)
+				self.loco:SetDeceleration(accel_speed)
+				path:Update(self)
+				self:RotateToAng()
+				if devmode then path:Draw() end
+				coroutine_yield()
 			end
 
-			self:Update()
-			self:UpdateCurrentState()
-			coroutine_yield()
+			run_final_path_pos()
 		end
 	end
 end
@@ -204,17 +228,17 @@ end
 function ENT:GetAcceleration(move_pos)
 	if move_pos then
 		local dist = self:GetPos():DistToSqr(move_pos)
-		if dist >= 1000000 then
-			return 800
-		elseif dist >= 250000 then
-			return 600
+		if dist >= 250000 then
+			return 500
+		elseif dist >= 40000 then
+			return 400
 		end
 	end
 	return self:GetDefaultAcceleration()
 end
 
 function ENT:GetDefaultAcceleration()
-	return 400
+	return 300
 end
 
 function ENT:IsNoclipMoveType()
@@ -240,6 +264,11 @@ function ENT:StartTimer(timer_name, delay, repetitions, func)
 
 		func(stop_timer)
 	end)
+end
+
+function ENT:ExistsTimer(timer_name)
+	timer_name = timer_name .. '.' .. tostring(self:EntIndex())
+	return timer_Exists(timer_name)
 end
 
 function ENT:StopTimer(timer_name)
