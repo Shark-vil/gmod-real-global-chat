@@ -33,10 +33,11 @@ local _spawned_net_entities = {}
 -- local _cleanup_net_entities = {}
 local _claimed_entities = {}
 local _cleanup_all = false
-local _skip_hosted_entities = {
-	['sent_streamradio'] = true,
-	['mediaplayer_tv'] = true,
-}
+-- local _skip_hosted_entities = {
+-- 	['sent_streamradio'] = true,
+-- 	['mediaplayer_tv'] = true,
+-- }
+local _skip_hosted_entities = {}
 local _accept_settings_params = {
 	['sent_streamradio'] = function(ent, data, is_first_spawn)
 		if not data or not StreamRadioLib then return end
@@ -121,11 +122,11 @@ local _accept_settings_params = {
 local _set_settings_params = {
 	['sent_streamradio'] = function(ent)
 		if ent.RgChatSettings and ent.RgChatSettings.url == ent:GetToolURL() then
-			return false
+			return
 		end
 
 		if ent.RgChatNextSettingsUpdate and ent.RgChatNextSettingsUpdate < _CurTime() then
-			return false
+			return
 		end
 
 		ent.RgChatNextSettingsUpdate = _CurTime() + 3
@@ -135,7 +136,7 @@ local _set_settings_params = {
 			url = ent:GetToolURL(),
 		}
 
-		return true
+		return
 	end,
 	['mediaplayer_tv'] = function(ent)
 		local mp = ent:GetMediaPlayer()
@@ -153,14 +154,14 @@ local _set_settings_params = {
 		end
 
 		if ent.RgChatNextSettingsUpdate and ent.RgChatNextSettingsUpdate < _CurTime() then
-			return false
+			return
 		end
 
 		ent.RgChatNextSettingsUpdate = _CurTime() + 3
 
 		local playlist_hash = _util_SHA256(_util_TableToJSON(hash_table))
 		if ent.RgcLastMediaPlayerHash and ent.RgcLastMediaPlayerHash == playlist_hash then
-			return false
+			return
 		end
 
 		if ent.RgChatSettings then
@@ -214,7 +215,7 @@ local _set_settings_params = {
 			hash = playlist_hash
 		}
 
-		return true
+		return
 	end
 }
 
@@ -296,9 +297,9 @@ function _BackgroundActionsWorker()
 			for _, ply in _ipairs(_player_GetHumans()) do
 				local rgc_sync_target = ply:GetNWString('RGC_SYNC_TARGET', '')
 
-				if rgc_sync_target == '' then
-					rgc_sync_target = ply:SteamID64()
-				end
+				-- if rgc_sync_target == '' then
+				-- 	rgc_sync_target = ply:SteamID64()
+				-- end
 
 				if rgc_sync_target ~= '' then
 					local code, response = RealGloabalChat.WebApi.GameInfo:GetEntitiesWait(rgc_sync_target)
@@ -534,22 +535,12 @@ function _BackgroundUpdateWorker()
 					if _IsValid(ent) and (ent.RgChatNetHost == ply:SteamID64() or _skip_hosted_entities[ent:GetClass()]) then
 						update_entities[ply] = update_entities[ply] or {}
 						local class_name = ent:GetClass()
-						local can_update = false
 
 						if _set_settings_params[class_name] then
-							local result = _set_settings_params[class_name](ent)
-							if _isbool(result) then
-								can_update = result == true
-							else
-								can_update = true
-							end
-						else
-							can_update = true
+							_set_settings_params[class_name](ent)
 						end
 
-						if can_update then
-							_table_insert(update_entities[ply], ent)
-						end
+						_table_insert(update_entities[ply], ent)
 
 						break
 					end
@@ -634,6 +625,7 @@ end)
 
 hook.Add('PreCleanupMap', 'RgChat.EntSyncPostCleanupMap', function()
 	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
+	if RealGloabalChat:IsDeveloperMode() then return end
 	_cleanup_all = true
 end)
 
@@ -657,6 +649,7 @@ end)
 
 hook.Add('EntityRemoved', 'RgChat.EntSyncEntityRemoved', function(ent)
 	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
+	if RealGloabalChat:IsDeveloperMode() then return end
 	if _cleanup_all or not ent.RgChatNetId then return end
 	local ply = ent.RgChatOwner
 	if not _IsValid(ply) then return end

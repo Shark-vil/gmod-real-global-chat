@@ -97,6 +97,10 @@ _chat_commands = {
 		net.WriteString(text)
 		net.Send(ply)
 		return true
+	end,
+	-- Chat AI
+	['ai'] = function(ply, text)
+		return true
 	end
 }
 

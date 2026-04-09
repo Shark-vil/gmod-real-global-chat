@@ -19,6 +19,10 @@ function RealGloabalChat.Api:GetPlayerAction(ply)
 	local ply_skin = ply.rgchat_outfitter_skin or ply:GetSkin()
 	local ply_bodygroups = ply.rgchat_outfitter_bodygroups or ''
 
+	if not ply:IsOnGround() then
+		ply_move_type = 4
+	end
+
 	if ply_bodygroups == '' then
 		for _, v in _ipairs(ply:GetBodyGroups()) do
 			local bodygroup = ply:GetBodygroup(v.id)

@@ -23,7 +23,6 @@ function _Handler()
 			_RemoveAllBots()
 		else
 			local code, response = RealGloabalChat.WebApi.GameInfo:GetGameInfoWait(_last_update)
-
 			if code == 200 and response and response.success and response.success == 1 then
 				local data = response.data
 				local ignore_steamids = {}
