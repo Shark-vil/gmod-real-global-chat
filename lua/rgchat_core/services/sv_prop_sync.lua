@@ -589,7 +589,6 @@ end)
 
 hook.Add('EntityRemoved', 'RgChat.EntSyncEntityRemoved', function(ent)
 	if not RealGloabalChat.ConVar:GetBool('sv_rgc_sync_entities') then return end
-	if RealGloabalChat:IsDeveloperMode() then return end
 	if _cleanup_all or not ent.RgChatNetId then return end
 
 	local ply = ent.RgChatOwner
