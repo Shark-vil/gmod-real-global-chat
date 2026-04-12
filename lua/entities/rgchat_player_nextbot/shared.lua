@@ -64,6 +64,15 @@ function ENT:UpdateData(data)
 	self.BotData.Actions = data.actions
 	self:SetNWString('SteamId64', data.steamid64)
 	self:SetNWString('NickName', data.username)
+
+	-- Sync PPM skin via net message (NWString is too small for PPM JSON)
+	if SERVER and data.ppm_skin and data.ppm_skin ~= (self._rgc_ppm_skin or '') then
+		self._rgc_ppm_skin = data.ppm_skin
+		net.Start('RGChat_PPMSkin')
+		net.WriteString(data.steamid64)
+		net.WriteString(data.ppm_skin)
+		net.Broadcast()
+	end
 end
 
 function ENT:UpdateVars()

@@ -1,4 +1,19 @@
 local _Handler, _RemoveAllBots
+util.AddNetworkString('RGChat_PPMSkin')
+
+hook.Add('PlayerInitialSpawn', 'RGChat_ResendPPMSkins', function(ply)
+	timer.Simple(3, function()
+		if not IsValid(ply) then return end
+		for _, ent in ipairs(ents.FindByClass('rgchat_player_nextbot')) do
+			if IsValid(ent) and ent._rgc_ppm_skin and ent._rgc_ppm_skin ~= '' and ent.BotData.SteamId64 then
+				net.Start('RGChat_PPMSkin')
+				net.WriteString(ent.BotData.SteamId64)
+				net.WriteString(ent._rgc_ppm_skin)
+				net.Send(ply)
+			end
+		end
+	end)
+end)
 local _ents_FindByClass = ents.FindByClass
 local _ipairs = ipairs
 local _IsValid = IsValid

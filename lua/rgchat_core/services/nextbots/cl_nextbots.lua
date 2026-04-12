@@ -44,6 +44,123 @@ local _has_start_loaded = false
 local _has_readed_cache_workshop_files = false
 local _cache_workshop_files = {}
 
+-- PPM models that indicate a pony skin should be applied
+local _PPM_MODELS = {
+	['models/ppm/player_default_base.mdl']         = true,
+	['models/ppm/player_default_base_new.mdl']     = true,
+	['models/ppm/player_default_base_new_nj.mdl']  = true,
+	['models/ppm/player_default_base_nj.mdl']      = true,
+	['models/cppm/player_default_base.mdl']        = true,
+	['models/cppm/player_default_base_nj.mdl']     = true,
+}
+
+-- Apply PPM2 skin data from a decoded table onto a bot entity.
+-- Creates a NetworkedPonyData for the bot if one does not exist yet.
+-- All calls are wrapped in pcall so a missing PPM2 method won't crash.
+local function _ApplyPPM2Skin(bot, d)
+	if not PPM2 or not PPM2.NetworkedPonyData then return end
+
+	-- Get or create the pony data object for this bot
+	local pd = bot:GetPonyData()
+	if not pd then
+		local ok, err = pcall(function()
+			-- Negative EntIndex = local-only ID, never conflicts with server IDs
+			PPM2.NetworkedPonyData(-(bot:EntIndex()), bot)
+		end)
+		if not ok then
+			_MsgN('[RGChat/PPM2] Failed to create pony data for bot: ' .. tostring(err))
+			return
+		end
+		pd = bot:GetPonyData()
+	end
+	if not pd then return end
+
+	-- Helper: call a setter safely, skip if value is nil
+	local function s(method, val)
+		if val == nil then return end
+		pcall(function() pd[method](pd, val) end)
+	end
+	local function scolor(method, arr)
+		if type(arr) ~= 'table' then return end
+		pcall(function() pd[method](pd, Color(arr[1] or 255, arr[2] or 255, arr[3] or 255)) end)
+	end
+	local function sbool(method, val)
+		if val == nil then return end
+		pcall(function() pd[method](pd, val == 1) end)
+	end
+
+	s('SetRace',         d.Ra)
+	s('SetAge',          d.Ag)
+	sbool('SetGender',   d.Ge)
+	s('SetWeight',       d.We)
+	s('SetPonySize',     d.Ps)
+	s('SetManeType',     d.Mn)
+	s('SetManeTypeNew',  d.Mn2)
+	s('SetManeTypeLower',d.Ml)
+	s('SetTailType',     d.Tl)
+	s('SetTailTypeNew',  d.Tl2)
+	s('SetTailSize',     d.Ts)
+	s('SetWingsType',    d.Wi)
+	s('SetEyelashType',  d.El)
+	sbool('SetFangs',    d.Fa)
+	sbool('SetBatPonyEars', d.Bp)
+	sbool('SetHornGlow', d.Hg)
+	sbool('SetUseNewHorn', d.Hn)
+	s('SetNewHornType',  d.Ht)
+	sbool('SetCMark',    d.Cm)
+	s('SetCMarkType',    d.Ct)
+	s('SetCMarkURL',     d.Cu)
+	sbool('SetSocks',    d.Sk)
+	s('SetSocksTexture', d.St)
+	s('SetSocksTextureURL', d.Su)
+	s('SetHeadClothes',  d.Ch)
+	s('SetNeckClothes',  d.Cn)
+	s('SetBodyClothes',  d.Cb)
+	scolor('SetBodyColor',     d.Bc)
+	scolor('SetEyeIrisTop',    d.Ei)
+	scolor('SetEyeIrisBottom', d.Eb)
+	scolor('SetEyeBackground', d.Ee)
+	scolor('SetEyelashesColor',d.Ec)
+	scolor('SetHornColor',     d.Hc)
+	scolor('SetWingsColor',    d.Wc)
+end
+
+-- Apply PPM1 skin data from a decoded table onto a bot entity.
+local function _ApplyPPM1Skin(bot, d)
+	if not PPM or not PPM.setPonyValues then return end
+	if not bot.ponydata then
+		pcall(function() PPM.setupPony(bot) end)
+	end
+	if not bot.ponydata then return end
+	local pd = bot.ponydata
+	local function v(arr)
+		if type(arr) ~= 'table' then return nil end
+		return Vector(arr[1] or 1, arr[2] or 1, arr[3] or 1)
+	end
+	pd.kind      = d.ki or pd.kind
+	pd.age       = d.ag or pd.age
+	pd.gender    = d.ge or pd.gender
+	pd.mane      = d.ma or pd.mane
+	pd.manel     = d.ml or pd.manel
+	pd.tail      = d.ta or pd.tail
+	pd.tailsize  = d.ts or pd.tailsize
+	pd.eyelash   = d.el or pd.eyelash
+	pd.cmark_enabled = d.cm == 1 or false
+	pd.cmark     = d.ck or pd.cmark
+	pd.eyehaslines = d.eh == 1 or false
+	if d.cc then pd.coatcolor    = v(d.cc) end
+	if d.h1 then pd.haircolor1   = v(d.h1) end
+	if d.h2 then pd.haircolor2   = v(d.h2) end
+	if d.h3 then pd.haircolor3   = v(d.h3) end
+	if d.h4 then pd.haircolor4   = v(d.h4) end
+	if d.eb then pd.eyecolor_bg  = v(d.eb) end
+	if d.ei then pd.eyecolor_iris = v(d.ei) end
+	if d.eg then pd.eyecolor_grad = v(d.eg) end
+	if d.e1 then pd.eyecolor_line1 = v(d.e1) end
+	if d.e2 then pd.eyecolor_line2 = v(d.e2) end
+	pcall(function() PPM.setPonyValues(bot) end)
+end
+
 function _ReadCacheWorkshopFiles()
 	if not _file_Exists('rgchat_data/cache_workshop.json', 'DATA') then return end
 	local json_data = _file_Read('rgchat_data/cache_workshop.json', 'DATA')
@@ -306,3 +423,50 @@ cvars.AddChangeCallback('cl_rgc_download_model_size_limit', function(_, _, new_v
 		end
 	end
 end, 'update_model_cache_size_limit')
+
+-- [steamid64] = ppm_json, populated via net message from server
+local _ppm_skin_cache = {}
+
+-- Receive PPM skin data from server via net message (NWString was too small)
+net.Receive('RGChat_PPMSkin', function()
+	local steamid64 = net.ReadString()
+	local ppm_json = net.ReadString()
+	_ppm_skin_cache[steamid64] = ppm_json
+end)
+
+-- Apply PPM skin to nextbots.
+-- Runs every 2 seconds; skips bots whose skin JSON hasn't changed since last apply.
+-- Only triggers when the bot already has a valid pony model loaded.
+_timer_Create('RgChat.ApplyPPMSkin', 2, 0, function()
+	if not _ConVar:GetBool('sv_rgc_sync_players') then return end
+	-- If neither PPM2 nor PPM1 are available on this client, do nothing
+	if not PPM2 and not PPM then return end
+
+	local bots = _ents_FindByClass('rgchat_player_nextbot')
+
+	for _, bot in _ipairs(bots) do
+		if not _isValid(bot) then continue end
+
+		local steamid64 = bot:GetNWString('SteamId64', '')
+		local ppm_json = _ppm_skin_cache[steamid64] or ''
+		if ppm_json == '' then continue end
+
+		-- Skip if we already applied this exact JSON
+		if bot._rgc_ppm_applied == ppm_json then continue end
+
+		-- Only apply when the bot's current model is a known pony model
+		local bot_model = bot:GetModel()
+		if not _PPM_MODELS[bot_model] then continue end
+
+		local ok, skin_data = pcall(_util_JSONToTable, ppm_json)
+		if not ok or type(skin_data) ~= 'table' then continue end
+
+		if skin_data._v == 2 then
+			_ApplyPPM2Skin(bot, skin_data)
+		elseif skin_data._v == 1 then
+			_ApplyPPM1Skin(bot, skin_data)
+		end
+
+		bot._rgc_ppm_applied = ppm_json
+	end
+end)
