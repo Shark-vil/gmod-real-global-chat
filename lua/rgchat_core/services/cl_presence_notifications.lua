@@ -106,3 +106,30 @@ local function _Handler()
 end
 
 RealGloabalChat:AddBackgroundWorker('presence_notifications', _Handler)
+
+concommand.Add('cl_rgc_debug_presence', function()
+	local Language = RealGloabalChat.Language
+	local tag = Language:Get('rgchat_info') .. ' '
+	_Notify(_sound_join,
+		_color_tag, tag,
+		_color_join, '▸ ',
+		_color_name, 'TestPlayer',
+		_color_map, ' — gm_flatgrass'
+	)
+	timer.Simple(0.7, function()
+		_Notify(_sound_map,
+			_color_tag, tag,
+			_color_mapchange, '↺ ',
+			_color_name, 'TestPlayer',
+			_color_msg, ' → ',
+			_color_map, 'gm_construct'
+		)
+	end)
+	timer.Simple(1.4, function()
+		_Notify(_sound_leave,
+			_color_tag, tag,
+			_color_leave, '◂ ',
+			_color_name, 'TestPlayer'
+		)
+	end)
+end)
