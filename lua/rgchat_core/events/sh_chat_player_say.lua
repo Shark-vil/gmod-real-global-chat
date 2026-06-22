@@ -24,11 +24,6 @@ _chat_commands = {
 		ply:ConCommand('cl_rgc_download_model_size_limit ' .. new_size)
 		ply:RgcPrint('New workshop download limit: ' .. tostring(new_size) .. ' mb')
 	end,
-	['rgchatmode'] = function(ply)
-		net.Start('RGChat_SwitchCvarFromClient')
-		net.WriteString('cl_rgc_country_mode')
-		net.Send(ply)
-	end,
 	['rgchatfilter'] = function(ply)
 		net.Start('RGChat_SwitchCvarFromClient')
 		net.WriteString('cl_rgc_filter')

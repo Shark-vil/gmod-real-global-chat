@@ -18,13 +18,7 @@ local _muted_users
 local _default_chat_room_name = 'world'
 
 function RealGloabalChat.Api:GetChatRoom()
-	local chatRoomName = _default_chat_room_name
-
-	if RealGloabalChat.ConVar:GetBool('cl_rgc_country_mode') then
-		chatRoomName = 'country.' .. _string_lower(_system_GetCountry())
-	end
-
-	return chatRoomName
+	return _default_chat_room_name
 end
 
 concommand.Add('cl_rgc_dev_set_chat_room_name', function(_, _, args)

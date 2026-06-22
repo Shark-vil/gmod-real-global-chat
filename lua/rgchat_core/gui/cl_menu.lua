@@ -203,19 +203,6 @@ local function openSettingsMenu()
 	label_translator:SetAutoStretchVertical(true)
 	base_setup_element(label_translator)
 
-	local checkbox_country = scroll_panel:Add('DCheckBoxLabel')
-	checkbox_country:SetConVar('cl_rgc_country_mode')
-	checkbox_country:SetText(Language:Get('menu_rgc_country_mode'))
-	checkbox_country:SetTooltip(Language:Get('menu_rgc_country_mode_desc'))
-	checkbox_country:SetFont('Trebuchet24')
-	base_setup_element(checkbox_country, { 15, 5, 15, 0 }, 'cl_rgc_country_mode')
-
-	local label_country = scroll_panel:Add('DLabel')
-	label_country:SetText(Language:Get('menu_rgc_country_mode_desc'))
-	label_country:SetFont('CreditsText')
-	label_country:SetAutoStretchVertical(true)
-	base_setup_element(label_country)
-
 	local checkbox_mapname = scroll_panel:Add('DCheckBoxLabel')
 	checkbox_mapname:SetConVar('cl_rgc_visible_player_map_name')
 	checkbox_mapname:SetText(Language:Get('menu_rgc_visible_player_map_name'))
@@ -481,9 +468,6 @@ Set player model limit:
 - /rgchatwslimit NUMBER
 - Example: /rgchatwslimit 150
 - Disable: /rgchatwslimit 0
-
-Country mode switch:
-- /rgchatmode
 
 Filter switch:
 - /rgchatfilter

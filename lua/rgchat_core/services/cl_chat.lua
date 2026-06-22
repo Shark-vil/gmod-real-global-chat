@@ -168,7 +168,7 @@ function _RenderMessages(response)
 		end
 
 		local builder = RealGloabalChat:GetChatMessageBuilder()
-		local world_type = ConVar:GetBool('cl_rgc_country_mode') and Language:Get('chat_type_country') or Language:Get('chat_type_world')
+		local world_type = Language:Get('chat_type_world')
 		local is_show_rgx_prefix = ConVar:GetBool('cl_rgc_visible_rgc_prefix')
 		local is_show_chatname = ConVar:GetBool('cl_rgc_visible_chat_name')
 		local is_show_player_id = ConVar:GetBool('cl_rgc_visible_player_id')

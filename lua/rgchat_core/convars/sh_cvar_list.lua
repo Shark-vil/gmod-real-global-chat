@@ -3,7 +3,6 @@ local cvar_list = {
 	{ 'cl_rgc_filter', '1', FCVAR_ARCHIVE, 'If active, questionable words will be hidden with asterisks. Only words from the prepared list will be hidden.', 0, 1 },
 	{ 'cl_rgc_filter_strict', '0', FCVAR_ARCHIVE, 'If active, the message containing questionable words will be hidden completely. IMPORTANT: cl_rgc_filter must be active (cl_rgc_filter 1).', 0, 1 },
 	{ 'cl_rgc_filter_family', '0', FCVAR_ARCHIVE, 'If active, then the most active filtering mode is in effect using a neural network (not always good). IMPORTANT: cl_rgc_filter must be active (cl_rgc_filter 1).', 0, 1 },
-	{ 'cl_rgc_country_mode', '0', FCVAR_ARCHIVE, 'If this is active, you will connect to your country\'s chat room. IMPORTANT: you will not see a message from people in your country if they are in the world chat!', 0, 1 },
 	{ 'cl_rgc_ping_sound', '1', FCVAR_ARCHIVE, 'If active, you will hear a ping sound every time someone mentions you.', 0, 1 },
 	{ 'cl_rgc_ping_by_coincidence', '1', FCVAR_ARCHIVE, 'If enabled, you can be ping partially by entering your nickname. If you disable this, you can only be ping via the "/ping" command or via your full nickname/ID.', 0, 1 },
 	{ 'cl_rgc_new_message_sound', '1', FCVAR_ARCHIVE, 'If enabled, a sound effect will be played when new messages are sent to the chat. Players who are muted or blocked by a strict filter will not be counted.', 0, 1 },

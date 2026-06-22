@@ -22,11 +22,6 @@ cvars.AddChangeCallback('cl_rgc_visible_player_map_name', function(_, _, new_val
 	RealGloabalChat:Print(is_active and _Language:Get('rgchat_mapname_on') or _Language:Get('rgchat_mapname_off'))
 end, 'print_changes')
 
-cvars.AddChangeCallback('cl_rgc_country_mode', function(_, _, new_value)
-	local is_active = tostring(new_value) == '1'
-	RealGloabalChat:Print(is_active and _Language:Get('rgchat_on_type_country') or _Language:Get('rgchat_on_type_world'))
-end, 'print_changes')
-
 cvars.AddChangeCallback('cl_rgc_filter', function(_, _, new_value)
 	local is_active = tostring(new_value) == '1'
 	RealGloabalChat:Print(is_active and _Language:Get('rgchat_on_filter') or _Language:Get('rgchat_off_filter'))
