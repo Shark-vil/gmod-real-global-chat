@@ -14,6 +14,8 @@ RealGloabalChat.Language:Register('polish', {
 	['rgchat_on_filter_strict'] = 'Włączyłeś ścisłe filtrowanie czatu.',
 	['rgchat_off_filter_strict'] = 'Wyłączyłeś ścisłe filtrowanie czatu.',
 	['rgchat_filter_strict_warn'] = 'Ścisłe filtrowanie nie działa bez włączonej komendy /rgchatfilter',
+	['rgchat_presence_on'] = 'Włączyłeś powiadomienia o obecności graczy.',
+	['rgchat_presence_off'] = 'Wyłączyłeś powiadomienia o obecności graczy.',
 	['rgchat_ping_sfx_on'] = 'Włączyłeś dzwięk powiadomienia.',
 	['rgchat_ping_sfx_off'] = 'Wyłączyłeś dzwięk powiadomienia.',
 	['rgchat_mapname_off'] = 'Wyłączono wyświetlanie map w pseudonimach.',

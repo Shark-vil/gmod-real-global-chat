@@ -12,6 +12,11 @@ cvars.AddChangeCallback('cl_rgc_longpoll_service_beta', function(_, _, new_value
 	RealGloabalChat:Print(is_active and _Language:Get('rgchat_on_longpoll_service') or _Language:Get('rgchat_off_longpoll_service'))
 end, 'print_changes')
 
+cvars.AddChangeCallback('cl_rgc_presence_notifications', function(_, _, new_value)
+	local is_active = tostring(new_value) == '1'
+	RealGloabalChat:Print(is_active and _Language:Get('rgchat_presence_on') or _Language:Get('rgchat_presence_off'))
+end, 'print_changes')
+
 cvars.AddChangeCallback('cl_rgc_ping_sound', function(_, _, new_value)
 	local is_active = tostring(new_value) == '1'
 	RealGloabalChat:Print(is_active and _Language:Get('rgchat_ping_sfx_on') or _Language:Get('rgchat_ping_sfx_off'))
